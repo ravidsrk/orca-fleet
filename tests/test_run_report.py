@@ -10,7 +10,9 @@ The fixtures build real git repos, because the mechanism is "re-hash the recorde
 paths at the recorded commit" — a fake that never touches git would test nothing.
 """
 import base64
+import contextlib
 import hashlib
+import io
 import importlib.util
 import json
 import re
@@ -1241,19 +1243,10 @@ dispatch_sign = importlib.util.module_from_spec(_dsspec)
 _dsspec.loader.exec_module(dispatch_sign)
 
 
-class SignedTranscriptRequired(RunReportBinding):
-    """#281 / #386: with the coordinator's public key COMMITTED, the verifier-ran leg needs more
-    than a worker-written ledger entry — it needs verify.py's verdict as a signed transcript that
-    verifies against that key and binds to this report's claims.
-
-    WHERE the key is read is the whole switch, and it is ancestry-aware (round-1 review of PR
-    #489, BOT-2): a pin on the grading base's ancestry (the default branch's current tip) reads
-    the key at the pin, so a report pinned before the key landed keeps the unsigned path; a pin
-    OFF that ancestry — a fork from any pre-key commit, a dangling commit — is judged against the
-    key at the grading base, because fresh artifacts on such a fork prove nothing about the key.
-    The fixtures below therefore must NOT re-pin every report to HEAD: the tests that matter are
-    the ones where blob_at(rev) != blob_at(HEAD).
-    """
+class SignedKeyFixture(RunReportBinding):
+    """The coordinator-key fixture the signed-transcript and signed-inventory legs share: a
+    committed pubkey, a verdict envelope, and the ancestry shapes (the key landing after the
+    pin; a fork from a pre-key commit). No tests of its own."""
 
     SEED = bytes(range(1, 33))
     PUBKEY = ".orca/dispatch-pubkey"
@@ -1275,6 +1268,17 @@ class SignedTranscriptRequired(RunReportBinding):
         seed = seed or self.SEED
         sig = ed.signature(dispatch_sign.canonical_transcript(record), seed, ed.publickey(seed))
         return {"record": record, "sig_b64": base64.b64encode(sig).decode("ascii")}
+
+    def _sign_report(self, seed=None):
+        """Sign the report's inventory in place with `seed` (the coordinator's by default) —
+        inventory.py sign, which re-derives the entries from the working tree first."""
+        seed = seed or self.SEED
+        key = self.repo / "seed"
+        key.write_text(seed.hex() + "\n", encoding="utf-8")
+        with contextlib.redirect_stdout(io.StringIO()):
+            rc = run_report.inventory.main(["sign", str(self.path), "--key", str(key)])
+        key.unlink()
+        self.assertEqual(rc, 0, "inventory.py sign refused — the tree does not match the entries")
 
     def _land(self, pubkey=True, transcript=None, msg="pubkey / transcript"):
         """Commit the pubkey and/or a transcript on the CURRENT branch. The report is NOT re-pinned:
@@ -1303,6 +1307,44 @@ class SignedTranscriptRequired(RunReportBinding):
         extra = f" transcript={self.TRANSCRIPT}" if transcript is not None else ""
         self._write(header_extra=extra)
 
+    def _on_main(self):
+        """The fixture's branch, named so grading_base() resolves it whatever init.defaultBranch is."""
+        _git(self.repo, "branch", "-M", "main")
+
+    def _fork_from_pre_key(self, dangling=False):
+        """The BOT-2 shape: the key lands on main; a branch forked from the PRE-key commit gets
+        fresh artifacts; the report pins that fork tip (which exists, and carries no key)."""
+        self._on_main()
+        pre_key = self.rev
+        key_commit = self._land(pubkey=True, msg="the key lands on main")
+        _git(self.repo, "checkout", "-q", "-b", "sneaky", pre_key)
+        (self.run_dir / "negctrl.txt").write_text("mutant KILLED (fresh work)\n", encoding="utf-8")
+        fork = self._land(pubkey=False, msg="fresh artifacts on a pre-key fork")
+        _git(self.repo, "checkout", "-q", "main")
+        if dangling:
+            _git(self.repo, "branch", "-D", "sneaky")
+        self.rev = fork
+        self.nc_sha = self._blob_sha(self.rev, self.nc)
+        self.assertNotEqual(
+            subprocess.run(["git", "merge-base", "--is-ancestor", fork, "main"], cwd=str(self.repo)).returncode,
+            0, "the fork must sit OFF main's ancestry for this test to mean anything")
+        return key_commit
+
+
+class SignedTranscriptRequired(SignedKeyFixture):
+    """#281 / #386: with the coordinator's public key COMMITTED, the verifier-ran leg needs more
+    than a worker-written ledger entry — it needs verify.py's verdict as a signed transcript that
+    verifies against that key and binds to this report's claims.
+
+    WHERE the key is read is the whole switch, and it is ancestry-aware (round-1 review of PR
+    #489, BOT-2): a pin on the grading base's ancestry (the default branch's current tip) reads
+    the key at the pin, so a report pinned before the key landed keeps the unsigned path; a pin
+    OFF that ancestry — a fork from any pre-key commit, a dangling commit — is judged against the
+    key at the grading base, because fresh artifacts on such a fork prove nothing about the key.
+    The fixtures below therefore must NOT re-pin every report to HEAD: the tests that matter are
+    the ones where blob_at(rev) != blob_at(HEAD).
+    """
+
     def test_without_a_committed_key_the_ledger_still_suffices(self):
         # Today's path, byte-identical: no key at the pin, no transcript named -> bound.
         self._write()
@@ -1315,6 +1357,7 @@ class SignedTranscriptRequired(RunReportBinding):
 
     def test_a_signed_transcript_against_the_committed_key_binds(self):
         self._commit(pubkey=True, transcript=self._envelope(self._verdict()))
+        self._sign_report()  # the key is one switch for both legs (#386); this test is the transcript's
         self.assertEqual(self._check(), [])
 
     def test_a_tampered_transcript_is_refused(self):
@@ -1352,6 +1395,7 @@ class SignedTranscriptRequired(RunReportBinding):
     def test_a_recorded_red_binds_when_the_transcript_agrees(self):
         self._commit(pubkey=True, transcript=self._envelope(self._verdict(exit=2, fatal=["x"])))
         self._write(verifier="RED", header_extra=f" transcript={self.TRANSCRIPT}")
+        self._sign_report()
         self.assertEqual(self._check(), [])
 
     def test_a_transcript_outside_the_run_directory_is_refused(self):
@@ -1410,10 +1454,6 @@ class SignedTranscriptRequired(RunReportBinding):
 
     # --- WHERE the key is read: the pin on the base's ancestry, the base off it -----------------
 
-    def _on_main(self):
-        """The fixture's branch, named so grading_base() resolves it whatever init.defaultBranch is."""
-        _git(self.repo, "branch", "-M", "main")
-
     def test_a_report_pinned_before_the_key_landed_keeps_the_unsigned_path(self):
         # P2: the key lands AFTER the pin, on the same line; blob_at(rev) != blob_at(HEAD).
         self._on_main()
@@ -1442,25 +1482,6 @@ class SignedTranscriptRequired(RunReportBinding):
         errors = self._check()
         self.assertTrue(any("unsigned" in e.lower() or "sig_b64" in e for e in errors), errors)
 
-    def _fork_from_pre_key(self, dangling=False):
-        """The BOT-2 shape: the key lands on main; a branch forked from the PRE-key commit gets
-        fresh artifacts; the report pins that fork tip (which exists, and carries no key)."""
-        self._on_main()
-        pre_key = self.rev
-        key_commit = self._land(pubkey=True, msg="the key lands on main")
-        _git(self.repo, "checkout", "-q", "-b", "sneaky", pre_key)
-        (self.run_dir / "negctrl.txt").write_text("mutant KILLED (fresh work)\n", encoding="utf-8")
-        fork = self._land(pubkey=False, msg="fresh artifacts on a pre-key fork")
-        _git(self.repo, "checkout", "-q", "main")
-        if dangling:
-            _git(self.repo, "branch", "-D", "sneaky")
-        self.rev = fork
-        self.nc_sha = self._blob_sha(self.rev, self.nc)
-        self.assertNotEqual(
-            subprocess.run(["git", "merge-base", "--is-ancestor", fork, "main"], cwd=str(self.repo)).returncode,
-            0, "the fork must sit OFF main's ancestry for this test to mean anything")
-        return key_commit
-
     def test_post_key_work_pinned_to_a_pre_key_fork_is_refused(self):
         # P4, the evasion round 1 executed: artifacts exist at the pin, the key does not, and
         # the pin is not an ancestor of the grading base -> the key at the BASE is what counts.
@@ -1484,8 +1505,9 @@ class SignedTranscriptRequired(RunReportBinding):
         _git(self.repo, "checkout", "-q", "sneaky")
         self._land(pubkey=False, transcript=self._envelope(self._verdict()))
         self.rev = _git(self.repo, "rev-parse", "HEAD")
-        _git(self.repo, "checkout", "-q", "main")
         self._write(header_extra=f" transcript={self.TRANSCRIPT}")
+        self._sign_report()  # on the fork's tree: sign re-derives from disk
+        _git(self.repo, "checkout", "-q", "main")
         self.assertEqual(self._check(), [])
 
     def test_a_pre_key_report_still_binds_when_the_base_is_named_explicitly(self):
@@ -1496,6 +1518,129 @@ class SignedTranscriptRequired(RunReportBinding):
         self.assertEqual(run_report.check_report(self.path, "demo-it", "self-run", root=self.repo,
                                                  base="main"), [])
         self.assertEqual(run_report.grading_base(self.repo), _git(self.repo, "rev-parse", "main"))
+
+
+class SignedInventoryRequired(SignedKeyFixture):
+    """#386 / U-SIG-2: with the coordinator's key committed where the switch is read, the run-close
+    inventory's ENTRY SET must carry the coordinator's signature (inventory.py sign) — a worker
+    can type an inventory as easily as a transcript. The key is read exactly where the transcript
+    rule reads it (key_rev: the pin on the grading base's ancestry, the base off it), so the two
+    legs cannot disagree about whether enforcement is on. Every test here lands a VALID signed
+    transcript first, so what it isolates is the inventory leg alone.
+    """
+
+    def _transcript_commit(self, pubkey=True):
+        self._commit(pubkey=pubkey, transcript=self._envelope(self._verdict()))
+
+    def test_with_a_committed_key_an_unsigned_inventory_no_longer_binds(self):
+        self._transcript_commit()
+        self.assertEqual([e for e in self._check() if "transcript" in e], [], "the transcript leg holds")
+        errors = self._check()
+        self.assertTrue(any("inventory" in e and "unsigned" in e.lower() and self.PUBKEY in e
+                            for e in errors), errors)
+
+    def test_a_signed_inventory_against_the_committed_key_binds(self):
+        self._transcript_commit()
+        self._sign_report()
+        self.assertEqual(self._check(), [])
+
+    def test_a_tampered_inventory_entry_is_refused(self):
+        self._transcript_commit()
+        self._sign_report()
+        # The negative-control entry dropped AFTER signing: what remains still re-derives at the
+        # pin (the manifest is a real blob there), so only the signature knows the attested set
+        # was larger.
+        text = self.path.read_text(encoding="utf-8")
+        self.assertIn(f"{self.nc_sha}  {self.nc}\n", text)
+        self.path.write_text(text.replace(f"{self.nc_sha}  {self.nc}\n", "", 1), encoding="utf-8")
+        errors = self._check()
+        self.assertTrue(any("inventory" in e and "signature" in e.lower() for e in errors), errors)
+
+    def test_an_inventory_signed_by_another_key_is_refused(self):
+        self._transcript_commit()
+        self._sign_report(seed=bytes(range(100, 132)))
+        errors = self._check()
+        self.assertTrue(any("inventory" in e and "signature" in e.lower() for e in errors), errors)
+
+    def test_a_signed_inventory_is_checked_even_without_a_committed_key(self):
+        # G-4's rule, mirrored: a signature with nothing to verify it against is a claim that
+        # fails closed, not one that passes quietly.
+        self._write()
+        self._sign_report()
+        errors = self._check()
+        self.assertTrue(any("inventory" in e and self.PUBKEY in e for e in errors), errors)
+
+    def test_without_a_committed_key_an_unsigned_inventory_still_binds(self):
+        self._write()
+        self.assertEqual(self._check(), [])
+
+    def test_a_pre_key_report_on_the_ancestry_keeps_the_unsigned_inventory(self):
+        self._on_main()
+        self._write()
+        self._land(pubkey=True)
+        self.assertEqual(self._check(), [])
+
+    def test_post_key_work_pinned_to_a_pre_key_fork_needs_a_signed_inventory(self):
+        # The transcript leg's BOT-2 closure applies to the inventory leg through the same key_rev.
+        self._fork_from_pre_key()
+        _git(self.repo, "checkout", "-q", "sneaky")
+        self._land(pubkey=False, transcript=self._envelope(self._verdict()))
+        self.rev = _git(self.repo, "rev-parse", "HEAD")
+        self._write(header_extra=f" transcript={self.TRANSCRIPT}")
+        _git(self.repo, "checkout", "-q", "main")
+        errors = self._check()
+        self.assertEqual([e for e in errors if "transcript" in e], [], errors)
+        self.assertTrue(any("inventory" in e and self.PUBKEY in e for e in errors), errors)
+        # Signed on the fork's own tree (sign re-derives from disk), graded from main.
+        _git(self.repo, "checkout", "-q", "sneaky")
+        self._sign_report()
+        _git(self.repo, "checkout", "-q", "main")
+        self.assertEqual(self._check(), [])
+
+    # --- round-1 G-1 / G-2 mirrored at the gate ------------------------------------------------
+    def _rewrite_envelope(self, edit):
+        text = self.path.read_text(encoding="utf-8")
+        line = next(l for l in text.splitlines() if l.startswith("<!-- inventory-signature"))
+        self.path.write_text(edit(text, line), encoding="utf-8")
+
+    def test_a_malformed_sig_b64_never_binds(self):
+        # M14 at the gate: the record is derivable from the report; a sig_b64 that does not
+        # decode is a keyless forgery and must refuse, never read as bound.
+        self._transcript_commit()
+        self._sign_report()
+        self._rewrite_envelope(lambda text, line: text.replace(
+            line, line.replace(json.loads(line[len("<!-- inventory-signature "):-len(" -->")])["sig_b64"],
+                               "not*base64!")))
+        errors = self._check()
+        self.assertTrue(any("signature does not bind" in e and "malformed" in e for e in errors), errors)
+
+    def test_a_signature_line_in_the_report_prose_is_refused(self):
+        # BOT-1 at the gate: a pasted example above the inventory heading is outside every
+        # find_blocks range — refused as a would-be forgery, not honoured, not "unsigned".
+        self._transcript_commit()
+        self._sign_report()
+        self.assertEqual(self._check(), [])
+        self._rewrite_envelope(lambda text, line: line + "\n" + text)
+        errors = self._check()
+        self.assertTrue(any("inventory" in e and "outside" in e for e in errors), errors)
+        self.assertFalse(any("UNSIGNED" in e for e in errors), errors)
+
+    def test_a_malformed_pin_refuses_the_inventory_leg_too(self):
+        # G-5: the pin is parsed once, in enforcement_key(); both legs refuse the same way.
+        self._transcript_commit()
+        self._sign_report()
+        (self.repo / self.PUBKEY).write_text("not-hex\n", encoding="utf-8")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "bad pin")
+        self.rev = _git(self.repo, "rev-parse", "HEAD")
+        self._write(header_extra=f" transcript={self.TRANSCRIPT}")
+        self._sign_report()
+        errors = self._check()
+        self.assertEqual(len([e for e in errors if "malformed" in e]), 2, errors)
+        pub, at, why = run_report.enforcement_key(self.rev, self.repo)
+        self.assertIsNone(pub)
+        self.assertIsNone(at)
+        self.assertIn("malformed", why)
 
 
 class LiveCatalog(unittest.TestCase):

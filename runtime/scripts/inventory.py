@@ -41,9 +41,36 @@ How to wire
     the commit it names, not at HEAD.
 
     Example: ``inventory.py check docs/runs/2026-08-28-ship-it-self-run.md``
+
+Signing (#386). An inventory a worker can write is a claim a worker can type.
+``sign --key <seed>`` signs the document's ENTRY SET — every block's
+``(path, sha256)`` pairs, sorted, re-derived from disk first — with the
+coordinator's Ed25519 key (dispatch-sign.py's gen-key files, the same envelope
+``{record, sig_b64}`` the dispatch record and the verifier transcript use). The
+envelope is one detached line inside the inventory block, an HTML comment the
+parser ignores and a renderer hides::
+
+    <!-- inventory-signature {"record": {"entries": 2, "inventory_sha256": "…"}, "sig_b64": "…"} -->
+
+``check --pubkey <path>`` then requires it: a missing envelope is refused, a
+tampered entry (or signature) fails, another key fails. The envelope is only
+ever looked for INSIDE the inventory blocks find_blocks() returns: a matching
+line anywhere else in the document (prose, an example) is never an envelope and
+is refused when the envelope is read, never honoured and never rewritten; two
+envelope lines, a non-JSON line or a non-{record, sig_b64} line refuse too, and
+a signature that does not decode is a refusal in its own right — validity is an
+affirmative verdict from the key, never the absence of a complaint (round-1
+G-1). Without ``--pubkey`` ``check`` reads the block exactly as before, and
+``write`` without ``--key`` writes exactly as before: neither reads the envelope
+for enforcement — what switches enforcement on for a run report is the
+committed ``.orca/dispatch-pubkey``, which run_report.py reads where the
+transcript rule reads it. Stdlib only, offline: nothing here reaches a network.
 """
 import argparse
+import base64
 import hashlib
+import importlib.util
+import json
 import re
 import subprocess
 import sys
@@ -59,10 +86,22 @@ FENCE = re.compile(r"^\s*(```+|~~~+)")
 SHA_LINE = re.compile(r"^([0-9a-fA-F]{64})\s+(\S.*)$")
 TABLE_ROW = re.compile(r"^\s*\|(.+)\|\s*$")
 SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
+# The detached signature envelope: one HTML-comment line inside an inventory block. Neither
+# SHA_LINE nor TABLE_ROW can match it, so every pre-signature parser reads past it unchanged.
+SIGNATURE_TAG = "inventory-signature"
+SIGNATURE_LINE = re.compile(r"^\s*<!--\s*" + SIGNATURE_TAG + r"\s+(\{.*\})\s*-->\s*$")
+SIGNED_FIELDS = ("entries", "inventory_sha256")
+_HERE = Path(__file__).resolve().parent
 
 
 class InventoryError(Exception):
     """Could-not-run: no block, unreadable report, nothing verifiable."""
+
+
+class SignatureRefused(Exception):
+    """The envelope does not verify: the wrong entry set, an undecodable signature, or another
+    key. Raised, never returned, so no code path can hand a caller a refusal that looks like a
+    verdict."""
 
 
 def sha256_file(path):
@@ -189,6 +228,133 @@ def load(report_path):
     return report, lines, entries
 
 
+def _dispatch_sign():
+    """The signer: canonical form, envelope and the vendored Ed25519 — one scheme, loaded only on
+    the signing/verifying paths so a bundle that ships inventory.py alone still writes and checks."""
+    spec = importlib.util.spec_from_file_location("dispatch_sign", _HERE / "dispatch-sign.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def canonical_entries(entries):
+    """The bytes the coordinator signs: the SET of (path, sha256) pairs across every block, sorted,
+    no whitespace. Order and block membership are presentation; the claim is the set (#315)."""
+    pairs = sorted({(path_text, recorded) for _idx, path_text, recorded, _shape in entries})
+    return json.dumps([list(p) for p in pairs], separators=(",", ":")).encode("utf-8")
+
+
+def inventory_digest(entries):
+    """sha256 of canonical_entries — the one value the signature and a log receipt both bind."""
+    return hashlib.sha256(canonical_entries(entries)).hexdigest()
+
+
+def signature_record(entries):
+    return {"entries": len({(p, h) for _i, p, h, _s in entries}), "inventory_sha256": inventory_digest(entries)}
+
+
+def find_signature(lines):
+    """(lineno, envelope) for the signature line inside the document's inventory blocks, or
+    (None, None). The scan is scoped to exactly the find_blocks ranges: a matching line outside
+    every block is not an envelope and is REFUSED as a would-be forgery, not honoured (BOT-1 —
+    the parser only reads those ranges, so only those ranges can carry the claim). Two lines is
+    a document signing itself twice — refused, since a reader could not know which one binds."""
+    blocks = find_blocks(lines)
+    found, stray = [], []
+    for idx, line in enumerate(lines):
+        m = SIGNATURE_LINE.match(line)
+        if m and any(start < idx < end for start, end in blocks):
+            found.append((idx, m.group(1)))
+        elif m:
+            stray.append(idx + 1)
+    if stray:
+        raise InventoryError(f"{SIGNATURE_TAG} line at line {', '.join(map(str, stray))} sits outside "
+                             "every inventory block — not an envelope; refused")
+    if not found:
+        return None, None
+    if len(found) > 1:
+        raise InventoryError(f"{len(found)} {SIGNATURE_TAG} lines — a document carries one signature")
+    idx, raw = found[0]
+    try:
+        envelope = json.loads(raw)
+    except ValueError as err:
+        raise InventoryError(f"the {SIGNATURE_TAG} line is not JSON: {err}") from err
+    if not (isinstance(envelope, dict) and isinstance(envelope.get("record"), dict)
+            and isinstance(envelope.get("sig_b64"), str)):
+        raise InventoryError(f"the {SIGNATURE_TAG} line is not a {{record, sig_b64}} envelope")
+    return idx, envelope
+
+
+def read_pubkey(path):
+    """32 raw bytes from a hex pubkey file (gen-key's <out>.pub / .orca/dispatch-pubkey)."""
+    try:
+        pub = bytes.fromhex(Path(path).read_text(encoding="utf-8").strip())
+    except (OSError, ValueError) as err:
+        raise InventoryError(f"pubkey {path} is unreadable or not hex: {err}") from err
+    if len(pub) != 32:
+        raise InventoryError(f"pubkey {path} is not a 32-byte Ed25519 key")
+    return pub
+
+
+def decode_signature(sig_b64):
+    """The 64 signature bytes, or SignatureRefused. A decode or length error is a refusal of its
+    own — it can only RED, never fall through to the key: a forger who derives the record from
+    the document (anyone can) and types anything into sig_b64 must be refused here (round-1 G-1)."""
+    try:
+        sig = base64.b64decode(sig_b64, validate=True)
+    except (TypeError, ValueError) as err:
+        raise SignatureRefused(f"sig_b64 is malformed ({err})") from err
+    if len(sig) != 64:
+        raise SignatureRefused(f"sig_b64 is malformed (decodes to {len(sig)} bytes, not a 64-byte "
+                               "Ed25519 signature)")
+    return sig
+
+
+def verify_signature(envelope, entries, pub):
+    """The inventory digest the coordinator signed — an AFFIRMATIVE value the caller compares to
+    inventory_digest(entries) — when `envelope` is the coordinator's signature over exactly this
+    entry set; SignatureRefused otherwise. Never None, never a string reason: every refusal
+    leaves by the exception, so a malformed envelope cannot be mistaken for a verified one.
+    Checked in the order that names the cheaper lie first: the record's digest against the
+    entries actually present, the signature's decoding, then the signature over that record."""
+    ds = _dispatch_sign()
+    record = envelope["record"]
+    want = signature_record(entries)
+    if record.get("inventory_sha256") != want["inventory_sha256"]:
+        raise SignatureRefused(
+            f"signature record binds inventory digest {str(record.get('inventory_sha256'))[:12]}…, "
+            f"but the entries present digest to {want['inventory_sha256'][:12]}… — an entry was "
+            "added, dropped or changed after signing")
+    sig = decode_signature(envelope["sig_b64"])
+    if not ds._load_ed25519().checkvalid(sig, ds.canonical_record(record, SIGNED_FIELDS), pub):
+        raise SignatureRefused("signature INVALID for this pubkey — not the coordinator's inventory "
+                               "(tampered, forged, or another key)")
+    return want["inventory_sha256"]
+
+
+def signature_line(seed, entries):
+    ds = _dispatch_sign()
+    env = ds.envelope(seed, signature_record(entries), SIGNED_FIELDS)
+    return f"<!-- {SIGNATURE_TAG} {json.dumps(env, separators=(', ', ': '))} -->"
+
+
+def _place_signature(lines, line):
+    """Replace the existing in-block envelope line, or append one at the end of the FIRST block's
+    body (the last non-blank line before the next heading) — inside the range find_blocks reads,
+    which is the only place find_signature looks. Prose is never touched: a matching line outside
+    the blocks makes find_signature refuse before anything is rewritten (BOT-1)."""
+    idx, _env = find_signature(lines)
+    if idx is not None:
+        lines[idx] = line
+        return lines
+    start, end = find_blocks(lines)[0]
+    at = end
+    while at > start + 1 and not lines[at - 1].strip():
+        at -= 1
+    lines.insert(at, line)
+    return lines
+
+
 def check_entries(entries, report, root, at=None):
     """(matched, mismatched, missing) for one inventory, in the tree or at a rev."""
     matched, mismatched, missing = [], [], []
@@ -244,6 +410,27 @@ def cmd_check(args):
         print(f"MISSING  {path_text} (not present in {where} — not a mismatch)")
     print(f"inventory: {len(matched)} verified, {len(mismatched)} mismatched, "
           f"{len(missing)} missing, in {args.report}" + (f" at {at}" if at else ""))
+    pubkey = getattr(args, "pubkey", None)
+    if pubkey:
+        # Enforcement is ON: the entry set must carry the coordinator's signature. Without
+        # --pubkey the envelope is never read — today's path, byte for byte.
+        pub = read_pubkey(pubkey)
+        _idx, envelope = find_signature(_lines)
+        if envelope is None:
+            print(f"UNSIGNED inventory: no {SIGNATURE_TAG} line, and a pubkey is configured — "
+                  "refused; sign it with `inventory.py sign --key <seed>`", file=sys.stderr)
+            return EXIT_MISMATCH
+        try:
+            signed = verify_signature(envelope, entries, pub)
+        except SignatureRefused as why:
+            print(f"SIGNATURE {why}", file=sys.stderr)
+            return EXIT_MISMATCH
+        if signed != inventory_digest(entries):  # verified means the key said so over THIS set
+            print(f"SIGNATURE verifier returned {signed!r}, not this inventory's digest — refused",
+                  file=sys.stderr)
+            return EXIT_MISMATCH
+        print(f"inventory: signature verified over {len(entries)} entr"
+              f"{'y' if len(entries) == 1 else 'ies'} (digest {signed[:12]}…) against {pubkey}")
     return EXIT_MISMATCH if mismatched else EXIT_OK
 
 
@@ -270,11 +457,65 @@ def cmd_write(args):
     if args.dry_run:
         print(f"inventory: would update {updated} hash(es) in {args.report}")
         return EXIT_OK
+    key = getattr(args, "key", None)
+    if key:
+        # Sign the entries as just rewritten — each entry line now carries the on-disk hash.
+        fresh = [(i, p, re.search(r"[0-9a-fA-F]{64}", lines[i]).group(0).lower(), sh)
+                 for i, p, _h, sh in entries]
+        lines = _place_signature(lines, signature_line(_read_seed(key), fresh))
+    elif updated and _stale_envelope(lines):
+        # Never drop evidence silently: the old envelope stays, and `check --pubkey` will refuse
+        # it — which is the honest state of an inventory whose set changed after signing.
+        print(f"inventory: the {SIGNATURE_TAG} is now STALE ({updated} entr"
+              f"{'y' if updated == 1 else 'ies'} changed) — re-sign with `write --key` or `sign`",
+              file=sys.stderr)
     try:
         report.write_text("\n".join(lines) + "\n", encoding="utf-8")
     except OSError as err:
         raise InventoryError(f"{args.report} could not be written: {err}") from err
-    print(f"inventory: updated {updated} hash(es) in {args.report}")
+    print(f"inventory: updated {updated} hash(es) in {args.report}"
+          + (" and re-signed" if key else ""))
+    return EXIT_OK
+
+
+def _stale_envelope(lines):
+    """Whether an unsigned `write` just outdated an in-block envelope — advisory only. The path
+    with no --key is the pre-#386 write, byte for byte in what it writes and how it exits: it
+    never refuses over the envelope, so any refusal find_signature would raise (a stray line, two
+    lines, a malformed one) is left for `check --pubkey` / `sign` to name."""
+    try:
+        return find_signature(lines)[1] is not None
+    except InventoryError:
+        return False
+
+
+def _read_seed(key):
+    seed, err = _dispatch_sign()._seed(Path(key))
+    if err:
+        raise InventoryError(err)
+    return seed
+
+
+def cmd_sign(args):
+    """Sign the entry set as re-derived from disk. A stale or absent path is not something to
+    attest: `sign` refuses (exit 1) where `check` would, and leaves the document unsigned."""
+    report, lines, entries = load(args.report)
+    root = repo_root(report.parent if report.parent.exists() else Path("."))
+    _matched, mismatched, missing = check_entries(entries, report, root)
+    for path_text, recorded, actual in mismatched:
+        print(f"MISMATCH {path_text}\n  recorded {recorded}\n  actual   {actual}", file=sys.stderr)
+    for path_text in missing:
+        print(f"MISSING  {path_text} — not on disk, so not attestable", file=sys.stderr)
+    if mismatched or missing:
+        print("inventory: refusing to sign — run `inventory.py write` first", file=sys.stderr)
+        return EXIT_MISMATCH
+    lines = _place_signature(lines, signature_line(_read_seed(args.key), entries))
+    try:
+        report.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    except OSError as err:
+        raise InventoryError(f"{args.report} could not be written: {err}") from err
+    print(f"inventory: signed {len(entries)} entr{'y' if len(entries) == 1 else 'ies'} "
+          f"(digest {inventory_digest(entries)[:12]}…) in {args.report}")
     return EXIT_OK
 
 
@@ -288,6 +529,8 @@ def build_parser():
     w = sub.add_parser("write", help="re-hash every listed path and rewrite the block in place")
     w.add_argument("report", help="markdown report carrying the inventory block")
     w.add_argument("--dry-run", action="store_true", help="report what would change, write nothing")
+    w.add_argument("--key", metavar="SEED",
+                   help="re-sign the refreshed entry set with this coordinator seed (gen-key file)")
     c = sub.add_parser("check", help="re-hash every listed path that exists")
     c.add_argument("report", help="markdown report carrying the inventory block")
     c.add_argument(
@@ -296,12 +539,18 @@ def build_parser():
         help="hash each path as it was at this git revision instead of in the working "
              "tree — the form a dated report's pins stay re-derivable in",
     )
+    c.add_argument("--pubkey", metavar="PATH",
+                   help="require the coordinator's signature over the entry set, verified against "
+                        "this Ed25519 pubkey (.orca/dispatch-pubkey); unsigned or tampered is exit 1")
+    sg = sub.add_parser("sign", help="sign the entry set with the coordinator's key (#386)")
+    sg.add_argument("report", help="markdown report carrying the inventory block")
+    sg.add_argument("--key", required=True, metavar="SEED", help="coordinator seed file from dispatch-sign.py gen-key")
     return p
 
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
-    handlers = {"write": cmd_write, "check": cmd_check}
+    handlers = {"write": cmd_write, "check": cmd_check, "sign": cmd_sign}
     try:
         return handlers[args.command](args)
     except InventoryError as err:

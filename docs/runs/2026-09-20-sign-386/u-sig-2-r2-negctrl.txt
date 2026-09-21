@@ -1,0 +1,74 @@
+.E..F...FF..........F.....F......F.................................
+======================================================================
+ERROR: test_a_keyless_forgery_with_a_malformed_sig_b64_is_refused (tests.test_inventory.SignedInventory.test_a_keyless_forgery_with_a_malformed_sig_b64_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/sig-2/tests/test_inventory.py", line 563, in test_a_keyless_forgery_with_a_malformed_sig_b64_is_refused
+    with self.assertRaises(inv.SignatureRefused):
+                           ^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'inventory' has no attribute 'SignatureRefused'
+
+======================================================================
+FAIL: test_a_signature_line_in_prose_is_never_an_envelope (tests.test_inventory.SignedInventory.test_a_signature_line_in_prose_is_never_an_envelope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/sig-2/tests/test_inventory.py", line 588, in test_a_signature_line_in_prose_is_never_an_envelope
+    self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 2 : inventory: 1 verified, 0 mismatched, 0 missing, in /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/inventory-g0rgft2h/report.md
+SIGNATURE signature record binds inventory digest 000000000000…, but the entries present digest to f02d4f4448c2… — an entry was added, dropped or changed after signing
+
+
+======================================================================
+FAIL: test_a_valid_envelope_outside_every_block_is_refused_not_honoured (tests.test_inventory.SignedInventory.test_a_valid_envelope_outside_every_block_is_refused_not_honoured)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/sig-2/tests/test_inventory.py", line 627, in test_a_valid_envelope_outside_every_block_is_refused_not_honoured
+    self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2 : inventory: 2 verified, 0 mismatched, 0 missing, in /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/inventory-0s83xb5k/report.md
+inventory: signature verified over 2 entries (digest 776617d245cf…) against /var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/inventory-0s83xb5k/key.pub
+
+
+======================================================================
+FAIL: test_a_well_formed_base64_that_is_not_a_signature_is_refused_as_malformed (tests.test_inventory.SignedInventory.test_a_well_formed_base64_that_is_not_a_signature_is_refused_as_malformed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/sig-2/tests/test_inventory.py", line 575, in test_a_well_formed_base64_that_is_not_a_signature_is_refused_as_malformed
+    self.assertIn("malformed", r.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'malformed' not found in "SIGNATURE signature INVALID for this pubkey — not the coordinator's inventory (tampered, forged, or another key)\n"
+
+======================================================================
+FAIL: test_unsigned_write_ignores_the_envelope_and_writes_as_before (tests.test_inventory.SignedInventory.test_unsigned_write_ignores_the_envelope_and_writes_as_before)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/sig-2/tests/test_inventory.py", line 606, in test_unsigned_write_ignores_the_envelope_and_writes_as_before
+    self.assertEqual(r.stderr, "")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+AssertionError: 'inventory: the inventory-signature is now[61 chars]n`\n' != ''
+- inventory: the inventory-signature is now STALE (1 entry changed) — re-sign with `write --key` or `sign`
+
+
+======================================================================
+FAIL: test_a_malformed_pin_refuses_the_inventory_leg_too (tests.test_run_report.SignedInventoryRequired.test_a_malformed_pin_refuses_the_inventory_leg_too)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/sig-2/tests/test_run_report.py", line 1641, in test_a_malformed_pin_refuses_the_inventory_leg_too
+    self.assertIsNone(pub)
+    ~~~~~~~~~~~~~~~~~^^^^^
+AssertionError: b'not-hex\n' is not None
+
+======================================================================
+FAIL: test_a_signature_line_in_the_report_prose_is_refused (tests.test_run_report.SignedInventoryRequired.test_a_signature_line_in_the_report_prose_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/ravindra/orca/workspaces/orca-fleet/sig-2/tests/test_run_report.py", line 1625, in test_a_signature_line_in_the_report_prose_is_refused
+    self.assertTrue(any("inventory" in e and "outside" in e for e in errors), errors)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : ['/private/var/folders/65/nfjkpf196n5_xrwbkyrrgqrc0000gn/T/tmps5bzuof8/docs/runs/2026-01-01-demo-it-self-run.md: integrity inventory inventory-signature: 2 inventory-signature lines — a document carries one signature']
+
+----------------------------------------------------------------------
+Ran 67 tests in 24.171s
+
+FAILED (failures=6, errors=1)

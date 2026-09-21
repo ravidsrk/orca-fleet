@@ -1,0 +1,148 @@
+REVIEW: U-SIG-2 — axis TEST-ADEQUACY (mutation-hunt)
+unit=U-SIG-2  branch=ravidsrk/sig-2  head=0e5f441d1d2cc9d7f6243c70349bbae4af14de1c
+base=origin/review/2026-09-20-sign-386 @ 3674b2d971b41d88f05d555679f63e4e5023a75b (merge-base == base tip)
+spec=docs/runs/2026-09-20-sign-386/build-u-sig-2.md   held=docs/reports/u-sig-2/integrate.json (BOT-1, BOT-2)
+reviewer=worker task_6af07fdca70b / ctx_6dece26db0d3   window=01:06–01:2x IST 2026-09-21 (30 min timebox)
+method=BLIND-FIX FIRST (expectations written from spec+held findings before the diff was opened), then
+       15 code mutants + 1 data experiment in a SCRATCH CLONE (git clone of this worktree at 0e5f441d;
+       every mutant restored by `git checkout --` before the next). Covering classes run per mutant:
+       tests.test_inventory.SignedInventory + tests.test_run_report.SignedInventoryRequired (56 tests),
+       baseline OK on unmutated HEAD (111 tests incl. SignedTranscriptRequired, 33.6s).
+       This worktree: nothing modified except this file (uncommitted). Nothing pushed.
+
+VERDICT: the signature path's KILL SET is good — 11/15 killers die on a named test — but two survivors
+sit ON the forging path / the held BOT-1 claim, so: NOT MERGE-CLEAN on this axis until F1 and F2 get
+covering tests. F1 is a one-token change that opens a KEYLESS forgery with the suite green.
+
+======================================================================================================
+BLIND EXPECTATIONS (recorded before opening the diff; scratchpad/blind-expectations.md)
+======================================================================================================
+Spec 1 → one canonicalisation shared by signer and checker; sig bound to the union of all blocks'
+         entries; tamper/drop/swap-key each fail; unsigned+pubkey REFUSED, unsigned+no-pubkey passes.
+Spec 2 → run_report uses the same verifier; refuses unsigned when the key is committed at the switch.
+BOT-1  → expected: discovery scoped to find_blocks ranges; a prose SIGNATURE_LINE ignored; expected
+         NO covering test on the branch (integrator held it). To be reproduced as mutant M3/M13.
+BOT-2  → docs-only; confirm no CODE claims to verify a retention receipt signature (no test owed here).
+Delta vs expectation: shared canonicalisation HOLDS (canonical_entries/signature_record used by both
+sign and verify; dispatch-sign.canonical_record for the envelope bytes) — parity mutants all die.
+BOT-1 expectation CONFIRMED (no test, see F2). BOT-2: verify.py/run_report carry no receipt-signature
+code on this branch → no test owed by this unit; out of axis.
+
+======================================================================================================
+MUTANT TABLE (scratch clone; "RED" = the tests that failed with the mutant applied)
+======================================================================================================
+M1  verify_signature: drop the digest check (sig over the record alone)            KILLED
+      RED: SignedInventory.test_a_tampered_entry_fails_verification,
+           SignedInventory.test_a_dropped_entry_fails_verification,
+           SignedInventory.test_write_without_a_key_leaves_a_now_stale_envelope_and_says_so,
+           SignedInventoryRequired.test_a_tampered_inventory_entry_is_refused
+      (= "tamper one entry's hash post-sign" and "sig computed over a DIFFERENT entry set")
+M2  verify_signature: ignore checkvalid (swapped pubkey passes)                     KILLED
+      RED: test_a_signature_by_another_key_is_refused, test_a_tampered_signature_fails_verification,
+           SignedInventoryRequired.test_an_inventory_signed_by_another_key_is_refused
+M4  bind on `entries` COUNT instead of the digest (same-count different set)        KILLED
+      RED: test_a_tampered_entry_fails_verification, test_write_without_a_key_leaves_a_now_stale_…
+M5a canonical parity: signer uses json default separators, checker compact         KILLED
+      RED: 6 (sign-then-verify happy paths incl. SignedInventoryRequired.test_a_signed_inventory_…binds)
+M5b canonical parity: `sorted(...)` dropped → set-iteration order                   KILLED
+      RED: test_sign_writes_one_envelope_that_check_verifies_with_the_pubkey,
+           test_signing_twice_replaces_the_envelope   (cross-process hash-seed divergence, as expected)
+M5c canonical parity: signer upper-cases paths, parser does not                     KILLED (5 RED)
+M6a inventory.py check: accept an UNSIGNED inventory with --pubkey                  KILLED
+      RED: test_an_unsigned_inventory_is_refused_with_a_pubkey_and_accepted_without
+M6b run_report: accept an UNSIGNED inventory with the key committed                 KILLED
+      RED: SignedInventoryRequired.test_with_a_committed_key_an_unsigned_inventory_no_longer_binds,
+           …test_post_key_work_pinned_to_a_pre_key_fork_needs_a_signed_inventory
+M7  verify_signature returns None unconditionally                                   KILLED (7 RED)
+M8  sign covers only the FIRST block's entries                                      KILLED
+      RED: test_sign_covers_every_block_and_is_order_free
+M9  run_report ignores verify_signature's verdict                                   KILLED (2 RED)
+M10 run_report reads the key at HEAD instead of at the ancestry switch              KILLED
+      RED: test_a_pre_key_report_on_the_ancestry_keeps_the_unsigned_inventory
+M11 run_report: an envelope with NO committed key passes quietly                    KILLED
+      RED: test_a_signed_inventory_is_checked_even_without_a_committed_key
+M12 find_signature: two envelope lines → first wins instead of refusing             SURVIVED (56 OK)
+M13 _place_signature: envelope inserted at line 0 (OUTSIDE every find_blocks range) SURVIVED (56 OK)
+M14 verify_signature: base64 decode error swallowed (`return None`)                 SURVIVED (56 OK)
+M15 find_signature: non-{record,sig_b64} envelope treated as UNSIGNED, not refused  SURVIVED (56 OK)
+M3  (data, unmutated HEAD) BOT-1 reproduction — see F2.
+Unsigned-with-pubkey REFUSES / without-pubkey PASSES: confirmed on HEAD (M3 run (a): exit 1 with pubkey,
+exit 0 without) and pinned by the tests M6a/M6b kill.
+
+======================================================================================================
+FINDINGS
+======================================================================================================
+F1  [Required] test-adequacy — the `sig_b64 is malformed` branch is untested; a one-token mutant
+    turns it into a KEYLESS forgery and the suite stays green (M14 SURVIVED).
+    Motivating line (runtime/scripts/inventory.py, verify_signature):
+      "    except ValueError as err:
+              return f\"sig_b64 is malformed ({err})\""
+    Why it matters: this branch is the ONLY thing between "record digest matches the entries" and
+    checkvalid(). A worker can compute signature_record(entries) themselves (it is derived from the
+    document); only the signature needs the seed. Under M14 (`return None`) a scratch run with a pubkey
+    the worker does NOT hold:
+      HEAD:  check --pubkey on the keyless forgery -> 1 | SIGNATURE sig_b64 is malformed (Only base64 data is allowed)
+      M14:   check --pubkey on the keyless forgery -> 0 | inventory: signature verified over 1 entry (digest f02d4f4448c2…) against …/coordinator.pub
+    The existing tamper test uses `env["sig_b64"] = "A" * 86 + "=="` — VALID base64 — so it exercises
+    checkvalid, never the decode branch. Ask: one test in SignedInventory (`sig_b64 = "not*base64!"`
+    with the record's digest CORRECT → EXIT_MISMATCH, stderr contains "malformed"), and the mirror in
+    SignedInventoryRequired (error contains "signature does not bind"). Also worth pinning: a record
+    whose `entries` count disagrees with the digest (currently caught only via checkvalid).
+
+F2  [Required] test-adequacy — BOT-1 REPRODUCED on unmutated HEAD, and neither the placement claim nor
+    the discovery scope has a covering test (M13 SURVIVED). Any fix to BOT-1 lands without a guard.
+    Motivating lines (runtime/scripts/inventory.py):
+      "    \"\"\"Replace the existing envelope line, or append one at the end of the FIRST block's body (the
+          last non-blank line before the next heading), so it sits where find_blocks already looks.\"\"\""
+      "    for idx, line in enumerate(lines):
+              m = SIGNATURE_LINE.match(line)"
+    Reproduction (scratchpad/m3_bot1.py, HEAD, doc = prose example above the heading + block (6,12)):
+      blocks: [(6, 12)] find_signature idx: 4                       ← found OUTSIDE the block
+      (a) unsigned block + prose example, check --pubkey -> (1, '… SIGNATURE signature record binds inventory digest 0000…, but the entries present digest to 776617d245cf… — an entry was added, dropped or changed after signing')
+                                                                    ← wrong diagnostic (should be UNSIGNED); verdict fail-closed
+      (b) sign -> (0, 'inventory: signed 2 entries …'); after sign: envelope line idx [4] blocks [(6, 12)] -> envelope is OUTSIDE the block; prose example overwritten: True
+                                                                    ← `sign` REPLACED the prose example; the docstring's placement claim is false here
+      (c) signed block + prose example, check --pubkey -> (2, '… 2 inventory-signature lines — a document carries one signature')
+      (d) valid envelope OUTSIDE the block, check --pubkey -> (0, '… signature verified over 2 entries …')
+                                                                    ← discovery is document-wide; no bypass (digest still re-derived from all blocks)
+    Integrator's fail-closed assessment CONFIRMED: no acceptance path opens. But the SPEC says the
+    envelope is "a detached envelope block that find_blocks/parse_entries TOLERATE" and the branch's
+    own build.md:15 documents the format verbatim — one paste into a run report's prose reproduces (a)
+    or (c) at the run-close gate (run_report.signed_inventory → inventory.find_signature over the whole
+    report). Ask: tests that (i) assert the envelope `sign` writes lies inside a find_blocks range
+    (kills M13), (ii) a SIGNATURE_LINE in prose outside every block is IGNORED — unsigned → "UNSIGNED",
+    signed → verifies (this is the BOT-1 fix's regression guard; on HEAD it goes RED, which is the
+    correct RED-first state for the batch's fix).
+
+F3  [Nit] test-adequacy — duplicate-envelope refusal is untested (M12 SURVIVED).
+    Motivating line (inventory.py, find_signature):
+      "        raise InventoryError(f\"{len(found)} {SIGNATURE_TAG} lines — a document carries one signature\")"
+    Not a bypass: whichever line wins must still bind the digest and verify. One test with two envelope
+    lines → exit 2 / "carries one signature" pins the documented contract.
+
+F4  [Nit] test-adequacy — a non-envelope signature line is refused on HEAD but a mutant that reports it
+    as UNSIGNED survives (M15). Fail-closed either way with a key (refused as unsigned); without a key
+    the run_report leg turns a diagnostic error into a pass. Motivating line (inventory.py):
+      "        raise InventoryError(f\"the {SIGNATURE_TAG} line is not a {{record, sig_b64}} envelope\")"
+    One test: `<!-- inventory-signature {"foo": 1} -->` → exit 2, stderr "not a {record, sig_b64}".
+
+F5  [FYI] Negative control receipt in the branch is genuine: docs/runs/2026-09-20-sign-386/u-sig-2-negctrl.txt
+    shows the pre-signing parser ("invalid choice: 'sign' (choose from 'write', 'check')") and
+    "Ran 258 tests … FAILED (failures=16, errors=8)" = 24 RED, matching the ledger's "24 RED"; the
+    tests receipt shows the same 258 OK at head. Not re-derived by me beyond reading (coordinator-run).
+
+F6  [FYI] BOT-2 (retention receipt binding under-specified) — out of this axis and, per the frozen
+    spec ("spec only"), out of this unit. Confirmed no code on the branch claims to verify a receipt
+    signature, so no test is owed by U-SIG-2 for it.
+
+======================================================================================================
+WHAT IS COVERED WELL (so the batch does not re-hunt it)
+======================================================================================================
+Tamper-entry, drop-entry, swap-key, tampered-sig(valid b64), digest-vs-count, all three canonical-parity
+breaks, first-block-only signing, unsigned+key refused (both legs), sig-without-key refused (run_report),
+ancestry switch (key at pin not HEAD), run_report honouring the verifier's verdict — each dies on a
+NAMED test above. The signed record ({entries, inventory_sha256}) is derived from the document, so the
+security of the scheme rests entirely on checkvalid + the decode branch in front of it — hence F1.
+
+STATUS: complete within timebox; scratch clone left at /private/tmp/claude-501/…/scratchpad/scratch
+(disposable). No files in this worktree changed except this report.

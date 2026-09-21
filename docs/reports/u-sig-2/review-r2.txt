@@ -1,0 +1,166 @@
+verdict: GO
+U-SIG-2 — ROUND-2 TARGETED RE-REVIEW (acceptance-review fix-round rule; build-blind)
+==================================================================================
+Reviewer: task_988759aac441 / ctx_184eb31656eb (review-only; nothing committed; this file uncommitted)
+Reviewed: ravidsrk/sig-2, fix batch c91642ad..0558cda9 (46c52a08 G-1..G-4, d697e361 G-5, 0558cda9 badges).
+  NOTE: the task's range 749b5bad..0558cda9 spans the merge c91642ad and so re-includes the whole
+  round-1 unit (+2650 lines); the r2 CODE delta is the three commits after the merge (+284/-52 over
+  inventory.py, run_report.py, test_inventory.py, test_run_report.py, badges). Only that delta is graded.
+Spec: docs/runs/2026-09-20-sign-386/build-u-sig-2-r2.md (749b5bad). Round-1 reports read FIRST, my own
+  expectations written to scratchpad/expectations.md BEFORE the diff was opened (58 lines; summarised in §0).
+Elapsed: ~20 min of the 25-min box. Full report, not partial. validate.py: "All 21 missions valid" at HEAD.
+
+VERDICT: GO. All five round-1 Required items are fixed as the r2 spec froze them; every fix carries a killer
+test; my own re-run of M12/M13/M14/M15 (plus three variants) is RED-for-the-right-reason at 0558cda9; no
+existing refusal weakened; the envelope format is untouched; a real signature still verifies at the CLI, at
+the function level, and at the run_report gate. No Critical, no Required. 2 Nit, 3 FYI below.
+
+----------------------------------------------------------------------------------------------------
+0. BLIND EXPECTATIONS (before the diff) vs ACTUAL
+----------------------------------------------------------------------------------------------------
+ E1 (G-1) malformed sig_b64 must leave verify_signature by a channel that CANNOT be read as "valid";
+    every shape (non-base64, empty, short/long valid base64, 63/65 bytes, non-ASCII, non-string) refuses;
+    real signature verifies; run_report leg mirrors.            -> MET (see §1). Stronger than expected:
+    validity is now an affirmative digest the caller re-compares, so even `return None` refuses.
+ E2 (G-2) find/place scoped to find_blocks ranges exactly; a match outside every block REFUSED (the r2
+    spec's word, stricter than round-1's "ignored"); sign never touches prose; plain write no-key = pre-#386.
+                                                                -> MET (§2). One FYI on the advisory line.
+ E3 (G-3) two in-block envelopes → refuse; in-block + prose → refuse.   -> MET (§3).
+ E4 (G-4) non-{record,sig_b64} payload → refuse, never UNSIGNED; I expected "exact shape" to also reject
+    EXTRA top-level keys.                                        -> MET on every refusal shape; extra-key
+    envelope VERIFIES (Nit N-1: the spec says "exact", the code says "has both").
+ E5 (G-5) exactly one pin→32-byte parse in run_report.py, both legs consume key bytes.  -> MET (§5).
+
+----------------------------------------------------------------------------------------------------
+1. G-1 — malformed sig_b64 is a refusal in its own right (TEST-F1 / M14)         VERIFIED
+----------------------------------------------------------------------------------------------------
+Verbatim (inventory.py, decode_signature):
+  "    except (TypeError, ValueError) as err:
+           raise SignatureRefused(f\"sig_b64 is malformed ({err})\") from err
+       if len(sig) != 64:
+           raise SignatureRefused(f\"sig_b64 is malformed (decodes to {len(sig)} bytes, not a 64-byte \""
+Verbatim (verify_signature): "    return want[\"inventory_sha256\"]" and (cmd_check):
+  "        if signed != inventory_digest(entries):  # verified means the key said so over THIS set"
+Keyless forgery re-derived by me (scratchpad/probe.py): record = signature_record(load(report)[2]) with NO
+seed, envelope placed in-block, `check --pubkey <key the forger does not hold>`:
+  non-base64 "not*base64!"  -> 1 | SIGNATURE sig_b64 is malformed (Only base64 data is allowed)
+  empty ""                  -> 1 | … malformed (decodes to 0 bytes, not a 64-byte Ed25519 signature)
+  valid b64 of 5 / 63 / 65 / 100 bytes -> 1 | … malformed (decodes to N bytes, …)
+  urlsafe "-_" / "AAAA AAAA" / "ééé="  -> 1 | … malformed (…)
+  64 zero bytes / "A"*86+"=="          -> 1 | SIGNATURE signature INVALID for this pubkey — not the coordinator's …
+  sig_b64 = 5 / null / [] / {}         -> 2 | could not run: the inventory-signature line is not a {record, sig_b64} envelope
+  No shape printed "signature verified"; no-pubkey `check` on every one of them stays exit 0 (frozen path).
+Real signature: sign -> 0 "signed 2 entries (digest 776617d245cf…)"; check --pubkey -> 0 "signature verified
+over 2 entries (digest 776617d245cf…)"; function-level verify_signature(...) == inventory_digest(entries) True;
+tampered entry -> 1 "record binds … 776617d245cf…, but the entries present digest to 9996096346f2…"; other
+key -> 1 "signature INVALID for this pubkey". Envelope format unchanged (same {record, sig_b64}; ed25519.py
+and dispatch-sign.py untouched in the delta — `git diff --stat c91642ad..0558cda9` lists neither).
+Mutants (my run, tests.test_inventory.SignedInventory + tests.test_run_report.SignedInventoryRequired, 67
+tests, HEAD baseline OK):
+  M14  swallow decode error (sig = b"\0"*64)   -> FAILED (failures=2): test_a_keyless_forgery_with_a_malformed_sig_b64_is_refused,
+                                                  SignedInventoryRequired.test_a_malformed_sig_b64_never_binds
+  M14b drop the 64-byte length check           -> FAILED (failures=1): test_a_well_formed_base64_that_is_not_a_signature_is_refused_as_malformed
+  M14c ignore checkvalid                       -> FAILED (failures=3): another-key x2, tampered-signature
+Gate leg (run_report.signed_inventory): "    except inventory.SignatureRefused as problem:
+        return [f\"integrity inventory signature does not bind: {problem} (key: {PUBKEY_PIN} at {at})\"]" and the
+digest re-comparison "    if signed != inventory.inventory_digest(entries):" — mirrored. The round-1
+`return None` mutant is now unexpressible: None != digest → "verifier returned None … — refused".
+
+----------------------------------------------------------------------------------------------------
+2. G-2 — envelope discovery/placement scoped to find_blocks; prose never touched (BOT-1/M13/STD-R1/SPEC-F1)  VERIFIED
+----------------------------------------------------------------------------------------------------
+Verbatim (find_signature):
+  "        if m and any(start < idx < end for start, end in blocks):
+               found.append((idx, m.group(1)))
+           elif m:
+               stray.append(idx + 1)
+       if stray:
+           raise InventoryError(f\"{SIGNATURE_TAG} line at line {', '.join(map(str, stray))} sits outside \"
+                                \"every inventory block — not an envelope; refused\")"
+`start < idx < end` is exactly parse_entries' `range(start + 1, end)` — the same lines the parser reads.
+Probes (mine):
+  VALID envelope moved above the heading, check --pubkey -> 2 "inventory-signature line at line 4 sits outside every inventory block — not an envelope; refused"  (round 1: exit 0 verified)
+  unsigned block + prose example (build.md:15 shape), check --pubkey -> 2 same message (round 1: wrong "digest 0000…" diagnostic); stderr has no "unsigned"
+  example under a LATER heading (## Gates)         -> 2 "… line 15 sits outside …"
+  signed block + prose example                     -> 2 refused (round 1: "2 lines")
+  `sign` on prose-example doc  -> 2, document byte-identical before/after (round 1: prose line OVERWRITTEN)
+  `write` (no --key) on prose-example doc -> 0 "updated 0 hash(es)", doc unchanged (round 1: exit 2)
+  `write` (no --key), signed block + prose example -> 0 (round 1 STD-R1 second half: exit 2)
+  no-pubkey `check` on every shape above -> 0 (the frozen unsigned path never reads the envelope)
+  after `sign`: envelope idx 10 in blocks [(4, 12)] -> inside; `_place_signature` inserts at `end` minus
+  trailing blanks, inside the range find_blocks recomputes.
+Mutants: M13 (insert at line 0) -> FAILED: test_sign_places_the_envelope_inside_an_inventory_block + 7 more
+(every sign-then-verify test, since the stray line now refuses); M13b (revert scope: `if m:`) -> FAILED
+(failures=4): test_a_signature_line_in_prose_is_never_an_envelope, test_a_valid_envelope_outside_every_block_is_refused_not_honoured,
+test_unsigned_write_ignores_the_envelope_and_writes_as_before, SignedInventoryRequired.test_a_signature_line_in_the_report_prose_is_refused.
+Unsigned write path: "-    _idx, envelope = find_signature(lines)" removed from before `if key:`; replaced by
+"    elif updated and _stale_envelope(lines):" whose helper swallows InventoryError ("return False") — so
+write without --key can no longer exit 2 over the envelope. Committed docs: the only two SIGNATURE_LINE
+matches outside tests/runtime (docs/reports/u-sig-2/build.md:15, review-tests.txt:127) are in files with no
+inventory heading, so no committed report trips the new refusal (rg over the tree).
+
+----------------------------------------------------------------------------------------------------
+3. G-3 — two envelope lines refuse (M12)                                           VERIFIED
+----------------------------------------------------------------------------------------------------
+Verbatim: "        raise InventoryError(f\"{len(found)} {SIGNATURE_TAG} lines — a document carries one signature\")"
+Probes: two identical VALID in-block envelopes, check --pubkey -> 2 "2 inventory-signature lines — a document
+carries one signature"; `sign` on it -> 2 same; one in-block + one in prose -> 2 (stray refusal, §2). No-pubkey
+check -> 0. Mutant M12 (`pass` instead of raise) -> FAILED (failures=1): test_two_envelope_lines_are_refused.
+
+----------------------------------------------------------------------------------------------------
+4. G-4 — a SIGNATURE_LINE with a non-{record, sig_b64} payload refuses (M15)     VERIFIED (1 Nit)
+----------------------------------------------------------------------------------------------------
+Verbatim: "    if not (isinstance(envelope, dict) and isinstance(envelope.get(\"record\"), dict)
+               and isinstance(envelope.get(\"sig_b64\"), str)):
+           raise InventoryError(f\"the {SIGNATURE_TAG} line is not a {{record, sig_b64}} envelope\")"
+Probes, check --pubkey: {"foo": 1} -> 2 "not a {record, sig_b64} envelope"; {"record": …} (no sig) -> 2 same;
+{"record": 1, "sig_b64": …} -> 2 same; {} -> 2 same; "{not json}" -> 2 "not JSON: Expecting property name …";
+none says "unsigned". Mutant M15 (`return None, None`) -> FAILED (failures=1):
+test_a_signature_line_that_is_not_an_envelope_is_refused_not_unsigned.
+  N-1 (Nit) — {record, sig_b64, "x": 1} VERIFIES (exit 0, "signature verified over 2 entries"). The r2 spec
+  says "not the exact {record, sig_b64} shape → REFUSE"; the check is "has both keys with the right types",
+  not "exactly these two keys". Not a forgery path: the signature covers canonical_record(record,
+  SIGNED_FIELDS) and cmd_check re-compares the digest, so the extra key is unsigned noise nobody reads.
+  U-SIG-1's transcript check (run_report.py:626-628) uses the identical isinstance shape, so the two legs
+  agree today; tightening one alone would make them diverge. Accept as-is or add `set(envelope) ==
+  {"record", "sig_b64"}` to BOTH in a follow-up. Not blocking.
+  FYI-1 — `<!-- inventory-signature [] -->` does not match SIGNATURE_LINE (`(\{.*\})`) at all, so with a key
+  it is refused as UNSIGNED (exit 1), not as malformed; without a key it is the frozen pre-#386 path (exit 0).
+  Fail-closed under enforcement either way; consistent with the spec's wording ("a line matching SIGNATURE_LINE").
+
+----------------------------------------------------------------------------------------------------
+5. G-5 — the pubkey parse lives once, in enforcement_key() (STD-R2)               VERIFIED
+----------------------------------------------------------------------------------------------------
+Verbatim (run_report.py enforcement_key): "    try:
+        pub = bytes.fromhex(pin.decode(\"utf-8\").strip())
+    except (UnicodeDecodeError, ValueError) as err:
+        return None, None, f\"{PUBKEY_PIN} at {at} is malformed ({err}) — fail-closed\"
+    if len(pub) != 32:
+        return None, None, f\"{PUBKEY_PIN} at {at} is malformed (not a 32-byte hex key) — fail-closed\"
+    return pub, at, why"
+grep for a second copy: `rg -n "fromhex|32-byte|!= 32" runtime/scripts/run_report.py` -> lines 551/554/555
+only (one site) + docstring 540. Both callers now bind `pub, at, why = enforcement_key(...)`; signed_inventory's
+copy and signed_transcript's `pub = bytes.fromhex(...)` / `if len(pub) != 32` are deleted in the diff.
+signed_transcript's remaining `except ValueError` guards only the sig_b64 decode, and its envelope shape check
+(`isinstance(envelope.get("sig_b64"), str)`) precedes it, so TypeError cannot reach it. The docstring's
+"(32 pubkey bytes or None, …)" is now true. Test: test_a_malformed_pin_refuses_the_inventory_leg_too asserts
+BOTH legs emit "malformed" (2 errors) and enforcement_key -> (None, None, "…malformed…").
+  FYI-2 — other fromhex sites remain by design: inventory.read_pubkey (CLI --pubkey path; round-1 accepted
+  FYI), dispatch-sign._seed (seed side), verify.py:1903/1993 (U-SIG-1's own verifier, not this unit).
+
+----------------------------------------------------------------------------------------------------
+6. OTHER
+----------------------------------------------------------------------------------------------------
+  N-2 (Nit) — module docstring: "``write`` without ``--key`` writes exactly as before" — the bytes written
+  and the exit code are pre-#386, but on a signed doc whose set changed, `write` (no key) prints to stderr
+  "inventory: the inventory-signature is now STALE (1 entry changed) — re-sign with `write --key` or `sign`"
+  (probe: exit 0, hashes updated, envelope kept, check --pubkey then refuses "digest … changed after
+  signing"). That advisory predates r2 (round 1's `elif envelope is not None and updated:`) and round-1
+  STD-R1 objected only to the exit-2 path, which is fixed. "exactly as before" should say "…in what it
+  writes and how it exits" (the _stale_envelope docstring already does). Not blocking.
+  FYI-3 — Test count: badges 1798 -> 1809 = 8 new SignedInventory + 3 new SignedInventoryRequired = 11. ✓
+  Not re-derived by me (coordinator-run per AGENTS.md): full suite at 0558cda9 / c39edcba; the r2 manifest.
+
+Refusals preserved (spot-checked at HEAD): unsigned + pubkey -> 1 UNSIGNED; tampered entry -> 1; other key
+-> 1; no-pubkey paths -> 0 unchanged. No new dependency, no network (delta imports nothing new).
+Worktree left clean except this file (`git status --short` -> only docs/reports/u-sig-2/review-r2.txt).

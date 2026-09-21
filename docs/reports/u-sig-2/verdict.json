@@ -1,0 +1,211 @@
+{
+  "unit": "U-SIG-2",
+  "role": "verdict-aggregator",
+  "task_id": "task_bcd51fdbe2a8",
+  "dispatch_id": "ctx_3423a05494ca",
+  "generated_at": "2026-09-21T01:38:55.454567+00:00",
+  "verdict": "NO-GO",
+  "round": 1,
+  "reviewed_sha": "0e5f441d1d2cc9d7f6243c70349bbae4af14de1c",
+  "reviewed_wtree": "ab68ad397f3466daf492fc49e57631ba6b803826",
+  "reviewer_mode": "same-vendor-fresh",
+  "reviewer_mode_note": "codex lane dead — no cross-vendor reviewer was available for this round; all three axes and this aggregation ran on the same vendor with fresh (build-blind) contexts.",
+  "pr": {
+    "number": 490,
+    "base_ref": "review/2026-09-20-sign-386",
+    "head_ref": "ravidsrk/sig-2",
+    "head_sha_at_review": "0e5f441d1d2cc9d7f6243c70349bbae4af14de1c",
+    "review_id": 5262488932,
+    "review_url": "https://github.com/ravidsrk/orca-fleet/pull/490#pullrequestreview-5262488932",
+    "review_commit_id": "0e5f441d1d2cc9d7f6243c70349bbae4af14de1c",
+    "first_line": "verdict: NO-GO — round 1"
+  },
+  "egress_receipt": {
+    "id": "5282b567a112c70a997876b81ca695d39bd714e41d53422dce1baeb7199d34c7",
+    "sink": "pr-review",
+    "host": "github.com",
+    "payload_class": "review-verdict",
+    "payload_sha256": "ca47daef8ef23bee6406518a22d3d7745efa59573402afcc74a4e4c0c4b105a6",
+    "bytes": 2958,
+    "consent": "run-2026-09-14-clean-sweep:tracker-writes",
+    "written_before_send": true
+  },
+  "rule": "acceptance-review: axes read side by side, no cross-rerank; GO only when zero Critical/Required across every axis AND the held bot set",
+  "inputs": [
+    "docs/reports/u-sig-2/review-spec.txt",
+    "docs/reports/u-sig-2/review-standards.txt",
+    "docs/reports/u-sig-2/review-tests.txt",
+    "docs/reports/u-sig-2/integrate.json"
+  ],
+  "axes": {
+    "spec": {
+      "verdict": "MERGEABLE after 1 Required",
+      "critical": 0,
+      "required": [
+        "SPEC-F1"
+      ],
+      "optional": [
+        "SPEC-F2 (=BOT-2, parked)"
+      ],
+      "nits": [
+        "SPEC-F3",
+        "SPEC-F4"
+      ]
+    },
+    "standards": {
+      "verdict": "MERGEABLE after 1 Required (R-1); R-2 also Required",
+      "critical": 0,
+      "required": [
+        "STD-R1",
+        "STD-R2"
+      ],
+      "nits": [
+        "STD-N1",
+        "STD-N2",
+        "STD-N3",
+        "STD-N4"
+      ],
+      "fyi": [
+        "STD-F1 (=BOT-2 wording)"
+      ]
+    },
+    "tests": {
+      "verdict": "NOT MERGE-CLEAN until F1 and F2 get covering tests",
+      "critical": 0,
+      "required": [
+        "TEST-F1",
+        "TEST-F2"
+      ],
+      "nits": [
+        "TEST-F3",
+        "TEST-F4"
+      ],
+      "mutants": {
+        "run": 15,
+        "killed": 11,
+        "survived": [
+          "M12",
+          "M13",
+          "M14",
+          "M15"
+        ]
+      }
+    }
+  },
+  "held_bot_set": {
+    "bot": "greptile-apps[bot]",
+    "findings": [
+      {
+        "id": "BOT-1",
+        "comment_id": 4057859153,
+        "tag": "VALID",
+        "assessed": "P2",
+        "disposition": "fix in-unit; thread owes a reply naming the commit"
+      },
+      {
+        "id": "BOT-2",
+        "comment_id": 4057859156,
+        "tag": "VALID",
+        "assessed": "P2 design gap, docs-only",
+        "disposition": "out of frozen spec — park to G1 follow-up; thread owes an in-thread reply with that reason"
+      }
+    ]
+  },
+  "stickers": [
+    {
+      "id": "SPEC-F1",
+      "axis": "spec",
+      "severity": "Required",
+      "maps_to": "BOT-1",
+      "file": "runtime/scripts/inventory.py",
+      "symbols": [
+        "find_signature",
+        "_place_signature"
+      ],
+      "summary": "signature discovery/placement is document-wide, not scoped to find_blocks() ranges; sign overwrites a prose example; an envelope outside every block verifies. Fail-closed, no bypass."
+    },
+    {
+      "id": "STD-R1",
+      "axis": "standards",
+      "severity": "Required",
+      "maps_to": "BOT-1",
+      "file": "runtime/scripts/inventory.py",
+      "symbols": [
+        "find_signature",
+        "_place_signature",
+        "cmd_write"
+      ],
+      "summary": "BOT-1 plus: envelope in block + prose example makes plain `write` (no --key) exit 2 — behaviour change on the frozen unsigned path."
+    },
+    {
+      "id": "STD-R2",
+      "axis": "standards",
+      "severity": "Required",
+      "file": "runtime/scripts/run_report.py",
+      "symbols": [
+        "enforcement_key",
+        "signed_inventory",
+        "signed_transcript"
+      ],
+      "summary": "pin->32-byte-key parse and malformed-pin refusal duplicated verbatim in both legs; enforcement_key() docstring promises key bytes but returns the raw blob."
+    },
+    {
+      "id": "TEST-F1",
+      "axis": "tests",
+      "severity": "Required",
+      "file": "tests/test_inventory.py",
+      "symbols": [
+        "verify_signature sig_b64 malformed branch"
+      ],
+      "summary": "mutant M14 (`return None` on base64 decode error) survives — a keyless forgery passes with the suite green. Needs invalid-base64 + correct-digest test in SignedInventory and SignedInventoryRequired."
+    },
+    {
+      "id": "TEST-F2",
+      "axis": "tests",
+      "severity": "Required",
+      "maps_to": "BOT-1",
+      "file": "tests/test_inventory.py",
+      "summary": "BOT-1 reproduced on unmutated HEAD; mutant M13 (envelope placed outside every block) survives — no test pins placement or discovery scope."
+    },
+    {
+      "id": "BOT-1",
+      "axis": "held",
+      "severity": "VALID/P2",
+      "comment_id": 4057859153,
+      "summary": "same defect as SPEC-F1/STD-R1/TEST-F2; in-thread reply owed naming the fixing commit."
+    },
+    {
+      "id": "BOT-2",
+      "axis": "held",
+      "severity": "VALID/P2",
+      "comment_id": 4057859156,
+      "summary": "retention receipt 'binding' under-specified (no algorithm/canonical payload/trust root). All three axes: out of frozen spec, docs-only, park to G1 follow-up; in-thread reply owed. One-verb wording nit in evidence-manifest.md:110."
+    }
+  ],
+  "findings_summary": "NO-GO round 1. Zero Critical on any axis. Five Required across three axes covering three distinct defects: (1) BOT-1 — find_signature/_place_signature are document-wide rather than block-scoped (SPEC-F1, STD-R1 incl. the unsigned `write` regression, TEST-F2 no covering test); (2) STD-R2 — the pubkey parse is duplicated instead of living in enforcement_key(); (3) TEST-F1 — the sig_b64-malformed branch is untested and a one-token mutant opens a keyless forgery. Held set: BOT-1 VALID (fix in-unit), BOT-2 VALID but out of the frozen spec (park, reply in-thread). What is solid: all three desired behaviours implemented as frozen, canonical digest parity mutants all die, negative control 24 RED is genuine, suite 1897 OK at e833bcb2, validate.py exit 0, enforcement_key() is a genuine shared switch (not a paste).",
+  "non_blocking": [
+    "SPEC-F3",
+    "SPEC-F4",
+    "STD-N1",
+    "STD-N2",
+    "STD-N3",
+    "STD-N4",
+    "TEST-F3",
+    "TEST-F4",
+    "FYI: signed+no-key refused by run_report but ignored by inventory.py check — intentional, documented"
+  ],
+  "round_2_exit": [
+    "BOT-1 fix (block-scope find_signature/_place_signature) + tests: envelope-inside-block, prose SIGNATURE_LINE ignored (unsigned -> UNSIGNED, signed -> verifies), plain write without --key unchanged",
+    "TEST-F1 test: invalid base64 sig_b64 with correct digest -> EXIT_MISMATCH 'malformed'; mirror in SignedInventoryRequired",
+    "STD-R2: enforcement_key() returns decoded 32-byte key or (None, at, reason); drop both inline parses",
+    "in-thread replies on 4057859153 (commit named) and 4057859156 (parked with reason)",
+    "suite + validate.py green at the new head; re-review — reviewed_sha voids on any push"
+  ],
+  "constraints_honored": [
+    "read-only aggregation; nothing in runtime/ or tests/ touched",
+    "no cross-axis re-ranking",
+    "egress receipt written before the PR review send",
+    "only report files committed",
+    "no AskUserQuestion"
+  ]
+}
