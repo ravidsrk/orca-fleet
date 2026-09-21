@@ -1252,8 +1252,27 @@ class SignedKeyFixture(RunReportBinding):
     PUBKEY = ".orca/dispatch-pubkey"
     TRANSCRIPT = "docs/runs/2026-01-01-demo-it-selfrun/verifier-transcript.json"
 
+    def setUp(self):
+        super().setUp()
+        # h409 F-5: a signed transcript names the verifier TOOLCHAIN it ran as (verify.py and every
+        # sibling it loads, hashed per file), and run_report binds that set to the files in the
+        # checkout being graded — so the graded checkout carries the real files at the pin.
+        scripts = self.repo / "runtime" / "scripts"
+        scripts.mkdir(parents=True, exist_ok=True)
+        for name in run_report.TOOLCHAIN_FILES:
+            (scripts / name).write_bytes((ROOT / "runtime" / "scripts" / name).read_bytes())
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "the verifier toolchain at the pin")
+        self.rev = _git(self.repo, "rev-parse", "HEAD")
+
     def _ed(self):
         return dispatch_sign._load_ed25519()
+
+    def _toolchain_files(self, **over):
+        files = {name: hashlib.sha256((ROOT / "runtime" / "scripts" / name).read_bytes()).hexdigest()
+                 for name in run_report.TOOLCHAIN_FILES}
+        files.update(over)
+        return files
 
     def _verdict(self, **over):
         full_args = {k: None for k in run_report.SIGNED_ARGS}
@@ -1263,7 +1282,7 @@ class SignedKeyFixture(RunReportBinding):
             full_args.update(over.pop("args"))  # producer-shape: a full tuple with overrides
         rec = {"unit": "u1", "manifest": self.manifest, "manifest_sha256": self.manifest_sha,
                "args": full_args, "fatal": [], "notes": [],
-               "exit": 0, "toolchain": {"python": "3.13"},
+               "exit": 0, "toolchain": {"python": "3.13", "files": self._toolchain_files()},
                "timestamp": "2026-01-01T00:00:00+00:00"}
         rec.update(over)
         return rec
@@ -1461,7 +1480,7 @@ class SignedTranscriptRequired(SignedKeyFixture):
         # P1 from the round-1 TESTS axis: report-only / dark on a mutation-class mission, with the
         # body's invocation retyped to match. The class list is the in-repo oracle (#310).
         policy = self.repo / "runtime" / "evidence-manifest.md"
-        policy.parent.mkdir(parents=True)
+        policy.parent.mkdir(parents=True, exist_ok=True)
         policy.write_text("- **Mutation units** (demo-it, ship-it) — need a negative control.\n",
                           encoding="utf-8")
         self._commit(pubkey=True, transcript=self._envelope(
@@ -1736,3 +1755,41 @@ class LiveCatalog(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TranscriptBindsTheVerifierToolchain(SignedKeyFixture):
+    """h409 F-5 (C4): `toolchain.verify_sha256` had zero consumers and covered verify.py alone — a
+    substituted _verify_sig.py / diff_scope.py / ed25519.py yielded a byte-identical signed
+    envelope. The transcript now hashes verify.py AND every sibling it loads as one named set,
+    and run_report verifies each against the file at the graded pin: a transcript proves WHICH
+    verifier ran, nothing more."""
+
+    def test_an_unmodified_toolchain_binds(self):
+        self._commit(pubkey=True, transcript=self._envelope(self._verdict()))
+        self._sign_report()
+        self.assertEqual(self._check(), [])
+
+    def test_a_substituted_sibling_does_not_bind(self):
+        tampered = hashlib.sha256(b"def _failure_signature(out, err):\n    return True, None\n").hexdigest()
+        files = self._toolchain_files(**{"_verify_sig.py": tampered})
+        rec = self._verdict(toolchain={"python": "3.13", "files": files})
+        self._commit(pubkey=True, transcript=self._envelope(rec))
+        self._sign_report()
+        errors = self._check()
+        self.assertTrue(any("_verify_sig.py" in e and "transcript" in e for e in errors), errors)
+
+    def test_a_transcript_naming_no_toolchain_set_does_not_bind(self):
+        rec = self._verdict(toolchain={"python": "3.13", "verify_sha256": "ab" * 32})
+        self._commit(pubkey=True, transcript=self._envelope(rec))
+        self._sign_report()
+        errors = self._check()
+        self.assertTrue(any("toolchain" in e and "transcript" in e for e in errors), errors)
+
+    def test_a_partial_toolchain_set_does_not_bind(self):
+        files = self._toolchain_files()
+        del files["ed25519.py"]
+        rec = self._verdict(toolchain={"python": "3.13", "files": files})
+        self._commit(pubkey=True, transcript=self._envelope(rec))
+        self._sign_report()
+        errors = self._check()
+        self.assertTrue(any("ed25519.py" in e and "transcript" in e for e in errors), errors)

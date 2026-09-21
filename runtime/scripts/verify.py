@@ -1862,6 +1862,11 @@ class _Transcript:
 
     FIELDS = ("unit", "manifest", "manifest_sha256", "args", "fatal", "notes", "exit",
               "toolchain", "timestamp")
+    # h409 F-5: the files this verifier IS — itself and every sibling it loads by path. Hashed
+    # per file into toolchain.files; run_report.py (TOOLCHAIN_FILES mirrors this) binds each to
+    # the file at the graded pin, so a substituted sibling can no longer sign a byte-identical
+    # envelope. This binds the verifier's identity, nothing more.
+    TOOLCHAIN = ("verify.py", "_verify_sig.py", "diff_scope.py", "ed25519.py", "dispatch-sign.py")
     ARGS = ("contract_source", "contract_digest", "repo", "base", "symbol", "execute_nc",
             "unit_class", "no_gh", "lighting", "dispatch_record", "dispatch_pubkey",
             "nc_command", "git_dir", "evidence_root")
@@ -1884,6 +1889,13 @@ class _Transcript:
         except (OSError, ValueError, AttributeError):
             manifest_sha, unit = None, None
         _, git_version, _ = _run(["git", "--version"])
+        here = Path(__file__).resolve().parent
+        files = {}
+        for name in cls.TOOLCHAIN:
+            try:
+                files[name] = hashlib.sha256((here / name).read_bytes()).hexdigest()
+            except OSError:
+                files[name] = None  # an absent sibling signs an absence; run_report refuses it
         return {
             "unit": unit,
             "manifest": args.manifest,
@@ -1895,7 +1907,8 @@ class _Transcript:
             "toolchain": {
                 "python": sys.version.split()[0],
                 "git": git_version.strip() or None,
-                "verify_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                "verify_sha256": files["verify.py"],
+                "files": files,
             },
             "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
