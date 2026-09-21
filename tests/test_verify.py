@@ -4114,8 +4114,13 @@ class ReviewAuthorityPinnedBeforeTheControl(MutationFixture):
         self.assertIn("gh absent at startup", err)
         self.assertEqual((verify._Authority.gh, verify._Authority.custody), (None, "absent"))
 
+    @unittest.skipIf(os.geteuid() == 0 or os.stat("/usr/bin").st_uid == os.geteuid(),
+                     "this user owns /usr/bin (root?)")
     def test_a_system_gh_is_classed_system(self):
-        self.assertEqual(verify._Authority.classify("/usr/bin/gh"), "system")
+        # Round 4: the probe walks REAL nodes, so the system-class exemplar must exist — a path it
+        # cannot stat is fail-closed, never system. /usr/bin/gh exists on the ubuntu runners only.
+        system = next(t for t in ("/usr/bin/gh", "/usr/bin/git", "/usr/bin/env") if os.path.exists(t))
+        self.assertEqual(verify._Authority.classify(system), "system")
         self.assertEqual(verify._Authority.classify(str(self.droppable / "gh")), "worker-writable")
         self.assertEqual(verify._Authority.classify(str(self.repo / "gh")), "worker-writable")
 
