@@ -1597,6 +1597,51 @@ class SignedInventoryRequired(SignedKeyFixture):
         _git(self.repo, "checkout", "-q", "main")
         self.assertEqual(self._check(), [])
 
+    # --- round-1 G-1 / G-2 mirrored at the gate ------------------------------------------------
+    def _rewrite_envelope(self, edit):
+        text = self.path.read_text(encoding="utf-8")
+        line = next(l for l in text.splitlines() if l.startswith("<!-- inventory-signature"))
+        self.path.write_text(edit(text, line), encoding="utf-8")
+
+    def test_a_malformed_sig_b64_never_binds(self):
+        # M14 at the gate: the record is derivable from the report; a sig_b64 that does not
+        # decode is a keyless forgery and must refuse, never read as bound.
+        self._transcript_commit()
+        self._sign_report()
+        self._rewrite_envelope(lambda text, line: text.replace(
+            line, line.replace(json.loads(line[len("<!-- inventory-signature "):-len(" -->")])["sig_b64"],
+                               "not*base64!")))
+        errors = self._check()
+        self.assertTrue(any("signature does not bind" in e and "malformed" in e for e in errors), errors)
+
+    def test_a_signature_line_in_the_report_prose_is_refused(self):
+        # BOT-1 at the gate: a pasted example above the inventory heading is outside every
+        # find_blocks range — refused as a would-be forgery, not honoured, not "unsigned".
+        self._transcript_commit()
+        self._sign_report()
+        self.assertEqual(self._check(), [])
+        self._rewrite_envelope(lambda text, line: line + "\n" + text)
+        errors = self._check()
+        self.assertTrue(any("inventory" in e and "outside" in e for e in errors), errors)
+        self.assertFalse(any("UNSIGNED" in e for e in errors), errors)
+
+    def test_a_malformed_pin_refuses_the_inventory_leg_too(self):
+        # G-5: the pin is parsed once, in enforcement_key(); both legs refuse the same way.
+        self._transcript_commit()
+        self._sign_report()
+        (self.repo / self.PUBKEY).write_text("not-hex\n", encoding="utf-8")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "bad pin")
+        self.rev = _git(self.repo, "rev-parse", "HEAD")
+        self._write(header_extra=f" transcript={self.TRANSCRIPT}")
+        self._sign_report()
+        errors = self._check()
+        self.assertEqual(len([e for e in errors if "malformed" in e]), 2, errors)
+        pub, at, why = run_report.enforcement_key(self.rev, self.repo)
+        self.assertIsNone(pub)
+        self.assertIsNone(at)
+        self.assertIn("malformed", why)
+
 
 class LiveCatalog(unittest.TestCase):
     """The repo's own claims, checked by the same code CI runs."""

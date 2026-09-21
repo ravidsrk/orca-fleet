@@ -534,16 +534,26 @@ def key_rev(rev, root, base=None):
 
 
 def enforcement_key(rev, root, base=None):
-    """(pubkey bytes or None, commit it was read at, why) — THE switch, resolved once for every
-    signed leg (transcript, inventory) so none of them can disagree about whether enforcement is
-    on. `at` is None only when no grading base resolves; `why` is then the refusal itself."""
+    """(32 pubkey bytes or None, commit it was read at, why) — THE switch, resolved AND parsed
+    once for every signed leg (transcript, inventory) so none of them can disagree about whether
+    enforcement is on or re-state the malformed-pin refusal. `at` is None when the switch cannot
+    be read at all — no grading base resolves, or the committed pin is not a 32-byte hex key;
+    `why` is then the refusal itself, fail-closed."""
     at, why = key_rev(rev, root, base)
     if at is None:
         return None, None, f"{why} — the unsigned lane needs an ancestry proof, so the claim fails closed"
     pin = blob_at(at, PUBKEY_PIN, root)
     if at != rev and pin is None:  # no key on the base: the pin's own key, exactly as before
         pin, at, why = blob_at(rev, PUBKEY_PIN, root), rev, "the pin; the grading base carries no key"
-    return pin, at, why
+    if pin is None:
+        return None, at, why
+    try:
+        pub = bytes.fromhex(pin.decode("utf-8").strip())
+    except (UnicodeDecodeError, ValueError) as err:
+        return None, None, f"{PUBKEY_PIN} at {at} is malformed ({err}) — fail-closed"
+    if len(pub) != 32:
+        return None, None, f"{PUBKEY_PIN} at {at} is malformed (not a 32-byte hex key) — fail-closed"
+    return pub, at, why
 
 
 def signed_inventory(lines, entries, rev, root, base=None):
@@ -554,16 +564,16 @@ def signed_inventory(lines, entries, rev, root, base=None):
     a blob at the pin — the report is written after the pin it names); the key is read at
     enforcement_key(), the same place the transcript rule reads it. Absence never binds: an
     envelope with no key to verify it, and no envelope with a key present, both refuse."""
-    pin, at, why = enforcement_key(rev, root, base)
+    pub, at, why = enforcement_key(rev, root, base)
     if at is None:
         return [why]
     try:
         _idx, envelope = inventory.find_signature(lines)
     except inventory.InventoryError as err:
         return [f"integrity inventory {inventory.SIGNATURE_TAG}: {err}"]
-    if pin is None and envelope is None:
+    if pub is None and envelope is None:
         return []
-    if pin is None:
+    if pub is None:
         return [f"integrity inventory carries an {inventory.SIGNATURE_TAG} but no {PUBKEY_PIN} is "
                 f"committed at {at} — nothing can verify it, so the claim fails closed (#386)"]
     if envelope is None:
@@ -571,14 +581,12 @@ def signed_inventory(lines, entries, rev, root, base=None):
                 "longer binds — sign its entry set with `inventory.py sign --key <coordinator seed>` "
                 "(#386)"]
     try:
-        pub = bytes.fromhex(pin.decode("utf-8").strip())
-    except (UnicodeDecodeError, ValueError) as err:
-        return [f"{PUBKEY_PIN} at {at} is malformed ({err}) — fail-closed"]
-    if len(pub) != 32:
-        return [f"{PUBKEY_PIN} at {at} is malformed (not a 32-byte hex key) — fail-closed"]
-    problem = inventory.verify_signature(envelope, entries, pub)
-    if problem:
+        signed = inventory.verify_signature(envelope, entries, pub)
+    except inventory.SignatureRefused as problem:
         return [f"integrity inventory signature does not bind: {problem} (key: {PUBKEY_PIN} at {at})"]
+    if signed != inventory.inventory_digest(entries):  # bound means the key said so over THIS set
+        return [f"integrity inventory signature does not bind: the verifier returned {signed!r}, not "
+                f"this inventory's digest (key: {PUBKEY_PIN} at {at})"]
     return []
 
 
@@ -593,13 +601,13 @@ def signed_transcript(fields, rev, run_dir, root, base=None, text=""):
     pre-key commit is judged by the key the base carries, not by the key it chose to fork before).
     Absence never binds: a missing signature with the key present, a missing key with a signature
     present, and a manifest digest that is None on either side all refuse."""
-    pin, at, why = enforcement_key(rev, root, base)
+    pub, at, why = enforcement_key(rev, root, base)
     if at is None:
         return [why]
     transcript = fields.get("transcript")
-    if pin is None and transcript is None:
+    if pub is None and transcript is None:
         return []
-    if pin is None:
+    if pub is None:
         return [f"RUN: transcript={transcript} is named but no {PUBKEY_PIN} is committed at {at} "
                 "— nothing can verify it, so the claim fails closed (#281)"]
     if transcript is None:
@@ -623,12 +631,9 @@ def signed_transcript(fields, rev, run_dir, root, base=None, text=""):
                 f"and {PUBKEY_PIN} is committed at {at} — rejected; sign it with the coordinator's "
                 "seed (#281)"]
     try:
-        pub = bytes.fromhex(pin.decode("utf-8").strip())
         sig = base64.b64decode(envelope["sig_b64"], validate=True)
-    except (UnicodeDecodeError, ValueError) as err:
-        return [f"{PUBKEY_PIN} at {at} or the transcript's sig_b64 is malformed ({err}) — fail-closed"]
-    if len(pub) != 32:
-        return [f"{PUBKEY_PIN} at {at} is malformed (not a 32-byte hex key) — fail-closed"]
+    except ValueError as err:
+        return [f"RUN: transcript={transcript} sig_b64 is malformed ({err}) — fail-closed"]
     record = envelope["record"]
     if not dispatch_sign._load_ed25519().checkvalid(
             sig, dispatch_sign.canonical_transcript(record), pub):
