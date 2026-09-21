@@ -667,13 +667,20 @@ def signed_transcript(fields, rev, run_dir, root, base=None, text=""):
         problems.append("it signs no argument tuple, so under which policy the verdict was "
                         "reached is unknown")
     else:
-        keys = [k for k in SIGNED_ARGS if k in signed]
-        shown = invocation_args(text, manifest)
-        if not any(all(inv[k] == signed[k] for k in keys) for inv in shown):
-            summary = " ".join(f"{k}={signed[k]!r}" for k in keys if signed[k] not in (None, False))
-            problems.append(f"its signed argument tuple ({summary or 'every flag unset'}) matches no "
-                            f"verify.py invocation the body shows — the verdict was reached under "
-                            "a policy the report does not claim")
+        missing = sorted(set(SIGNED_ARGS) - set(signed))
+        unexpected = sorted(set(signed) - set(SIGNED_ARGS))
+        if missing or unexpected:
+            problems.append(f"its signed argument tuple is partial — missing keys {missing}"
+                            + (f", unexpected keys {unexpected}" if unexpected else "")
+                            + " — the full verifier policy tuple must be signed, not a subset "
+                            "(a transcript may omit no control it was reached under)")
+        else:
+            shown = invocation_args(text, manifest)
+            if not any(all(inv[k] == signed[k] for k in SIGNED_ARGS) for inv in shown):
+                summary = " ".join(f"{k}={signed[k]!r}" for k in SIGNED_ARGS if signed[k] not in (None, False))
+                problems.append(f"its signed argument tuple ({summary or 'every flag unset'}) matches no "
+                                f"verify.py invocation the body shows — the verdict was reached under "
+                                "a policy the report does not claim")
         mutation = _mutation_missions(root, rev)
         if mutation and fields["mission"] in mutation and signed.get("unit_class") != "mutation":
             problems.append(f"it was judged as unit_class={signed.get('unit_class')!r}, but "

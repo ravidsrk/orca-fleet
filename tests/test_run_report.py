@@ -1256,8 +1256,13 @@ class SignedKeyFixture(RunReportBinding):
         return dispatch_sign._load_ed25519()
 
     def _verdict(self, **over):
+        full_args = {k: None for k in run_report.SIGNED_ARGS}
+        full_args.update({"execute_nc": False, "no_gh": False,
+                          "unit_class": "mutation", "lighting": "lit"})
+        if "args" in over:
+            full_args.update(over.pop("args"))  # producer-shape: a full tuple with overrides
         rec = {"unit": "u1", "manifest": self.manifest, "manifest_sha256": self.manifest_sha,
-               "args": {"unit_class": "mutation", "lighting": "lit"}, "fatal": [], "notes": [],
+               "args": full_args, "fatal": [], "notes": [],
                "exit": 0, "toolchain": {"python": "3.13"},
                "timestamp": "2026-01-01T00:00:00+00:00"}
         rec.update(over)
@@ -1433,9 +1438,21 @@ class SignedTranscriptRequired(SignedKeyFixture):
         self.assertTrue(any("argument" in e and "report-only" in e for e in errors), errors)
 
     def test_a_transcript_signing_no_argument_tuple_is_refused(self):
-        self._commit(pubkey=True, transcript=self._envelope(self._verdict(args={})))
+        verdict = self._verdict()
+        verdict["args"] = {}
+        self._commit(pubkey=True, transcript=self._envelope(verdict))
         errors = self._check()
         self.assertTrue(any("argument" in e for e in errors), errors)
+
+    def test_a_transcript_with_a_partial_argument_tuple_is_refused(self):
+        # Greptile on PR #491: the checker must not derive its key set from the fields present —
+        # a tuple naming only some policy fields still signed a verdict reached under controls it
+        # omits (execute_nc, nc_command, contract_digest, …). The full tuple or nothing.
+        verdict = self._verdict()
+        verdict["args"] = {"unit_class": "mutation", "lighting": "lit"}  # an ACTUAL subset
+        self._commit(pubkey=True, transcript=self._envelope(verdict))
+        errors = self._check()
+        self.assertTrue(any("partial" in e and "missing keys" in e for e in errors), errors)
 
     def test_hostile_args_on_a_mutation_mission_are_refused_even_when_the_body_agrees(self):
         # P1 from the round-1 TESTS axis: report-only / dark on a mutation-class mission, with the
