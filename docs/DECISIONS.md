@@ -87,3 +87,17 @@ probe, yielding a sound-lane FALSE GREEN) plus residuals R2 (git/gitleaks unpinn
 sound lane never takes an authority from something the worker could replace or redirect); the run
 re-loops through FIX → REVIEW → RUNTIME-PROVE → LAND → RE-ATTACK before RE-AUDIT. Fix batch frozen
 in docs/runs/2026-09-21-harden-409/build-fix-r3.md.
+
+## h409-r3-review-reloop — 2026-09-22 — coordinator (session-gate delegation)
+
+The round-3 targeted re-review (docs/reports/h409/review-r3.txt) confirmed R1/R2/R3 as specified
+but found the rewritten probe incomplete by two more keys, each a demonstrated sound-lane FALSE
+GREEN: C-1 only the RESOLVED path's parent is probed (a worker-planted symlink in a writable PATH
+dir pointing at a root-owned target classes "system") and C-2 the probe is mode-only (a worker-
+OWNED 0555 dir classes "system"). Both are MECHANICAL under the frozen bar (an authority is
+worker-controllable when the effective user can write OR owns the file, its directory, or any
+symlink hop). Fixture ruling (review R-1, option b): the gate tests run sound lanes with PATH
+restricted to genuinely root-owned system dirs and SKIP with a named reason when a needed tool
+has no system-class instance on the host; NO coordinator-declared trusted-dir surface is added
+for tests' sake. Also taken: R-2 (cwd="/" root skip) and R-3 (probe-branch unit case under $HOME).
+The run re-loops a second time through FIX → REVIEW before RE-AUDIT.

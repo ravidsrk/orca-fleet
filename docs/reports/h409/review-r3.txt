@@ -1,0 +1,209 @@
+harden-it 409 — round-3 targeted re-review (PR #493, head d932803d)
+=====================================================================
+
+Reviewer: task_7cc0c0aaf1e8 (did NOT write the fix). Pack: addy (code-review-and-quality lens,
+debugging-and-error-recovery for the repros). Reviewed ONLY the round-3 diff
+(git diff origin/review/2026-09-21-harden-409...HEAD = 3b5c0ea8..d932803d; 7 files).
+Frozen spec: docs/runs/2026-09-21-harden-409/build-fix-r3.md. Attacks: docs/reports/h409/reattack.md.
+Builder report: docs/reports/h409/fix-r3.md. Builder harness: docs/reports/h409/fix-r3-repro.py.
+Every claim below was re-derived on this host (macOS, Homebrew; verify.py driven as a SUBPROCESS
+under a crafted PATH on the suite's real two-commit mutation fixture, git isolated to root-owned
+/usr/bin so the gh leg is the only authority under test). Reviewer harness: $SP/rv.py (scratchpad,
+not committed). Nothing outside this file was written in the repo; /opt/homebrew/sbin/gh was
+planted and removed inside each run (absent afterward, confirmed); the only network was one
+read-only `gh api repos/ravidsrk/orca-fleet/pulls/493` to prove real gh works under the scrub.
+Reviewed at 2026-09-22 00:10–00:25 IST.
+
+VERDICT: NO-GO
+==============
+
+The round-3 diff closes R1 exactly as reattack.md wrote it (the name-list is gone, the repro
+fails closed, R2/R3 hold, 12/14 new tests bite on revert, real gh works scrubbed). But the
+rewritten classify() still answers "system" for two things the graded worker controls, and each
+one is a SOUND-LANE FALSE GREEN end-to-end — the same P0 class R1 was, by two more keys. The
+fixture commit (d932803d) is built on the second of those holes and is RED on a Linux temp
+layout. Two Criticals → NO-GO. Gate table, then numbered findings.
+
+Gate table
+----------
+G-1 classify() never returns "system" without probe + symlink resolution ... PASS (literal), but
+    the probe is INCOMPLETE — see C-1, C-2. Evidence: runtime/scripts/verify.py:750-772 has
+    exactly four return sites: :761 (resolve() raised → worker-writable), :768 (under temp/cwd/
+    toplevel → worker-writable), :771 (W_OK on resolved parent or file → worker-writable, probe at :770),
+    :772 ("system", reached only after all of the above). `SYSTEM_BINS` no longer exists in
+    runtime/ (rg: only the two `create=True` mock.patch sites in tests/test_verify.py:4207,4250).
+    No name-based short-circuit remains. The probe is on the RESOLVED path only (:759-771): the
+    PATH entry's own directory is never probed (C-1), and W_OK is a MODE probe, not an ownership
+    probe (C-2).
+G-2 reattack.md §R1 repro fails closed on a sound lane ....................... PASS
+    Builder harness `fix-r3-repro.py R1`: rc=2, `FAIL: review_authority: gh at
+    /opt/homebrew/sbin/gh is worker-writable … fail-closed (h409 F-1)`, stub CONSULTED?: False,
+    N2a/N2b → worker-writable, /usr/bin/gh → system. NOTE the builder's run trips TWO fatals
+    (its temp-dir git also fails R2), so it does not isolate the gh leg; my re-derivation with
+    git from root-owned /usr/bin: sound lane rc=2 with ONLY the F-1 fatal, stub never consulted;
+    native lane rc=0 with `NOTE: review_authority: advisory (gh at /opt/homebrew/sbin/gh is
+    worker-writable)` and the stub consulted — exactly the spec's fatal/advisory split.
+G-3 git/gitleaks pinned once, no post-control PATH re-resolve ................ PASS
+    Pins: verify.py:692-701 (pin_git), :703-710 (pin_gitleaks), both called from resolve()
+    :720-741 which main() calls once (:2517); verify()'s ensure() (:2344 → :743-747) pins only
+    when custody is None. Every git argv head is `_Authority.git_bin()` — 20 sites: :149, :156,
+    :199, :1532, :1535, :1548, :1551, :1568, :1590, :1597, :1643, :1653, :1661, :2100, :2409;
+    gitleaks :1893 uses the pinned absolute. rg for `["git"`, `"git",`, `["gh"`, `["gitleaks"`
+    in verify.py: zero hits. `shutil.which` survives only at :698/:707/:728 (inside the pins) and
+    :2493 (main's pre-parse presence check, before resolve). git_bin()'s lazy pin (:712-718)
+    fires only when NEITHER git nor git_custody is set, i.e. never after a pin; an absent git is
+    the pinned state `git=None, git_custody="absent"` and _run/_run_bytes/_run_at refuse
+    argv[0] None (:115, :128, :924) rather than re-resolving. Builder R2 repro
+    re-derived: control plants a logging git into drop/ first on PATH → rc=0, log carries only
+    the gh stub's lines, `CONSULTED post-control?: False`; startup-writable git on --provenance ci
+    → `FAIL: authority: git at …/drop/git is worker-writable … (h409 R2)`.
+G-4 gh env scrub drops GH_HOST/GH_CONFIG_DIR and real gh still works ........ PASS
+    GH_ENV_KEEP verify.py:676 = PATH HOME TMPDIR TMP TEMP GH_TOKEN GITHUB_TOKEN; gh_env() :784-786;
+    the single seam api() :789-797 passes env=gh_env(); fetch_reviews :630 and fetch_pr_author
+    :639 both route through it. Builder R3 repro re-derived: ambient GH_HOST=attacker.example
+    GH_CONFIG_DIR=/evil → gh saw only PATH HOME GITHUB_TOKEN GH_TOKEN. Real gh: with
+    GH_HOST=attacker.invalid in the ambient env, `_Authority.api("ravidsrk/orca-fleet","pulls/493")`
+    → rc 0, title "fix(verify): h409 round 3 — …"; GH_HOST not in gh_env(). The scrub preserves
+    function. Runtime lanes: tests.test_verify_gate 100% green on this host (see G-6 for the
+    Linux caveat, which is the fixture's doing, not the scrub's).
+G-5 new tests above the guard, collected, 12 revert-biting .................. PASS
+    Classes at tests/test_verify.py:4171, :4255, :4347; guard at :4402 (file is 4403 lines).
+    unittest collects and runs all 14 (`Ran 14 tests … OK`). Revert: pre-fix verify.py
+    (git show 3b5c0ea8:runtime/scripts/verify.py) swapped into a scratch copy of the tree →
+    `FAILED (failures=9, errors=3)` = 12 bite, and the 2 that pass are the two positive
+    controls the builder named (…_is_still_system, test_a_plain_repo_names_no_host). That is
+    all 12, not a 3-sample. pytest is not installed here (`No module named pytest`); unittest
+    discovery is what the repo runs.
+G-6 the two fixture changes cannot mask a real regression ................... FAIL
+    (a) 0555 sysbin fixture, tests/test_verify_gate.py:41-64: hard-links the HOST's real
+    git/gh/gitleaks (real binaries, good) into a mkdtemp dir OWNED BY THE EFFECTIVE USER and
+    chmods file and dir 0555. It passes classify() only because W_OK is a mode probe (C-2) —
+    the fixture IS the C-2 shape. Worse, it is host-dependent in the opposite direction from
+    the one it claims to fix: on a Linux runner mkdtemp lands in /tmp, which is the child's
+    gettempdir(), so classify():768 classes the fixture worker-writable and the gate lanes go
+    RED. Reproduced here with TMPDIR=/tmp: 3/4 VerifyGateDispatchPinDiscovery tests FAIL with
+    `FAIL: authority: git at /tmp/vgate-sysbin-…/git is worker-writable … (h409 R2)`. It is
+    green on macOS ONLY because run_gate's env (:70) drops TMPDIR, so the parent's mkdtemp
+    (/var/folders/…) and the child's gettempdir() (/tmp) diverge. Side effects: rmtree cannot
+    empty a 0555 dir, so every suite run leaks a `vgate-sysbin-*` dir (3 leaked on this host
+    right now) and a hard link per tool (link count on the real Cellar gh/gitleaks is 4);
+    `os.chmod(dst, 0o555)` on a HARD LINK changes the mode of the host's real binary (no-op
+    here because Homebrew already installs 0555, but a 0755 /usr/local/bin/git would be
+    silently chmod'ed by the test suite).
+    (b) custody-NOTE strip, tests/test_negative_control.py:93-101: the pattern is narrow
+    (anchored `^NOTE: authority: advisory \((git|gh|gitleaks) at ` / `redaction: gitleaks at `),
+    strips only lines the committed transcript never asserted, and cannot hide a FAIL. It cannot
+    mask a regression. Nit: the `gh` alternative is dead code — the real gh line reads
+    `NOTE: review_authority: advisory (gh at …)` and is not matched, and does not need to be
+    (the demo runs no review leg).
+
+Findings
+--------
+
+C-1 (Critical) — classify() trusts a worker-planted SYMLINK whose target is root-owned:
+    sound-lane FALSE GREEN.
+    verify.py:758-759 resolves the path and :770 probes ONLY the resolved parent. The PATH
+    entry's own directory — the thing the worker writes the link into and can re-point at any
+    moment — is never probed. Repro (rv.py test_R1_symlink_to_interpreter): worker-writable
+    drop/ first on PATH, `drop/gh -> /bin/sh`; a committed file `api` at the repo root (cwd of
+    the verifier) that prints a forged APPROVED at `$(git rev-parse HEAD)` by carol.
+    `classify(drop/gh -> /bin/sh) -> system`. Sound lane, --provenance ci, git from /usr/bin:
+      rc= 0   verify: OK — all required checks passed
+      SH-API ARGV: --paginate repos/o/r/pulls/7/reviews
+      SH-API ARGV: repos/o/r/pulls/7
+    No FAIL, no NOTE; the sound lane consulted the worker's script twice (reviews + author).
+    /bin/sh is the cleanest key (argv `api …` is a relative script path resolved against cwd =
+    the graded repo) but any system interpreter or `/usr/bin/env` (which re-resolves `api` on
+    the same PATH) works. This is precisely the frozen bar's "something the graded worker could
+    have replaced or REDIRECTED".
+    Fix shape: probe the UNRESOLVED entry too — `os.access(Path(path).parent, W_OK)` → worker-
+    writable — and walk every symlink hop (os.readlink loop or Path.resolve per component),
+    classing worker-writable if ANY hop's directory is writable/owned. Add the regression test
+    (symlink in a writable dir → system-owned target must class worker-writable) and revert-
+    prove it; the existing N2a test (:4241) covers only the inverse direction.
+
+C-2 (Critical) — W_OK is a MODE probe; a worker-OWNED 0555 dir classes "system":
+    sound-lane FALSE GREEN.
+    verify.py:770 `os.access(p.parent, os.W_OK)` is false for a directory the effective user
+    OWNS with mode 0555 — a mode the owner sets and can unset (`chmod u+w`) at will. Repro
+    (rv.py test_R1_owner_0555): worker mkdtemp's ~/rv-drop-…, writes the stub gh, chmods file
+    and dir 0555, puts it first on PATH. `owner==euid: True | mode: 0o555`. Sound lane,
+    --provenance ci, git from /usr/bin:
+      rc= 0   verify: OK — all required checks passed
+      planted gh CONSULTED?: True
+    Also confirmed at the classify() level for a 0555 dir under /var/folders/…/T and under
+    $HOME in the gate-shaped child (no TMPDIR, cwd=repo): "system" both times. The builder's
+    report says "any dir/file this user can write → worker-writable"; a dir the user owns is a
+    dir the user can write, one chmod away.
+    Fix shape: class worker-writable when `st_uid == os.geteuid()` (or euid is in the
+    owning group with g+w) for the resolved file, its parent, and every hop's parent — an
+    ownership probe alongside the mode probe. Regression test + revert-proof. NOTE this will
+    (correctly) class the 0555 gate fixture worker-writable — see R-1.
+
+R-1 (Required) — the 0555 sysbin fixture (test_verify_gate.py:41-64) is host-dependent and
+    encodes C-2 as the happy path.
+    (i) RED on a Linux temp layout: reproduced with TMPDIR=/tmp — mkdtemp lands under the
+    child's gettempdir() and classify():768 classes it worker-writable; expect the 7 gate tests
+    the builder listed to FAIL on the ubuntu `tests (1..3)` jobs (CI on #493 was still PENDING
+    at review time; not exercised on a runner). (ii) Owned by euid + 0555 is exactly C-2; a
+    correct ownership probe makes this fixture fail, so the fixture cannot survive the fix it
+    accompanies. (iii) Leaks: rmtree(ignore_errors=True) cannot empty a 0555 dir — 3
+    `vgate-sysbin-*` dirs leaked on this host; hard-link count on the real Cellar gh/gitleaks
+    is 4. (iv) `os.chmod(dst, 0o555)` on a hard link rewrites the HOST binary's mode.
+    Fix shape: the gate tests need a git/gh the effective user neither owns nor can write.
+    Options: (a) a coordinator-declared trusted authority dir (the design question the builder
+    raised — needs a ruling), (b) run the gate lanes with PATH restricted to genuinely root-
+    owned dirs when the host has them (/usr/bin on macOS carries the xcode git shim; skip the
+    sound-lane gate tests with a named reason when it does not), (c) in CI, install the tools
+    where root owns them. Whatever is chosen: copy, never hard-link; chmod the dir back to 0755
+    before rmtree in the atexit hook.
+
+R-2 (Required) — the `os.getcwd()` root (verify.py:762) makes EVERYTHING worker-writable when
+    the verifier's cwd is `/` (r="/" is a parent of every path) — fail-closed but a sound lane
+    run from `/` (containers commonly start there) will fatal on a root-owned /usr/bin/git with
+    a message that blames the binary. Cosmetic in security terms, operational in practice.
+    Either skip the cwd root when it is `/` (or any dir the user cannot write), or word the
+    fatal to name the root that matched.
+
+R-3 (Required) — the R1 unit tests exercise the wrong branch. AuthorityCustodyIsAProbeNotAName
+    puts `listed` under a TemporaryDirectory (:4185-4189), so the fixed classify() classes it
+    worker-writable at :768 (temp root) — the W_OK branch at :770 that the REAL R1
+    (/opt/homebrew/sbin, outside temp/cwd/toplevel) depends on is never hit by a unit test;
+    only the host-dependent harness (`fix-r3-repro.py R1`, which skipTest's off-Homebrew) does.
+    Add a unit case with `listed` outside temp/cwd/toplevel (e.g. under $HOME, mode 0755) so
+    the probe branch itself is revert-proven on every host.
+
+N-1 (Nit) — `ThePinnedGhRunsUnderAScrubbedEnvironment.test_the_allowlist_is_the_whole_environment`
+    and the two `EveryPostControlAuthorityIsPinned` `…_pinned_absolute_…` tests bite on revert
+    as ERROR (AttributeError on the new attributes), i.e. they prove the interface exists, not
+    the behaviour. Fine as belt-and-braces alongside the 9 behavioural FAILs; say so in the
+    report rather than counting them among "revert-biting" without qualification.
+
+N-2 (Nit) — GH_ENV_KEEP drops XDG_CONFIG_HOME, HTTPS_PROXY/NO_PROXY, SSL_CERT_FILE. Correct
+    security-wise (each is a steering channel) and fail-closed, but a proxied or XDG-configured
+    CI host loses gh auth/egress and the failure surfaces as "cannot fetch reviews", not as a
+    custody line. Worth one sentence in runtime docs / the fatal text.
+
+N-3 (Nit) — three fixes in one commit (builder-declared deviation); the fixture commit is
+    separate. Acceptable given the shared constant block; the revert-proof was done against the
+    whole hunk, which is what the gate asks.
+
+Confirmations (what HOLDS — do not re-fix)
+------------------------------------------
+- reattack.md §R1 verbatim repro: fails closed on the sound lane, advisory on native (G-2).
+- R2: a git planted by the executed control is never consulted; startup-writable git is fatal on
+  a sound lane, NOTE on native; gitleaks pinned absolute with custody recorded (G-3).
+- R3: GH_HOST/GH_CONFIG_DIR/GH_REPO never reach the pinned gh; `--repo host/owner/name` →
+  `--hostname host` (split_repo :775-781, api :794-796); real gh works under the scrub (G-4).
+- No transcript / SIGNED_ARGS change (no new flag); run_report untouched by this diff.
+- `python3 scripts/validate.py` and the full suite at head: see the appended line.
+
+Scratch state: rv.py + the pre-fix scratch tree live under $SP only; ~/rv-drop-* removed
+(0 present); /opt/homebrew/sbin/gh absent; the 3 leaked vgate-sysbin-* dirs predate this review
+and were left in place as evidence for R-1(iii).
+
+Appended after the background run (00:25 IST): `python3 scripts/validate.py` → "All 21 missions
+valid; three-layer separation holds; evals valid." `python3 -m unittest discover -s tests` at
+d932803d on this host → "Ran 1985 tests in 344.7s … OK" (the builder's 8 host-dependent failures
+are gone here, by the fixture — see G-6/R-1 for why that is macOS-only). The leaked
+`vgate-sysbin-*` count in $TMPDIR went from 3 to 5 across this review's runs: R-1(iii) is live.
