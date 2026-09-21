@@ -68,3 +68,4 @@
 2026-09-20T14:13:16Z · floor-waiver:silenced-checker:docs/reports/U-CHAIN/run_mutants-r2.py · taste · allow · noqa E402 on the sys.path bootstrap import of an evidence harness; the idiom is the correct one for a path-insert, not a hidden defect ·
 2026-09-20T14:13:16Z · floor-waiver:silenced-checker:docs/reports/U-CHAIN/run_mutants-r3.py · taste · allow · noqa E402 on the sys.path bootstrap import of an evidence harness; same idiom ·
 2026-09-20T14:13:16Z · floor-waiver:silenced-checker:docs/runs/2026-09-20-clean-sweep-tracker/build-u442-r3.md · taste · allow · the frozen spec quotes the pragma line its H-7 orders deleted; archival quotation, not repo work (2026-09-17 precedent) ·
+2026-09-21T03:00:27Z · floor-waiver:assertion-removed:tests/test_spawn_worker.py · taste · allow · assertion CHANGED not removed — the pin-coupled expected-version string moved v1.4.203→v1.4.204 with the re-pin (#427 run, docs/runs/2026-09-20-pin-it-427.md); same assertion, new pin ·

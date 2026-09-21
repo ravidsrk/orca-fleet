@@ -45,8 +45,8 @@ A re-pin fires on whichever comes first:
 3. A `SPAWN=NOTE … run pin-it` sighting in the field, or any dispatch-doc drift report.
 
 Owner: the **pin-it** mission (its coordinator runs the loop; the maintainer files the issue).
-Next trigger: **2026-12-20** (quarterly from the 2026-09-20 re-pin), to be filed as the
-successor of #427 — it inherits this run's park register (docs/runs/2026-09-20-pin-it-427.md).
+Next trigger: **2026-12-20** (quarterly from the 2026-09-20 re-pin), filed as issue #488 —
+it inherits this run's park register (docs/runs/2026-09-20-pin-it-427.md).
 
 ## How to re-pin (so a stranger can reproduce the diff)
 

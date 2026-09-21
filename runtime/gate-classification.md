@@ -23,8 +23,8 @@ exists only in the RETIRED scheduler path (`coordinator-task-dispatch.ts:130-139
 (`deliver-worker-dispatch-preamble.ts`). So the resolution reaches the worker only if the
 COORDINATOR puts it there: write it into the task spec (or the dispatch preamble) by hand before
 re-dispatching. Treat the old promise as false until a probe shows otherwise — source-witnessed at
-v1.4.203, live-confirmed at v1.4.204 (resolution absent from the regenerated preamble — #427's
-p32-preamble.json). A worker that was told "the gate is resolved" and receives no resolution will invent one.
+v1.4.203, preview-confirmed at v1.4.204 (the regenerated `dispatch-show --preamble` carries no
+resolution — #427's p32-preamble.json; a real redispatch's delivered preamble was not probed). A worker that was told "the gate is resolved" and receives no resolution will invent one.
 
 ## Live ask ≠ historical unanswered ≠ DAG `blocked`
 
