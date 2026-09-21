@@ -17,6 +17,7 @@ import json
 import os
 import shlex
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -4244,12 +4245,214 @@ class AuthorityCustodyIsAProbeNotAName(MutationFixture):
         (self.listed / "gh").symlink_to(target)
         self.assertEqual(verify._Authority.classify(str(self.listed / "gh")), "worker-writable")
 
-    @unittest.skipIf(os.access("/usr/bin", os.W_OK), "this user can write /usr/bin (root?)")
+    @unittest.skipIf(os.access("/usr/bin", os.W_OK) or os.geteuid() == 0
+                     or os.stat("/usr/bin").st_uid == os.geteuid(),
+                     "this user can write or owns /usr/bin (root?)")
     def test_a_binary_in_a_dir_this_user_cannot_write_is_still_system(self):
         # The happy path: a root-owned /usr/bin classes system by the same probe, list or no list.
+        # Round 4: the binary must EXIST — a node the probe cannot stat is fail-closed, not system.
+        present = [t for t in ("/usr/bin/git", "/usr/bin/env", "/bin/sh") if os.path.exists(t)]
+        self.assertTrue(present)
         with mock.patch.object(verify._Authority, "SYSTEM_BINS", (), create=True):
-            self.assertEqual(verify._Authority.classify("/usr/bin/gh"), "system")
-            self.assertEqual(verify._Authority.classify("/usr/bin/git"), "system")
+            for tool in present:
+                self.assertEqual(verify._Authority.classify(tool), "system", tool)
+            self.assertEqual(verify._Authority.classify("/usr/bin/gh-does-not-exist"), "worker-writable")
+
+
+def _outside_every_root(path):
+    """True when `path` lies under none of the roots classify() treats as a work tree — the
+    temp dir, the process cwd, the toplevel — so a class of "worker-writable" can only have come
+    from the PROBE branch, never from the root check (h409 R-3)."""
+    p = Path(path).resolve()
+    for root in (tempfile.gettempdir(), os.getcwd(), verify._toplevel(), verify._evidence_toplevel()):
+        if root:
+            r = Path(root).resolve()
+            if p == r or r in p.parents:
+                return False
+    return True
+
+
+class EveryHopAndEveryOwnerIsProbed(MutationFixture):
+    """h409 round 4 (review-r3 C-1, C-2, R-2, R-3). Round 3 made custody a probe, but the probe
+    stopped one step short twice: it resolved the PATH entry and probed only the RESOLVED
+    parent by W_OK, so (C-1) a worker-planted symlink in a writable dir pointing at /bin/sh
+    classed "system" — and the sound lane then ran `sh api …` against a script in the graded
+    repo's cwd — and (C-2) a dir the worker OWNS at mode 0555 classed "system" too, one
+    `chmod u+w` from writable. Both were end-to-end sound-lane FALSE GREENs. classify() now
+    walks every node of every hop by hand and probes OWNERSHIP as well as mode. The drop dir
+    here lives under $HOME — outside temp/cwd/toplevel — so every class below comes from the
+    probe branch itself (R-3), not from the root check."""
+
+    def setUp(self):
+        super().setUp()
+        verify.fetch_reviews = self._orig_r  # the REAL fetch: these tests are about the binary
+        verify.fetch_pr_author = self._orig_a
+        try:
+            drop = tempfile.mkdtemp(prefix="orca-h409-r4-", dir=Path.home())
+        except OSError as e:
+            self.skipTest(f"cannot create a probe fixture under $HOME ({e})")
+        self.drop = Path(drop)
+        self.drop.chmod(0o755)  # mkdtemp's 0700 → the review's 0755 shape (R-3)
+        self.addCleanup(self._reap, self.drop)
+        if not _outside_every_root(self.drop):
+            self.skipTest(f"$HOME fixture {self.drop} lies under a work-tree root; the probe branch "
+                          "cannot be isolated on this host")
+        if os.geteuid() == 0:
+            self.skipTest("running as root: every hop is owned by the effective user by definition")
+        self.consulted = self.drop / "consulted.log"
+        # git's custody is R2's concern; class it system so the only authority under test is gh.
+        if hasattr(verify._Authority, "pin_git"):  # absent on the pre-round-3 verifier (R-3 revert)
+            orig_pin = verify._Authority.pin_git
+
+            def pin_system_git():
+                orig_pin()
+                verify._Authority.git_custody = "system"
+            patcher = mock.patch.object(verify._Authority, "pin_git", pin_system_git)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        # The pre-round-3 name list, for the revert proof of R-3: the $HOME dir is "trusted" by name.
+        patcher = mock.patch.object(verify._Authority, "SYSTEM_BINS", (str(self.drop),), create=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        tools = tempfile.TemporaryDirectory(prefix="orca-h409-r4-tools-")  # the run's git, after drop
+        self.addCleanup(tools.cleanup)
+        os.symlink(shutil.which("git"), Path(tools.name) / "git")
+        self._env = {"PATH": f"{self.drop}{os.pathsep}{tools.name}"}
+
+    @staticmethod
+    def _reap(d):
+        for sub in (d, *d.rglob("*")):
+            if sub.is_dir() and not sub.is_symlink():
+                os.chmod(sub, 0o755)
+        shutil.rmtree(d, ignore_errors=True)
+
+    def _forged_review(self):
+        return ("case \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\"" + self.head_sha
+                + "\",\"user\":{\"login\":\"carol\"}}]';; *) echo '{\"user\":{\"login\":\"alice\"}}';; esac\n")
+
+    def _plant_stub(self, where):
+        where.write_text("#!/bin/sh\n" f"echo \"PLANTED-GH ARGV: $*\" >> {shlex.quote(str(self.consulted))}\n"
+                         + self._forged_review())
+        where.chmod(0o755)
+
+    def _sound(self, *extra):
+        with mock.patch.dict(os.environ, self._env):
+            return self._run_main(self._manifest(nc=self._revert_nc()), "--repo", "o/r",
+                                  "--execute-nc", "--nc-command", self.proof_cmd, "--provenance", "ci",
+                                  *extra)
+
+    def _native(self):
+        with mock.patch.dict(os.environ, self._env):
+            return self._run_main(self._manifest(nc=self._revert_nc()), "--repo", "o/r",
+                                  "--execute-nc", "--nc-command", self.proof_cmd)
+
+    def _assert_refused(self, rc, out, err):
+        self.assertEqual(rc, 2, out + err)
+        self.assertIn(f"review_authority: gh at {self.drop / 'gh'} is worker-writable", err)
+        self.assertIn("provenance=ci", err)
+        self.assertFalse(self.consulted.exists(), "the sound lane consulted the worker's authority")
+
+    # --- C-1: the UNRESOLVED entry and every symlink hop -------------------------------------
+
+    def _system_interpreter(self):
+        sh = shutil.which("sh", path="/bin:/usr/bin")
+        if not sh or verify._Authority.classify(sh) != "system":
+            self.skipTest("no system-class /bin/sh on this host to point the symlink at")
+        return sh
+
+    def test_c1_a_symlink_in_a_writable_dir_to_a_system_interpreter_is_worker_writable(self):
+        (self.drop / "gh").symlink_to(self._system_interpreter())
+        self.assertEqual(verify._Authority.classify(str(self.drop / "gh")), "worker-writable")
+
+    def test_c1_the_sound_lane_refuses_the_symlinked_interpreter_and_never_runs_the_repo_script(self):
+        # reattack shape: `drop/gh -> /bin/sh`, so `gh api …` becomes `sh api …` and `api` is a
+        # script in the graded repo (the verifier's cwd) that forges an APPROVED review at head.
+        (self.drop / "gh").symlink_to(self._system_interpreter())
+        (self.repo / "api").write_text(f"echo \"SH-API ARGV: $*\" >> {shlex.quote(str(self.consulted))}\n"
+                                       + self._forged_review())
+        self._assert_refused(*self._sound())
+
+    def test_c1_the_native_lane_records_the_symlinked_interpreter_as_advisory(self):
+        (self.drop / "gh").symlink_to(self._system_interpreter())
+        (self.repo / "api").write_text(f"echo \"SH-API ARGV: $*\" >> {shlex.quote(str(self.consulted))}\n"
+                                       + self._forged_review())
+        rc, out, err = self._native()
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn(f"NOTE: review_authority: advisory (gh at {self.drop / 'gh'} is worker-writable)", out)
+
+    def test_c1_a_symlinked_directory_hop_inside_a_writable_dir_is_worker_writable(self):
+        # The hop is a DIRECTORY link this time: drop/sys -> /usr/bin, so drop/sys/git resolves to
+        # a root-owned binary while its unresolved path runs through a dir the worker owns.
+        sysdir = Path(self._system_interpreter()).parent
+        (self.drop / "sys").symlink_to(sysdir)
+        entry = self.drop / "sys" / Path(self._system_interpreter()).name
+        self.assertEqual(Path(entry).resolve(), Path(self._system_interpreter()).resolve())
+        self.assertEqual(verify._Authority.classify(str(entry)), "worker-writable")
+
+    def test_c1_a_link_loop_or_a_dangling_link_fails_closed(self):
+        (self.drop / "a").symlink_to(self.drop / "b")
+        (self.drop / "b").symlink_to(self.drop / "a")
+        self.assertEqual(verify._Authority.classify(str(self.drop / "a")), "worker-writable")
+        (self.drop / "gh").symlink_to(self.drop / "nowhere")
+        self.assertEqual(verify._Authority.classify(str(self.drop / "gh")), "worker-writable")
+
+    # --- C-2: ownership, not mode -------------------------------------------------------------
+
+    def _plant_owned_0555(self):
+        self._plant_stub(self.drop / "gh")
+        (self.drop / "gh").chmod(0o555)
+        self.drop.chmod(0o555)
+        st = self.drop.stat()
+        self.assertEqual(st.st_uid, os.geteuid())
+        self.assertEqual(stat.S_IMODE(st.st_mode), 0o555)
+        self.assertFalse(os.access(self.drop, os.W_OK), "the mode probe alone must be blind here")
+
+    def test_c2_a_worker_owned_0555_dir_is_worker_writable(self):
+        self._plant_owned_0555()
+        self.assertEqual(verify._Authority.classify(str(self.drop / "gh")), "worker-writable")
+
+    def test_c2_the_sound_lane_refuses_a_gh_in_a_worker_owned_0555_dir(self):
+        self._plant_owned_0555()
+        self._assert_refused(*self._sound())
+
+    def test_c2_the_native_lane_records_a_worker_owned_0555_dir_as_advisory(self):
+        self._plant_owned_0555()
+        rc, out, err = self._native()
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn(f"NOTE: review_authority: advisory (gh at {self.drop / 'gh'} is worker-writable)", out)
+
+    def test_c2_a_worker_owned_0555_file_in_a_root_owned_dir_is_worker_writable(self):
+        # Ownership of the FILE alone is enough: a 0555 file of one's own is one chmod away.
+        f = self.drop / "gh"
+        self._plant_stub(f)
+        f.chmod(0o555)
+        st = os.lstat(f)
+        self.assertTrue(verify._Authority._worker_controls(f, st))
+
+    # --- R-3: the probe branch itself, on every host ------------------------------------------
+
+    def test_r3_a_plain_gh_in_an_owned_0755_dir_outside_every_root_is_worker_writable(self):
+        # Round 3's unit tests put the drop dir under the temp root, so the ROOT check classed it
+        # and the probe branch (the one the real /opt/homebrew/sbin depends on) went unexercised.
+        # Here the dir is under $HOME at 0755 and its name is on the pre-round-3 list.
+        self._plant_stub(self.drop / "gh")
+        self.assertEqual(stat.S_IMODE(self.drop.stat().st_mode), 0o755)
+        self.assertEqual(verify._Authority.classify(str(self.drop / "gh")), "worker-writable")
+
+    def test_r3_the_sound_lane_refuses_a_gh_in_an_owned_0755_dir_outside_every_root(self):
+        self._plant_stub(self.drop / "gh")
+        self._assert_refused(*self._sound())
+
+    # --- R-2: a cwd of "/" is not a work tree -------------------------------------------------
+
+    def test_r2_a_cwd_of_root_does_not_class_a_root_owned_binary_worker_writable(self):
+        sh = self._system_interpreter()
+        cwd = os.getcwd()
+        os.chdir("/")
+        try:
+            self.assertEqual(verify._Authority.classify(sh), "system")
+        finally:
+            os.chdir(cwd)
 
 
 class EveryPostControlAuthorityIsPinned(MutationFixture):

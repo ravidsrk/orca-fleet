@@ -60,6 +60,7 @@ import os
 import re
 import shlex
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -747,17 +748,58 @@ class _Authority:
             cls.resolve(explicit_repo=explicit_repo)
 
     @classmethod
+    def _nodes(cls, path, seen=None):
+        """Every filesystem object a BY-HAND resolution of `path` touches: each directory
+        component, the entry itself, and — at every symlink — the link and then the components
+        of its target, restarting there. Raises OSError on a missing node or a link loop, so a
+        caller that cannot probe a hop cannot trust it either (h409 C-1)."""
+        seen = set() if seen is None else seen
+        parts = Path(path).parts
+        cur = Path(parts[0])
+        yield cur, os.lstat(cur)
+        for i, part in enumerate(parts[1:], start=1):
+            if part == ".":
+                continue
+            cur = cur.parent if part == ".." else cur / part  # every prior component is link-free
+            st = os.lstat(cur)
+            yield cur, st
+            if stat.S_ISLNK(st.st_mode):
+                if str(cur) in seen or len(seen) >= 40:
+                    raise OSError(f"symlink loop or too many hops at {cur}")
+                seen.add(str(cur))
+                target = os.path.join(str(cur.parent), os.readlink(cur))  # absolute wins the join
+                yield from cls._nodes(os.path.join(target, *parts[i + 1:]), seen)
+                return
+
+    @classmethod
+    def _worker_controls(cls, node, st):
+        """The OWNERSHIP + mode probe (h409 C-2): the effective user owns it (a 0555 of one's own
+        is one `chmod u+w` from writable), a group they belong to can write it, anyone can, or
+        access(2) says so (ACLs). W_OK alone was a MODE probe and classed a worker-OWNED 0555
+        dir system."""
+        if st.st_uid == os.geteuid():
+            return True
+        if st.st_mode & stat.S_IWOTH:
+            return True
+        if st.st_mode & stat.S_IWGRP and st.st_gid in {os.getegid(), *os.getgroups()}:
+            return True
+        # a link's own writability is its directory's, probed as the node before it
+        return not stat.S_ISLNK(st.st_mode) and os.access(node, os.W_OK)
+
+    @classmethod
     def classify(cls, path):
-        """"worker-writable" when the binary the path RESOLVES to (symlinks followed) lies under
-        a work tree, the temp dir, or any dir this user can write — "system" otherwise. Custody
-        is a PROBE, never a name: round 2 short-circuited to "system" on a list of system bin
-        dir names, and two of those names (/opt/homebrew/bin, /opt/homebrew/sbin) are
-        user-writable on every Homebrew host — a worker-planted gh there was classed system and
-        a sound lane exited 0 over a review the worker wrote (h409 R1). A genuinely root-owned
-        /usr/bin still classes system: this user cannot write it."""
+        """"worker-writable" when the binary, ANY directory on the way to it, or ANY symlink hop
+        lies under a work tree or the temp dir, or is something this user OWNS or can write —
+        "system" only when every node from `/` to the final target is beyond the worker's reach.
+        Custody is a PROBE, never a name: round 2 short-circuited to "system" on a list of
+        system bin dir names, two of which are user-writable on every Homebrew host (h409 R1).
+        Round 3 probed only the RESOLVED parent by W_OK, so a worker-planted symlink in a
+        writable dir pointing at /bin/sh (C-1) and a worker-OWNED 0555 dir (C-2) both classed
+        system. A genuinely root-owned /usr/bin still classes system: root owns every hop."""
         try:
-            p = Path(path).resolve()
-        except OSError:
+            nodes = list(cls._nodes(os.path.abspath(path)))
+            p = Path(path).resolve(strict=True)
+        except (OSError, RuntimeError):
             return "worker-writable"
         for root in (tempfile.gettempdir(), os.getcwd(), _toplevel(), _evidence_toplevel()):
             if root:
@@ -765,9 +807,11 @@ class _Authority:
                     r = Path(root).resolve()
                 except OSError:
                     continue
-                if p == r or r in p.parents:
+                if r == Path(r.anchor):  # cwd "/" is every path's parent; the probe covers it (R-2)
+                    continue
+                if p == r or r in p.parents or any(n == r or r in n.parents for n, _ in nodes):
                     return "worker-writable"
-        if os.access(p.parent, os.W_OK) or os.access(p, os.W_OK):
+        if any(cls._worker_controls(n, st) for n, st in nodes):
             return "worker-writable"
         return "system"
 
