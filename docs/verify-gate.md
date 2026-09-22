@@ -202,6 +202,10 @@ the worker can set that env, it can choose its own denominator and class.
 > of the **signed verifier transcript**
 > (#281/#386): `verify.py --transcript-out --transcript-key` (or `dispatch-sign.py
 > sign-transcript`, for a seed kept offline) emits the verdict as a signed envelope, and
+> the in-process key lane and the executed control are for DIFFERENT hosts: `--execute-nc`
+> runs worker code as the uid that holds the seed, so `verify.py` refuses the two together
+> (h409 F-6) — sign after the control with `sign-transcript`, and sign only a verdict object
+> you produced (it re-hashes `toolchain.files` against its own siblings; h409 O-2.4) — and
 > `run_report.py` verifies one against the committed pubkey and binds its manifest bytes, exit
 > code and signed argument tuple to the report's claims — implemented end to end, and
 > exercised by no real run yet. **Committing `.orca/dispatch-pubkey` is THE enforcement switch for both**:

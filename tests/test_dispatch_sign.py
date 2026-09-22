@@ -25,6 +25,15 @@ dispatch_sign = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(dispatch_sign)
 
 
+def _toolchain_files() -> dict:
+    """What verify.py writes into toolchain.files on THIS checkout — the set sign-transcript
+    re-hashes against its own siblings (h409 O-2.4)."""
+    import hashlib
+    here = ROOT / "runtime" / "scripts"
+    return {name: hashlib.sha256((here / name).read_bytes()).hexdigest()
+            for name in dispatch_sign.TOOLCHAIN_FILES}
+
+
 def _git_init(path: Path) -> None:
     subprocess.run(["git", "init", "-q"], cwd=path, check=True, capture_output=True)
 
@@ -194,7 +203,9 @@ class TranscriptSigning(unittest.TestCase):
     _RECORD = {"unit": "u1", "manifest": "docs/runs/r/manifest.json", "manifest_sha256": "ab" * 32,
                "args": {"unit_class": "mutation", "lighting": "lit"},
                "fatal": [], "notes": ["NOTE: x"], "exit": 0,
-               "toolchain": {"python": "3.12.0"}, "timestamp": "2026-09-20T00:00:00+00:00"}
+               # a verdict THIS toolchain produced: sign-transcript re-hashes the set (h409 O-2.4)
+               "toolchain": {"python": "3.12.0", "files": _toolchain_files()},
+               "timestamp": "2026-09-20T00:00:00+00:00"}
 
     def _ed(self):
         return dispatch_sign._load_ed25519()
@@ -351,6 +362,67 @@ class SeedCustodyAtUse(unittest.TestCase):
             rc, out, err = self._sign(key)
             self.assertEqual(rc, 0, err)
             self.assertIn("custody", err)
+
+
+class SignTranscriptSignsOnlyItsOwnVerifiersVerdict(unittest.TestCase):
+    """h409 O-2.4: `sign-transcript` checked SHAPE only (`record.get(k) is None`), so a hand-typed
+    verdict — exit 0, fatal [], every toolchain hash 00…00 — signed and verified. After F-6 the
+    offline signer is the seed-safe way to sign an executed-control verdict, so it now re-hashes
+    `toolchain.files` against the scripts beside it and refuses a set that names another
+    verifier, a partial set, or none. The maintainer signs only a verdict they produced."""
+
+    def _sign(self, record):
+        with tempfile.TemporaryDirectory() as d:
+            key = Path(d) / "dispatch-key"
+            _gen_key(key)
+            transcript = Path(d) / "verdict.json"
+            transcript.write_text(json.dumps(record), encoding="utf-8")
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                rc = dispatch_sign.main(["sign-transcript", "--key", str(key),
+                                         "--transcript", str(transcript)])
+            return rc, out.getvalue(), err.getvalue()
+
+    def test_a_verdict_from_this_toolchain_signs(self):
+        rc, out, err = self._sign(TranscriptSigning._RECORD)
+        self.assertEqual(rc, 0, err)
+        self.assertEqual(set(json.loads(out)), {"record", "sig_b64"})
+
+    def test_the_reaudits_hand_typed_verdict_is_refused(self):
+        # reaudit.md probe C: every hash 00…00, exit 0, fatal [] — it signed and verified.
+        zeros = {name: "00" * 32 for name in dispatch_sign.TOOLCHAIN_FILES}
+        rc, out, err = self._sign({**TranscriptSigning._RECORD,
+                                   "toolchain": {"python": "3.12.0", "files": zeros}})
+        self.assertEqual(rc, 1)
+        self.assertEqual(out, "")
+        self.assertIn("verify.py", err)
+        self.assertIn("different verifier", err)
+        self.assertIn("sign only a verdict object you produced", err)
+
+    def test_one_substituted_sibling_is_refused(self):
+        files = dict(_toolchain_files(), **{"ed25519.py": "ab" * 32})
+        rc, _, err = self._sign({**TranscriptSigning._RECORD,
+                                 "toolchain": {"python": "3.12.0", "files": files}})
+        self.assertEqual(rc, 1)
+        self.assertIn("ed25519.py", err)
+
+    def test_a_partial_or_absent_file_set_is_refused(self):
+        files = _toolchain_files()
+        del files["diff_scope.py"]
+        rc, _, err = self._sign({**TranscriptSigning._RECORD,
+                                 "toolchain": {"python": "3.12.0", "files": files}})
+        self.assertEqual(rc, 1)
+        self.assertIn("diff_scope.py", err)
+        rc, _, err = self._sign({**TranscriptSigning._RECORD, "toolchain": {"python": "3.12.0"}})
+        self.assertEqual(rc, 1)
+        self.assertIn("toolchain.files", err)
+
+    def test_the_file_set_mirrors_the_verifiers(self):
+        vspec = importlib.util.spec_from_file_location(
+            "verify_for_toolchain", ROOT / "runtime" / "scripts" / "verify.py")
+        verify = importlib.util.module_from_spec(vspec)
+        vspec.loader.exec_module(verify)
+        self.assertEqual(dispatch_sign.TOOLCHAIN_FILES, verify._Transcript.TOOLCHAIN)
 
 
 if __name__ == "__main__":
