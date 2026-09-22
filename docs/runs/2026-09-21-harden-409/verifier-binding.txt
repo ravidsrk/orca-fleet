@@ -1,0 +1,6 @@
+FAIL: redaction: artifact docs/runs/2026-09-21-harden-409/verifier-binding.txt unreadable: artifact 'docs/runs/2026-09-21-harden-409/verifier-binding.txt' is neither tracked at head_sha nor pinned by a sha256 in the manifest's artifacts[] integrity inventory — unpinned evidence (#267)
+verify: 1 invariant(s) failed — unit is NOT done
+NOTE: authority: advisory (git at /opt/homebrew/bin/git is worker-writable)
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: report-only (unsupervised) — claimed with no signed dispatch record. base_sha..head_sha changes docs/tests only, so the class is consistent with the change, but nothing off-worker authorized it (#310)
