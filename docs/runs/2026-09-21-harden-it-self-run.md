@@ -1,6 +1,6 @@
 # Run report — harden-it self-run, 2026-09-21
 
-RUN: mission=harden-it tier=self-run inventory_at=221777d8678938128d2c2b444565fe08fcd3d713 manifest=docs/runs/2026-09-21-harden-409/manifest.json verifier=GREEN waves=10
+RUN: mission=harden-it tier=self-run inventory_at=adc426e2d1cc4c9e96098ff162c4c3062bacba5b manifest=docs/runs/2026-09-21-harden-it-selfrun/manifest.json verifier=GREEN waves=10
 
 The header above is what `runtime/scripts/run_report.py` re-derives: mission and tier match the
 frontmatter claim; the inventory below re-hashes at the header commit; the manifest exists at that
@@ -20,7 +20,7 @@ P0/P1). The gitleaks negative control rides as one unit per the #212 field-proof
 | Mission | `harden-it` — SKILL `proof:` flips with this report (branch point `8d40c3db`) |
 | Tier claimed | `self-run` (run against this catalog); catalog promotion rides the same PR |
 | Target | this catalog: `runtime/scripts/verify.py`, `dispatch-sign.py`, `verify-gate.sh` + the signing path (#281/#386) |
-| Fixed point | BASE `review/2026-09-21-harden-409` @ `221777d8` (evidence close) · FORK_POINT `8d40c3db` · frozen threat model `threat-model.md` digest `7d458ce17f15fab2` · run-close contract `contract.md` @ `13d1f381` digest `sha256:57b1cb3f…` |
+| Fixed point | BASE `review/2026-09-21-harden-409` @ `adc426e2` (evidence close) · FORK_POINT `8d40c3db` · frozen threat model `threat-model.md` digest `7d458ce17f15fab2` · run-close contract `contract.md` @ `ef53093c` digest `sha256:57b1cb3f…` |
 | Coordinator / workers | coordinator (Kimi, term_0bae108a) · 16 claude workers via Orca Run `run_41e3aa41e711` (3 audit + 1 verify + 4 builders + 6 reviewers + 3 runtime-provers + 3 re-attackers + 2 re-auditors; some terminals reused across rounds) · TASK pack: addy for every worker — never co-mounted |
 | Orca | `orca status --json` → `runtime.reachable: true` (1.4.204, re-pinned this session); every dispatch through Orca, every `worker_done` validated against git |
 | Human gates | session-gate-delegation (DECISIONS): the maintainer delegated human-gate answers to coordinator judgement for this session; every ruling recorded per-decision — h409-native-lane-policy (accepted as designed), h409-r1-reloop, h409-r3-review-reloop, h409-f6-reloop (all mechanical under the frozen bar); gen-key switch stays deliberately OFF |
@@ -83,9 +83,9 @@ trains (every round's manifest, review, and runtime-prove above); this unit grad
 terminal evidence bundle against the frozen run-close contract (`contract.md`, RC-1..RC-4).
 Recorded through the recorder:
 
-`python3 runtime/scripts/evidence-run.py --label "verifier (binding run 2026-09-22)" --manifest docs/runs/2026-09-21-harden-409/manifest.json --artifact docs/runs/2026-09-21-harden-409/verifier-binding2.txt -- python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-21-harden-409/manifest.json --contract-source docs/runs/2026-09-21-harden-409/contract.md@13d1f3819632cbedd9a48de5b8cd19b5092ab12c --contract-digest sha256:57b1cb3f7b07abe534b06c32424e220488159927449b75f56c55b59a1e7e0c80 --unit-class report-only`
+`python3 runtime/scripts/evidence-run.py --label "verifier (binding run 2026-09-22)" --manifest docs/runs/2026-09-21-harden-it-selfrun/manifest.json --artifact docs/runs/2026-09-21-harden-it-selfrun/verifier-binding3.txt -- python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-21-harden-it-selfrun/manifest.json --contract-source docs/runs/2026-09-21-harden-it-selfrun/contract.md@ef53093c384f4d5e1f86fc884533e6b24fa254de --contract-digest sha256:57b1cb3f7b07abe534b06c32424e220488159927449b75f56c55b59a1e7e0c80 --unit-class report-only`
 
-Output (verbatim, exit 0; retained in `verifier-binding2.txt`; the record's `wtree` equals the
+Output (verbatim, exit 0; retained in `verifier-binding3.txt`; the record's `wtree` equals the
 pre-record commit's tree, pushed):
 
 ```
@@ -145,7 +145,7 @@ until ≥3 runs at differing WIP settings measure verified-CLOSED-per-hour throu
 - D5 The binding verifier needed four attempts: the recorder's truncate-at-start races the #267
   redaction read for every ledger-named artifact — each record's artifact must be fresh per run
   and pinned afterward, never re-run (the prove-it D7 lesson, re-learned with one new wrinkle:
-  the redaction leg binds EVERY ledger-named artifact, not only the manifest's own artifacts[]).
+  the redaction leg binds EVERY ledger-named artifact, not only the manifest's own artifacts[]; and the binding package lives in the report's OWN run directory (run_report.py derives it from the report filename, mission tokens contiguous) — the run's working evidence stays in `2026-09-21-harden-409/`, the graded manifest + contract + transcripts in `2026-09-21-harden-it-selfrun/`).
 - D6 Codex lane dead (credits); every worker claude. Cross-vendor review was impossible this run;
   independence came from fresh-context build-blind workers (instructed-isolation).
 - L1 The re-loop found a hole at every depth: name-trust → resolved-path-only → mode-only →
@@ -169,17 +169,18 @@ section; the living ledger `docs/runs/2026-09-21-harden-409.md` carries the loop
 | `docs/runs/2026-09-21-harden-409/build-fix-r3.md` | `2b5d8f7f2b05955f840538e16bf8aebbe94b8b6f37b9ee988f4c8d82d3929b3f` | run workers + coordinator 2026-09-21/22 |
 | `docs/runs/2026-09-21-harden-409/build-fix-r6.md` | `96016e55f054eb19ee9b0e9eb791456e8e82eaf4f73384772ec6bbbf5f2b8b9f` | run workers + coordinator 2026-09-21/22 |
 | `docs/runs/2026-09-21-harden-409/build-fix.md` | `af9c014fe399e1cbe59daf96a21b87b70b8eb4dfbeddb872b234d88142a97004` | run workers + coordinator 2026-09-21/22 |
-| `docs/runs/2026-09-21-harden-409/contract.md` | `57b1cb3f7b07abe534b06c32424e220488159927449b75f56c55b59a1e7e0c80` | coordinator (frozen 2026-09-22) |
+| `docs/runs/2026-09-21-harden-it-selfrun/contract.md` | `57b1cb3f7b07abe534b06c32424e220488159927449b75f56c55b59a1e7e0c80` | coordinator (frozen 2026-09-22) |
 | `docs/runs/2026-09-21-harden-409/fix-manifest.json` | `12246661283cecc1dfed924e0446187d800d997706b38645187bfb4b87e2668b` | run workers + coordinator 2026-09-21/22 |
 | `docs/runs/2026-09-21-harden-409/fix-negctrl.txt` | `a401de22f1678e5a1e97c073ece6817c1ef5536f0bd12b220736250001822506` | run workers + coordinator 2026-09-21/22 |
 | `docs/runs/2026-09-21-harden-409/fix-report.md` | `048312af5e13d8beb6e8ca92d3d54a44d0eceaf91182fcb837d7b9bb72dfb36e` | run workers + coordinator 2026-09-21/22 |
 | `docs/runs/2026-09-21-harden-409/fix-tests.txt` | `142799611aa8cc4351e1c1a82c1e85c246a72ada66b4ada8745391b18164eb24` | run workers + coordinator 2026-09-21/22 |
 | `docs/runs/2026-09-21-harden-409/fix-transcript.json` | `c8bade0382e861df66cb68e359c9ab5f6c9cd8353eeb1e5cfeddf28482c1fd72` | run workers + coordinator 2026-09-21/22 |
-| `docs/runs/2026-09-21-harden-409/manifest.json` | `cb2b4a158d63966ee406bdbee2ff42d55e77f962fef2bb2583585cc6c9964dd3` | coordinator + evidence-run.py 2026-09-22 |
+| `docs/runs/2026-09-21-harden-it-selfrun/manifest.json` | `f780d2ec6505b14bf3ad0ea6263ffcacb74faa234afcba92587298e4222c24e2` | coordinator + evidence-run.py 2026-09-22 |
 | `docs/runs/2026-09-21-harden-409/threat-model.md` | `7d458ce17f15fab22ff00c184f002778c137b2fb14e074af2080e89b09d1fe4c` | coordinator + subagent (frozen 2026-09-21) |
-| `docs/runs/2026-09-21-harden-409/verifier-binding.txt` | `024a4bb528ae7a871eeb6d44ce9d64d65908fb45415363033fc1db4fc703d824` | run workers + coordinator 2026-09-21/22 |
-| `docs/runs/2026-09-21-harden-409/verifier-binding2.txt` | `164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65` | run workers + coordinator 2026-09-21/22 |
-| `docs/runs/2026-09-21-harden-409/verifier.txt` | `164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65` | run workers + coordinator 2026-09-21/22 |
+| `docs/runs/2026-09-21-harden-it-selfrun/verifier-binding.txt` | `024a4bb528ae7a871eeb6d44ce9d64d65908fb45415363033fc1db4fc703d824` | run workers + coordinator 2026-09-21/22 |
+| `docs/runs/2026-09-21-harden-it-selfrun/verifier-binding2.txt` | `164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65` | run workers + coordinator 2026-09-21/22 |
+| `docs/runs/2026-09-21-harden-it-selfrun/verifier-binding3.txt` | `164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65` | evidence-run.py 2026-09-22 (binding run) |
+| `docs/runs/2026-09-21-harden-it-selfrun/verifier.txt` | `164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65` | run workers + coordinator 2026-09-21/22 |
 | `docs/reports/h409/audit-w1.md` | `1e7b2301f9b069c0a46a6f88a69890504c7d6ff901e410f6a6220ce9fa7b4010` | run workers + coordinator 2026-09-21/22 |
 | `docs/reports/h409/audit-w2.md` | `399092a212fec30827d82a91f8182e547110bb6282814171a6871da4d1cf39a4` | run workers + coordinator 2026-09-21/22 |
 | `docs/reports/h409/audit-w3.md` | `e66b728cb187757dc7e1b112742dc2288449e23699b365cbee14eec91dbd8036` | run workers + coordinator 2026-09-21/22 |
@@ -209,7 +210,7 @@ section; the living ledger `docs/runs/2026-09-21-harden-409.md` carries the loop
 
 ## Gates
 
-Final-tip gates at the evidence commit `221777d8` (recorded below after execution):
+Final-tip gates at the evidence commit `adc426e2` (recorded below after execution):
 
 - `python3 -m unittest discover -s tests` — see below
 - `python3 scripts/validate.py` — see below
