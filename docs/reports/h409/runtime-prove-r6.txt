@@ -1,0 +1,504 @@
+RUN: h409 runtime-prove ROUND 6 — verify.py + dispatch-sign.py + verify-gate.sh driven at their REAL CLI entry points, no test harness
+==========================================================================================================================
+Worktree: h409-prove-r6 @ 617c372e (PR #494 head). Pack: addy (security-and-hardening). Worker: RUNTIME-PROVE,
+task_db1c5866a4c3 / ctx_a9e24f5a53e4. Date: 2026-09-22 (IST, 09:51–10:02). Host: macOS 26 (Darwin 25.6.0), euid 501,
+Apple Silicon. Under every run's PATH (/usr/bin:/bin:/opt/homebrew/bin): python3 = /usr/bin/python3 (3.9.6, root-owned,
+the xcrun shim), git = /usr/bin/git (2.54.0, Apple Git-157, root-owned), gh = /opt/homebrew/bin/gh (2.101.0, user-owned ->
+"worker-writable" by verify.py's own custody probe, exactly as r4 recorded), gitleaks = /opt/homebrew/bin/gitleaks.
+Every run goes through `env -i` with PATH, HOME, TMPDIR, LANG plus the PLANTED variables named in each block. Every block
+below is pasted verbatim from the run (the $SP/out/p*.txt captures). Two edits only, both mechanical: the scratchpad prefix
+is abbreviated to $SP, and the throwaway token's value is cut to its first 8 characters so the repo's own gitleaks scan does
+not trip on this report. The token (ghp_ + 35 random base64 chars, len 39) was minted from /dev/urandom, never issued by
+GitHub — "real" in shape and in the fact that gh USED it (HTTP 401 Bad credentials in P-1a proves it was live in the
+verifier's env), throwaway in that it authenticates nothing. Nothing was committed or pushed; the only repo write is this
+file. Network: read-only `gh api` against ravidsrk/orca-fleet#494 only (and it 401'd on the throwaway token by design).
+
+$SP = $SP
+Context named in the TASK: fix-r6.md and reaudit.md §F-6 were read; docs/reports/h409/review-r6.txt is NOT present in this
+worktree at 617c372e (only review-r4.txt is) — the GO was taken from the TASK text, not re-read.
+
+VERDICT (one line): F-6, O-2.4, N-4 all HOLD at the real CLI on this host. The executed control never sees GH_*/GITHUB_*/
+ORCA_*/GIT_* (P-1, P-4, P-5); the --execute-nc + --transcript-key conjunction is refused at parse before the seed is opened
+(P-2, FIFO canary never opened); --transcript-key alone signs a real, pubkey-verifiable transcript and sign-transcript refuses
+every doctored toolchain (P-3); live GIT_EXTERNAL_DIFF and core.fsmonitor stubs fire on bare git and never through any
+verify.py leg (P-4); verify-gate.sh on ORCA_PROVENANCE=ci + ORCA_EXECUTE_NC=1 passes a good mutation unit with the control
+scrubbed (P-5a, exit 0) and blocks the lit variant on gh custody (P-5b), a missing ORCA_NC_COMMAND (P-5c) and a
+tautological command (P-5d).
+  P-1a lit lane, real gh, throwaway GH_TOKEN/GITHUB_TOKEN + ORCA_* + GH_HOST + SSL_CERT_FILE planted -> rc=2 on the review
+       leg ONLY (gh: Bad credentials 401 — the token reached gh, i.e. it was live), control EXECUTED and scored RED/green;
+       the control's own log: 10 env names, none GH_/GITHUB_/ORCA_/GIT_, GH_TOKEN present: False (both runs).
+  P-1b' same env, dark-eligible manifest+dispatch -> rc=0, same scrubbed control log.
+  P-2  --execute-nc + --transcript-key with a FIFO canary seed (blocked writer records OPENED on any open) -> usage, rc=1,
+       canary NOT opened, writer still blocked, no transcript, no control run, no worktree; plain `cat` DOES trip it
+       (positive control). Same with a 0600 gen-key seed (P-2b) and before any file is touched (P-2c: nonexistent paths).
+  P-3  --transcript-key WITHOUT --execute-nc -> signed {record, sig_b64}; VALID under seed.pub via the repo's own
+       canonical_record + ed25519.checkvalid, INVALID with exit flipped. Two-process lane: executed-control run with
+       --transcript-out alone -> unsigned verdict; sign-transcript signs it (VALID); four doctorings of toolchain.files
+       (verify.py hash zeroed, one file dropped, files removed, two hashes swapped) -> each refused rc=1, no envelope.
+       Already-signed envelope refused; 0644 seed refused by both signers (F-4 at use).
+  P-4  GIT_EXTERNAL_DIFF=<stub> + GIT_CONFIG_COUNT=1/core.fsmonitor=<stub> (+GIT_SSH_COMMAND, GIT_PROXY_COMMAND): bare
+       `git status --porcelain` fires fsmonitor, bare `git diff` fires the external diff (argv + env names logged);
+       the full executed-revert verify.py run under the same env -> rc=0, fired.log EMPTY; the lit+gh run -> also empty;
+       post-condition: bare git still fires (the channels were live throughout).
+  P-5  verify-gate.sh --event task, ORCA_PROVENANCE=ci ORCA_EXECUTE_NC=1 ORCA_NC_COMMAND=<bound>: P-5a dark-eligible
+       mutation -> exit 0, control log scrubbed, 0 stubs fired; P-5b lit -> exit 2 "gh … worker-writable … provenance=ci"
+       (F-1, r4 O-1 host consequence), control still scrubbed; P-5c no ORCA_NC_COMMAND -> BLOCK; P-5d 'true' -> BLOCK.
+  Hygiene: after every run `git worktree list` = 1 and no orca-nc-* dir remains in TMPDIR.
+
+OBSERVATIONS FOR THE COORDINATOR (none is a soundness defect):
+  O-1 (record-accuracy nit) When an earlier fatal fires (P-1b: manifest lit vs dispatch dark-eligible, "lighting swap"),
+      verify() deliberately skips the executed control (`execute_nc and not fatal`) — but check_review then emits
+      "It must be EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED" even though --execute-nc WAS passed. rc is 2 either
+      way; the second line just misdescribes why the control did not run. Same shape in P-5c/P-5d.
+  O-2 (doc line worth adding) On macOS the control's logged env holds 10 names, not the 5 of nc_env(): CPATH, LIBRARY_PATH,
+      MANPATH, SDKROOT are injected by the /usr/bin/python3 xcrun shim, __CF_USER_TEXT_ENCODING by CoreFoundation, LC_CTYPE by
+      Python's locale coercion — all in the CHILD, after exec. Proven by the positive control in P-1a-shim: the same
+      `env -i PATH HOME /usr/bin/python3` with no verifier shows the same names; Homebrew python3 shows only
+      HOME/LC_CTYPE/PATH/__CF_USER_TEXT_ENCODING. An auditor reading a control log should not mistake these for a leak.
+  O-3 (host consequence, unchanged from r4 O-1) A lit mutation unit cannot go green on the sound lane on this host: gh is
+      Homebrew-owned, so F-1 refuses custody before any fetch. Every green mutation run in this report is therefore on the
+      dark-eligible lane (review waived, executed control as oracle) — which is the lane F-6 is about anyway.
+  O-4 P-5b shows the executed control still RUNS worker code after the F-1 custody fatal has already made the verdict RED
+      (the authority is pinned first, the fatal is appended by check_review at the end). Harmless — it runs scrubbed — but
+      it is one more execution of worker code on a run that is already lost.
+
+--------------------------------------------------------------------------------------------------------------------------
+(0) THE UNIT — a real scratch git repo (two commits, later a third docs-only one), a real one-line fix, a real test that
+    LOGS the env names it runs under (never a value) to an absolute path outside any worktree, then asserts AC-1
+--------------------------------------------------------------------------------------------------------------------------
+$ sh build_unit.sh
+== pre-fix: does the real test fail at base? ==
+Traceback (most recent call last):
+  File "$SP/unit/check.py", line 14, in <module>
+    assert app.f() == 2, "AC-1 violated"
+AssertionError: AC-1 violated
+check.py exit at base = 1
+== post-fix: does the real test pass at head? ==
+check.py exit at head = 0
+BASE=2863174d78a0c1296a3b6d29ac7307862b1eaae8
+HEAD=da3b3fe583069e12796105d9f76b3fa3aa82f143
+TREE=9e8734a3b138fe5d41e6eccea846eb3d7e10a984
+DIGEST=sha256:e72010f63a078ba8712e5b0e6548c686921fa10ada90196074e42b43da1602a3
+CMD=/usr/bin/python3 -B check.py
+CMDSHA=195b0cb1ed99ece6e5372dd557c8b7741ad8d715299d140c431b91b7145ecf64
+da3b3fe fix: f() returns 2 (AC-1)
+2863174 base: f() returns 1
+-- manifest.json --
+{
+  "unit": "h409-runtime-prove-r6",
+  "base_sha": "2863174d78a0c1296a3b6d29ac7307862b1eaae8",
+  "head_sha": "da3b3fe583069e12796105d9f76b3fa3aa82f143",
+  "contract": {"source": "contract.md", "digest": "sha256:e72010f63a078ba8712e5b0e6548c686921fa10ada90196074e42b43da1602a3", "criterion_ids": ["AC-1"]},
+  "criteria": [{"id": "AC-1", "addressed": true}],
+  "pr": {"number": 494, "reviewed_sha": "da3b3fe583069e12796105d9f76b3fa3aa82f143"},
+  "negative_control": {"tool": "revert", "result": "RED — the bound test failed under the control",
+                       "artifact": "docs/reports/u/nc.txt", "command": "/usr/bin/python3 -B check.py", "paths": ["app.py"]},
+  "commands": [{"label": "tests", "cmd": "/usr/bin/python3 -B check.py", "cmd_sha256": "195b0cb1ed99ece6e5372dd557c8b7741ad8d715299d140c431b91b7145ecf64", "exit": 0,
+                "wtree": "9e8734a3b138fe5d41e6eccea846eb3d7e10a984", "artifact": "docs/reports/u/nc.txt"}],
+  "intent": {"goal": "land the one-line fix", "ruled_out": "leaving f() at 1", "why": "AC-1 demands f()==2"},
+  "reviewer_mode": "cross-vendor",
+  "lighting": "lit"
+}
+-- check-env.log after the two hand runs above, then truncated for the verify runs --
+
+manifest-dark.json = manifest.json with "lighting": "dark-eligible". manifest-ro.json is shown in (3). check.py as committed:
+$ cat check.py
+# worker-style proof command: LOG the environment it was launched with (NAMES only, never a
+# value), then assert the criterion. The log path is absolute and hard-coded because the
+# control is expected to run with NO ORCA_*/GH_* channel to tell it where to write.
+import os, sys
+LOG = "$SP/envlog/check-env.log"
+names = sorted(os.environ)
+with open(LOG, "a") as fh:
+    fh.write("RUN cwd=%s pid=%d\n" % (os.getcwd(), os.getpid()))
+    fh.write("  env names (%d): %s\n" % (len(names), " ".join(names)))
+    fh.write("  GH_TOKEN present: %s | any GH_/GITHUB_/ORCA_/GIT_ name: %s\n" % (
+        "GH_TOKEN" in os.environ,
+        sorted(n for n in names if n.startswith(("GH_", "GITHUB_", "ORCA_", "GIT_")))))
+import app
+assert app.f() == 2, "AC-1 violated"
+
+run.sh (POSIX sh; prints the exact argv of each run, cwd = $SP/unit):
+#!/bin/sh
+# run.sh <label> [VAR=val ...] -- <verify args...>   (cwd = $SP/unit; env -i floor + the planted vars)
+SP=$SP
+WT=/Users/ravindra/orca/workspaces/orca-fleet/h409-ra
+label=$1; shift
+extra=""
+while [ "$1" != "--" ]; do extra="$extra $1"; shift; done; shift
+cd $SP/unit
+echo "### $label"
+echo "\$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=$HOME TMPDIR=$SP/tmp LANG=C$extra \\"
+echo "    /usr/bin/python3 $WT/runtime/scripts/verify.py $*"
+env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=$HOME TMPDIR=$SP/tmp LANG=C $extra \
+  /usr/bin/python3 $WT/runtime/scripts/verify.py "$@"
+echo "exit = $?"
+
+--------------------------------------------------------------------------------------------------------------------------
+(1) P-1 — a REAL throwaway GH_TOKEN in the ambient env; the executed control logs its environment
+--------------------------------------------------------------------------------------------------------------------------
+### P-1a lit lane, REAL gh (/opt/homebrew/bin/gh), throwaway GH_TOKEN + ORCA_* + GITHUB_* planted in the verifier's env
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/ravindra TMPDIR=$SP/tmp LANG=C GH_TOKEN=ghp_dWhC…(redacted, 39 chars, random) GITHUB_TOKEN=ghp_dWhC…(redacted, 39 chars, random) ORCA_PROVENANCE=ci ORCA_HEAD=deadbeef ORCA_CONTRACT_DIGEST=sha256:00 GH_HOST=github.com SSL_CERT_FILE=/nonexistent \
+    /usr/bin/python3 /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify.py --manifest manifest.json --contract-source contract.md --contract-digest sha256:e72010f63a078ba8712e5b0e6548c686921fa10ada90196074e42b43da1602a3 --unit-class mutation --lighting lit --execute-nc --nc-command /usr/bin/python3 -B check.py --repo ravidsrk/orca-fleet
+FAIL: mutation unit: cannot fetch reviews for ravidsrk/orca-fleet#494 (gh: Bad credentials (HTTP 401)) — fail-closed (gh ran under a scrubbed environment: XDG_CONFIG_HOME, HTTPS_PROXY/NO_PROXY and SSL_CERT_FILE are dropped with every other steering variable — only PATH, HOME, TMPDIR, TMP, TEMP, GH_TOKEN, GITHUB_TOKEN pass; h409 R3)
+verify: 1 invariant(s) failed — unit is NOT done
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 9e8734a3b138. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: review_authority: advisory (gh at /opt/homebrew/bin/gh is worker-writable)
+exit = 2
+
+### P-1a control: where do CPATH/LIBRARY_PATH/MANPATH/SDKROOT/LC_CTYPE/__CF_USER_TEXT_ENCODING come from? (the /usr/bin/python3 xcrun shim + macOS CF + Python UTF-8 coercion, NOT the verifier)
+$ env -i PATH=/usr/bin:/bin HOME=/Users/ravindra /usr/bin/python3 -c "import os; print(sorted(os.environ))"
+['CPATH', 'HOME', 'LC_CTYPE', 'LIBRARY_PATH', 'MANPATH', 'PATH', 'SDKROOT', '__CF_USER_TEXT_ENCODING']
+$ env -i PATH=/usr/bin:/bin HOME=/Users/ravindra /opt/homebrew/bin/python3 -c "import os; print(sorted(os.environ))"   # a non-shim interpreter, same env -i
+['HOME', 'LC_CTYPE', 'PATH', '__CF_USER_TEXT_ENCODING']
+$ file /usr/bin/python3; ls -l /usr/bin/python3
+/usr/bin/python3: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64e:Mach-O 64-bit executable arm64e]
+/usr/bin/python3 (for architecture x86_64):	Mach-O 64-bit executable x86_64
+/usr/bin/python3 (for architecture arm64e):	Mach-O 64-bit executable arm64e
+.rwxr-xr-x@ 119k root 13 Aug 08:21 /usr/bin/python3
+### nc_env() as computed IN the verifier process with the same planted env (names only):
+ambient names : ['GH_HOST', 'GH_TOKEN', 'GITHUB_TOKEN', 'GIT_CONFIG_COUNT', 'GIT_EXTERNAL_DIFF', 'HOME', 'LANG', 'LC_CTYPE', 'ORCA_HEAD', 'ORCA_PROVENANCE', 'PATH', 'SSL_CERT_FILE', 'TMPDIR', '__CF_USER_TEXT_ENCODING']
+nc_env names  : ['HOME', 'LANG', 'LC_CTYPE', 'PATH', 'TMPDIR']
+git_env names : ['GIT_TERMINAL_PROMPT', 'HOME', 'LANG', 'LC_CTYPE', 'PATH', 'TMPDIR']
+gh_env names  : ['GH_TOKEN', 'GITHUB_TOKEN', 'HOME', 'PATH', 'TMPDIR']
+
+### P-1b FIRST attempt: --lighting dark-eligible against the LIT manifest (kept verbatim — see O-1)
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/ravindra TMPDIR=$SP/tmp LANG=C GH_TOKEN=ghp_dWhC…(redacted, 39 chars, random) GITHUB_TOKEN=ghp_dWhC…(redacted, 39 chars, random) ORCA_PROVENANCE=ci ORCA_HEAD=deadbeef ORCA_CONTRACT_DIGEST=sha256:00 GH_HOST=github.com SSL_CERT_FILE=/nonexistent \
+    /usr/bin/python3 /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify.py --manifest manifest.json --contract-source contract.md --contract-digest sha256:e72010f63a078ba8712e5b0e6548c686921fa10ada90196074e42b43da1602a3 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command /usr/bin/python3 -B check.py --repo ravidsrk/orca-fleet
+FAIL: lighting swap: manifest says 'lit' but dispatch classed the unit 'dark-eligible' (the dispatch value is authoritative)
+FAIL: dark-eligible mutation: the independent review is WAIVED in this lane, so the negative control is the ONLY oracle left — and a control that was merely READ is a text file the worker wrote. It must be EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; docs/reviews/2026-09-10-review.md A1/A2/A4/A6/A9 all landed on exactly this)
+verify: 2 invariant(s) failed — unit is NOT done
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 9e8734a3b138. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+exit = 2
+
+### P-1b' manifest-dark.json (lighting: dark-eligible in BOTH manifest and dispatch), same planted env
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/ravindra TMPDIR=$SP/tmp LANG=C GH_TOKEN=ghp_dWhC…(redacted, 39 chars, random) GITHUB_TOKEN=ghp_dWhC…(redacted, 39 chars, random) ORCA_PROVENANCE=ci ORCA_HEAD=deadbeef ORCA_CONTRACT_DIGEST=sha256:00 GH_HOST=github.com SSL_CERT_FILE=/nonexistent \
+    /usr/bin/python3 /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify.py --manifest manifest-dark.json --contract-source contract.md --contract-digest sha256:e72010f63a078ba8712e5b0e6548c686921fa10ada90196074e42b43da1602a3 --unit-class mutation --lighting dark-eligible --execute-nc --nc-command /usr/bin/python3 -B check.py --repo ravidsrk/orca-fleet
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 9e8734a3b138. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: independent review waived — dark-eligible unit (gate-classification.md); the EXECUTED negative control + tests are the oracle, not a human review
+verify: OK — all required checks passed
+exit = 0
+
+--------------------------------------------------------------------------------------------------------------------------
+(2) P-2 — the conjunction --execute-nc + --transcript-key refuses at parse; the seed is never opened
+--------------------------------------------------------------------------------------------------------------------------
+### P-2 the conjunction --execute-nc + --transcript-key: canary seed is a FIFO with a background writer that records OPENED only when someone opens the FIFO for reading
+$ ls -l $SP/canary.fifo
+|rw-------@ - ravindra 22 Sep 09:55 $SP/canary.fifo
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/ravindra TMPDIR=$SP/tmp LANG=C GH_TOKEN=<throwaway> \
+    timeout 20 /usr/bin/python3 /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify.py --manifest manifest-dark.json --contract-source contract.md --contract-digest sha256:e72010f6… --unit-class mutation --lighting dark-eligible --execute-nc --nc-command '/usr/bin/python3 -B check.py' --transcript-out $SP/out/p2-transcript.json --transcript-key $SP/canary.fifo
+usage: --transcript-key cannot be combined with --execute-nc — the control runs worker code in the process that holds the seed. Sign after the control, in a process that never ran it: --transcript-out alone, then dispatch-sign.py sign-transcript; or a second verify.py invocation without --execute-nc
+exit = 1
+canary opened?  NO — the FIFO was never opened, the writer is still blocked
+writer pid 60977 still blocked on the FIFO: yes
+transcript written: no
+control ran (check-env.log non-empty): no
+worktrees left behind: 1 (1 = only the main tree)
+--- positive control: a plain read of the same FIFO DOES trip the canary ---
+$ cat $SP/canary.fifo
+canary-seed-bytes
+OPENED at 09:55:36
+--- P-2b same conjunction with a 0600 regular throwaway seed (dispatch-sign gen-key), out of repo ---
+private seed: $SP/seed (0600 — keep OFF the graded worker)
+public key:   $SP/seed.pub (commit as .orca/dispatch-pubkey to enforce)
+.rw-------@ 65 ravindra 22 Sep 09:55 $SP/seed
+.rw-r--r--@ 65 ravindra 22 Sep 09:55 $SP/seed.pub
+usage: --transcript-key cannot be combined with --execute-nc — the control runs worker code in the process that holds the seed. Sign after the control, in a process that never ran it: --transcript-out alone, then dispatch-sign.py sign-transcript; or a second verify.py invocation without --execute-nc
+exit = 1
+transcript written: no | control ran: no
+--- P-2c ordering: the refusal precedes even a MISSING manifest / bad seed path (parse-time, before any file is touched) ---
+usage: --transcript-key cannot be combined with --execute-nc — the control runs worker code in the process that holds the seed. Sign after the control, in a process that never ran it: --transcript-out alone, then dispatch-sign.py sign-transcript; or a second verify.py invocation without --execute-nc
+exit = 1
+
+--------------------------------------------------------------------------------------------------------------------------
+(3) P-3 — --transcript-key WITHOUT --execute-nc signs a real transcript; sign-transcript refuses a doctored toolchain (O-2.4)
+--------------------------------------------------------------------------------------------------------------------------
+### P-3a --transcript-key WITHOUT --execute-nc (the in-process key lane) signs a real transcript with the 0600 out-of-repo seed
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=… TMPDIR=… LANG=C /usr/bin/python3 /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify.py --manifest manifest.json --contract-source contract.md --contract-digest sha256:e72010f6… --unit-class report-only --transcript-out $SP/out/p3a-signed.json --transcript-key $SP/seed
+seed custody: $SP/seed mode 0600, outside any unignored work tree
+FAIL: report-only unit changed code ['app.py'] and carries no signed dispatch record. unit_class arrives from the environment the worker controls, so this single value drops the negative control, the intent packet, lighting legality and reviewer_mode from a unit that changed behaviour. Verify it as a mutation, or have the coordinator sign the downgrade (#310)
+verify: 1 invariant(s) failed — unit is NOT done
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+exit = 2
+$ cat $SP/out/p3a-signed.json
+{
+  "record": {
+    "args": {
+      "base": null,
+      "contract_digest": "sha256:e72010f63a078ba8712e5b0e6548c686921fa10ada90196074e42b43da1602a3",
+      "contract_source": "contract.md",
+      "dispatch_pubkey": null,
+      "dispatch_record": null,
+      "evidence_root": null,
+      "execute_nc": false,
+      "git_dir": null,
+      "lighting": null,
+      "nc_command": null,
+      "no_gh": false,
+      "provenance": null,
+      "repo": null,
+      "symbol": null,
+      "unit_class": "report-only"
+    },
+    "exit": 2,
+    "fatal": [
+      "report-only unit changed code ['app.py'] and carries no signed dispatch record. unit_class arrives from the environment the worker controls, so this single value drops the negative control, the intent packet, lighting legality and reviewer_mode from a unit that changed behaviour. Verify it as a mutation, or have the coordinator sign the downgrade (#310)"
+    ],
+    "manifest": "manifest.json",
+    "manifest_sha256": "9a843c7a9f2948b8e9a48fefaffdba61044a8ef82e8c203ef7a6a96434d6eb60",
+    "notes": [
+      "NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable \u2014 it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)",
+      "NOTE: --base not given \u2014 ancestry check skipped (pre-merge/offline)"
+    ],
+    "timestamp": "2026-09-22T04:25:57+00:00",
+    "toolchain": {
+      "files": {
+        "_verify_sig.py": "acc3d5cfb0f6fedf170661cf3a68a72e49d56805b1a74aaef5edc72c171cbef0",
+        "diff_scope.py": "1d6276ce0550189f4b383d95e2546fdb4344d880a9fecd1a9fb0ceb35438ec87",
+        "dispatch-sign.py": "76ec4fc40b237354f8480d4f627bf883272b6b7854d92fc323b5edba512f9e78",
+        "ed25519.py": "471fd3da4f4db6e952407f7945bb20b2b702d70ddff906eae1601e56efcac125",
+        "verify.py": "87de1e6e6b9dcf7c51d7f312209495cb4cbbfdf0adf3a7c50a17ecd69979656d"
+      },
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "python": "3.9.6",
+      "verify_sha256": "87de1e6e6b9dcf7c51d7f312209495cb4cbbfdf0adf3a7c50a17ecd69979656d"
+    },
+    "unit": "h409-runtime-prove-r6"
+  },
+  "sig_b64": "BKGSKCOnTQN6Q4Wp6iFY4lvnBJtfUXttXGfczA8XW3wlWtgHVhwQRaKfzAo53EgwmUxIpRv6i9hyMR+bxJCQBg=="
+}
+(the ad-hoc envelope check that followed P-3a in the capture used a wrong pubkey decode and is superseded by the one below, which uses the repo's own canonical_record/ed25519.checkvalid)
+
+### P-3a' (re-run: the first attempt's docs-only commit had swept the untracked manifest*.json in with git add -A — refused as code, correctly; commit redone with ONLY docs/reports/u/note.md)
+$ git log --oneline
+32f8f53 report: note
+da3b3fe fix: f() returns 2 (AC-1)
+2863174 base: f() returns 1
+$ git show --stat --oneline HEAD
+32f8f53 report: note
+ docs/reports/u/note.md | 1 +
+ 1 file changed, 1 insertion(+)
+$ cat manifest-ro.json
+{
+  "unit": "h409-runtime-prove-r6-ro", "unit_class": "report-only",
+  "base_sha": "da3b3fe583069e12796105d9f76b3fa3aa82f143", "head_sha": "32f8f536413c8216a711189d8227d724f8e9652b",
+  "contract": {"source": "contract.md", "digest": "sha256:e72010f63a078ba8712e5b0e6548c686921fa10ada90196074e42b43da1602a3", "criterion_ids": ["AC-1"]},
+  "criteria": [{"id": "AC-1", "addressed": true}],
+  "pr": {"reviewed_sha": "32f8f536413c8216a711189d8227d724f8e9652b"}
+}
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=… TMPDIR=… LANG=C /usr/bin/python3 /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify.py --manifest manifest-ro.json --contract-source contract.md --contract-digest sha256:e72010f6… --unit-class report-only --transcript-out $SP/out/p3a2-signed.json --transcript-key $SP/seed
+seed custody: $SP/seed mode 0600, outside any unignored work tree
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: report-only (unsupervised) — claimed with no signed dispatch record. base_sha..head_sha changes docs/tests only, so the class is consistent with the change, but nothing off-worker authorized it (#310)
+verify: OK — all required checks passed
+exit = 0
+record.exit: 0 | fatal: [] | unit: h409-runtime-prove-r6-ro | manifest_sha256: e07c6478607bc2a5… | sig_b64: q9vgGxiJ565wPUtgawVFDFw/…
+toolchain: {
+  "files": {
+    "_verify_sig.py": "acc3d5cfb0f6fedf170661cf3a68a72e49d56805b1a74aaef5edc72c171cbef0",
+    "diff_scope.py": "1d6276ce0550189f4b383d95e2546fdb4344d880a9fecd1a9fb0ceb35438ec87",
+    "dispatch-sign.py": "76ec4fc40b237354f8480d4f627bf883272b6b7854d92fc323b5edba512f9e78",
+    "ed25519.py": "471fd3da4f4db6e952407f7945bb20b2b702d70ddff906eae1601e56efcac125",
+    "verify.py": "87de1e6e6b9dcf7c51d7f312209495cb4cbbfdf0adf3a7c50a17ecd69979656d"
+  },
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "python": "3.9.6",
+  "verify_sha256": "87de1e6e6b9dcf7c51d7f312209495cb4cbbfdf0adf3a7c50a17ecd69979656d"
+}
+--- envelope check with the repo's OWN canonical_record + ed25519.checkvalid, pubkey = seed.pub (hex) ---
+p3a-signed.json as written        : VALID
+p3a-signed.json exit code flipped : INVALID
+p3a2-signed.json as written        : VALID
+p3a2-signed.json exit code flipped : INVALID
+
+### P-3b the documented two-process lane: EXECUTED control with --transcript-out ALONE (unsigned verdict object), then dispatch-sign.py sign-transcript in a process that never ran the control
+$ env -i … GH_TOKEN=<throwaway> /usr/bin/python3 /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify.py --manifest manifest-dark.json --contract-source contract.md --contract-digest sha256:e72010f6… --unit-class mutation --lighting dark-eligible --execute-nc --nc-command '/usr/bin/python3 -B check.py' --transcript-out $SP/out/p3b-unsigned.json
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 9e8734a3b138. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: independent review waived — dark-eligible unit (gate-classification.md); the EXECUTED negative control + tests are the oracle, not a human review
+verify: OK — all required checks passed
+exit = 0
+control env (from check-env.log): 2 runs;   GH_TOKEN present: False | any GH_/GITHUB_/ORCA_/GIT_ name: []
+$ python3 -c 'print keys of p3b-unsigned.json'
+top-level keys: ['args', 'exit', 'fatal', 'manifest', 'manifest_sha256', 'notes', 'timestamp', 'toolchain', 'unit']
+is envelope (record+sig_b64)? False
+exit: 0 | args.execute_nc: True | toolchain.files.verify.py: 87de1e6e6b9dcf7c51d7f312209495cb4cbbfdf0adf3a7c50a17ecd69979656d
+--- the pinned hashes ARE the scripts beside the signer (shasum of the worktree files) ---
+87de1e6e6b9dcf7c51d7f312209495cb4cbbfdf0adf3a7c50a17ecd69979656d  verify.py
+acc3d5cfb0f6fedf170661cf3a68a72e49d56805b1a74aaef5edc72c171cbef0  _verify_sig.py
+1d6276ce0550189f4b383d95e2546fdb4344d880a9fecd1a9fb0ceb35438ec87  diff_scope.py
+76ec4fc40b237354f8480d4f627bf883272b6b7854d92fc323b5edba512f9e78  dispatch-sign.py
+471fd3da4f4db6e952407f7945bb20b2b702d70ddff906eae1601e56efcac125  ed25519.py
+$ /usr/bin/python3 /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/dispatch-sign.py sign-transcript --key $SP/seed --transcript $SP/out/p3b-unsigned.json --out $SP/out/p3b-signed.json
+seed custody: $SP/seed mode 0600, outside any unignored work tree
+exit = 0
+p3b-signed.json envelope under seed.pub: VALID | record.exit = 0 | args.execute_nc = True
+
+### P-3c sign-transcript REFUSES a verdict whose toolchain.files were doctored (O-2.4) — four doctorings
+$ dispatch-sign.py sign-transcript --key seed --transcript p3c-1-verifyhash.json --out p3c-1-verifyhash-signed.json
+seed custody: $SP/seed mode 0600, outside any unignored work tree
+dispatch-sign: verdict toolchain.files pins verify.py at 000000000000…, not the file beside this signer (87de1e6e6b9d…) — a different verifier produced it; sign only a verdict object you produced (h409 O-2.4)
+exit = 1 | envelope written: no
+$ dispatch-sign.py sign-transcript --key seed --transcript p3c-2-partial.json --out p3c-2-partial-signed.json
+seed custody: $SP/seed mode 0600, outside any unignored work tree
+dispatch-sign: verdict toolchain.files does not name _verify_sig.py — a partial set binds no verifier
+exit = 1 | envelope written: no
+$ dispatch-sign.py sign-transcript --key seed --transcript p3c-3-nofiles.json --out p3c-3-nofiles-signed.json
+seed custody: $SP/seed mode 0600, outside any unignored work tree
+dispatch-sign: verdict object names no toolchain.files — which verifier produced it is unknown; sign only a verdict object you produced (h409 O-2.4)
+exit = 1 | envelope written: no
+$ dispatch-sign.py sign-transcript --key seed --transcript p3c-4-swapped.json --out p3c-4-swapped-signed.json
+seed custody: $SP/seed mode 0600, outside any unignored work tree
+dispatch-sign: verdict toolchain.files pins ed25519.py at 87de1e6e6b9d…, not the file beside this signer (471fd3da4f4d…) — a different verifier produced it; sign only a verdict object you produced (h409 O-2.4)
+exit = 1 | envelope written: no
+### P-3d sign-transcript also refuses an already-signed envelope, and the F-4 custody rule on a 0644 seed
+seed custody: $SP/seed mode 0600, outside any unignored work tree
+dispatch-sign: $SP/out/p3b-signed.json is already an envelope — sign the verdict object, not a signed one
+exit = 1
+dispatch-sign: seed custody: $SP/seed-0644 is mode 0644 — readable beyond its owner, so any signature it makes is unattributable; refusing (chmod 0600, or gen-key anew)
+exit = 1
+usage: --transcript-key: seed custody: $SP/seed-0644 is mode 0644 — readable beyond its owner, so any signature it makes is unattributable; refusing (chmod 0600, or gen-key anew)
+exit = 1 | transcript written: no
+
+--------------------------------------------------------------------------------------------------------------------------
+(4) P-4 — ambient git exec channels fire on bare git (positive control) and never through any verify.py leg
+--------------------------------------------------------------------------------------------------------------------------
+(A first attempt of this block ran in zsh, which does not word-split an unquoted $PLANT: the four channels became ONE bogus
+ variable and git said 'bogus count in GIT_CONFIG_COUNT'. Discarded; the block below is the POSIX-sh driver $SP/p4.sh.)
+(The 'git on this PATH' line is the driver shell's own PATH; under each env -i run git resolves to /usr/bin/git 2.54.0.)
+### P-4 ambient git exec channels: GIT_EXTERNAL_DIFF=<logged stub> and GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.fsmonitor GIT_CONFIG_VALUE_0=<logged stub>
+$ cat $SP/stub/stub.sh
+#!/bin/sh
+# logged stub: records WHICH channel fired, its argv, and the env NAMES it was launched with
+LOG=$SP/stub/fired.log
+echo "FIRED: $0 argv=[$*] cwd=$(pwd) env-names=[$(env | cut -d= -f1 | sort | tr '\n' ' ')]" >> "$LOG"
+# an external diff / fsmonitor hook that prints nothing and exits 0 is accepted by git
+exit 0
+git on this PATH: /opt/homebrew/bin/git (git version 2.55.0)
+--- positive control 1: bare 'git status --porcelain' under the planted env -> the fsmonitor hook fires ---
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=… TMPDIR=… GIT_EXTERNAL_DIFF=$SP/stub/stub.sh GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.fsmonitor GIT_CONFIG_VALUE_0=$SP/stub/stub.sh git status --porcelain
+warning: Empty last update token.
+git exit = 0
+$ cat fired.log
+FIRED: $SP/stub/stub.sh argv=[2 1790051374366309000] cwd=$SP/unit env-names=[CPATH GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 GIT_EXEC_PATH GIT_EXTERNAL_DIFF GIT_PREFIX HOME LANG LIBRARY_PATH MANPATH PATH PWD SDKROOT SHLVL TMPDIR _ __CF_USER_TEXT_ENCODING ]
+(fired.log lines: 1)
+--- positive control 2: bare 'git diff HEAD~1 HEAD' under the planted env -> the external-diff channel fires (and fsmonitor again) ---
+git exit = 0
+$ cat fired.log
+FIRED: $SP/stub/stub.sh argv=[docs/reports/u/note.md /dev/null . . $SP/tmp/git-blob-E2Fu1V/note.md 2d1d73842b359693e5cdc037a6fd6c3cdd602271 100644] cwd=$SP/unit env-names=[CPATH GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 GIT_DIFF_PATH_COUNTER GIT_DIFF_PATH_TOTAL GIT_EXEC_PATH GIT_EXTERNAL_DIFF GIT_PREFIX HOME LANG LIBRARY_PATH MANPATH PATH PWD SDKROOT SHLVL TMPDIR _ __CF_USER_TEXT_ENCODING ]
+(fired.log lines: 1)
+--- positive control 3: each git leg shape verify.py issues, hand-run bare under the planted env ---
+  bare git status --porcelain -> fired 1
+  bare git diff --name-only HEAD -> fired 1
+  bare git diff --cached --no-ext-diff --no-textconv -> fired 1
+  bare git diff --no-ext-diff --no-textconv --no-renames -U0 HEAD -> fired 1
+  bare git rev-list --count HEAD -> fired 0
+  bare git merge-base HEAD HEAD~1 -> fired 0
+
+--- THE RUN: full EXECUTED-revert verify.py under the SAME planted env (+ GH_TOKEN, ORCA_*, GIT_SSH_COMMAND, GIT_PROXY_COMMAND) — every git leg incl. worktree add/remove, checkout/revert, status, diff, cat-file, rev-list ---
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=… TMPDIR=… LANG=C GIT_EXTERNAL_DIFF=$SP/stub/stub.sh GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.fsmonitor GIT_CONFIG_VALUE_0=$SP/stub/stub.sh GIT_SSH_COMMAND=$SP/stub/stub.sh GIT_PROXY_COMMAND=$SP/stub/stub.sh GH_TOKEN=<throwaway> ORCA_PROVENANCE=ci \
+    /usr/bin/python3 /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify.py --manifest manifest-dark.json --contract-source contract.md --contract-digest sha256:e72010f6… --unit-class mutation --lighting dark-eligible --execute-nc --nc-command '/usr/bin/python3 -B check.py'
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 9e8734a3b138. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: independent review waived — dark-eligible unit (gate-classification.md); the EXECUTED negative control + tests are the oracle, not a human review
+verify: OK — all required checks passed
+exit = 0
+$ cat fired.log
+(fired.log lines: 0 — 0 = NO git leg of verify.py ran either stub)
+$ cat check-env.log (the control, same env)
+RUN cwd=$SP/tmp/orca-nc-fkk7hapt/wt pid=67896
+  env names (10): CPATH HOME LANG LC_CTYPE LIBRARY_PATH MANPATH PATH SDKROOT TMPDIR __CF_USER_TEXT_ENCODING
+  GH_TOKEN present: False | any GH_/GITHUB_/ORCA_/GIT_ name: []
+RUN cwd=$SP/tmp/orca-nc-vzqacyvk/wt pid=67900
+  env names (10): CPATH HOME LANG LC_CTYPE LIBRARY_PATH MANPATH PATH SDKROOT TMPDIR __CF_USER_TEXT_ENCODING
+  GH_TOKEN present: False | any GH_/GITHUB_/ORCA_/GIT_ name: []
+--- and the SAME run with the lit manifest + real gh (the review leg runs too: gh, plus the ancestry/diff legs) ---
+FAIL: mutation unit: cannot fetch reviews for ravidsrk/orca-fleet#494 (gh: Bad credentials (HTTP 401)) — fail-closed (gh ran under a scrubbed environment: XDG_CONFIG_HOME, HTTPS_PROXY/NO_PROXY and SSL_CERT_FILE are dropped with every other steering variable — only PATH, HOME, TMPDIR, TMP, TEMP, GH_TOKEN, GITHUB_TOKEN pass; h409 R3)
+verify: 1 invariant(s) failed — unit is NOT done
+NOTE: origin/main not found — ancestry check skipped
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: review_authority: advisory (gh at /opt/homebrew/bin/gh is worker-writable)
+(fired.log lines: 0)
+--- post-condition: bare git status under the planted env STILL fires (the channels were live for the whole run) ---
+warning: Empty last update token.
+(fired.log lines: 1)
+
+--------------------------------------------------------------------------------------------------------------------------
+(5) P-5 — verify-gate.sh at the real CLI: ORCA_PROVENANCE=ci ORCA_EXECUTE_NC=1, a good mutation unit, real executed control
+--------------------------------------------------------------------------------------------------------------------------
+(In P-5c the trailing 'gate exit = 0' is the $? of the grep the gate was piped through, not the gate's; the gate's own
+ 'verify-gate: verifier returned 2 — BLOCKING completion' line above it is its exit 2. P-5a/P-5b capture $? directly.)
+### P-5 verify-gate.sh at the real CLI: ORCA_PROVENANCE=ci ORCA_EXECUTE_NC=1 ORCA_NC_COMMAND=<bound cmd>, a good mutation unit, real executed control
+PATH for the gate: /usr/bin:/bin:/opt/homebrew/bin -> python3=/usr/bin/python3 (Python 3.9.6), git=/usr/bin/git, gh=/opt/homebrew/bin/gh
+--- P-5a dark-eligible mutation unit (review waived; the executed control is the oracle) -> expected exit 0 ---
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=… TMPDIR=… LANG=C GH_TOKEN=<throwaway> GITHUB_TOKEN=<throwaway> GIT_EXTERNAL_DIFF=<stub> GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.fsmonitor GIT_CONFIG_VALUE_0=<stub> SSL_CERT_FILE=/nonexistent \
+    ORCA_MANIFEST=manifest-dark.json ORCA_CONTRACT_SOURCE=contract.md ORCA_CONTRACT_DIGEST=sha256:e72010f63a078ba8712e5b0e6548c686921fa10ada90196074e42b43da1602a3 ORCA_UNIT_CLASS=mutation ORCA_LIGHTING=dark-eligible ORCA_REPO=ravidsrk/orca-fleet ORCA_PROVENANCE=ci ORCA_EXECUTE_NC=1 ORCA_NC_COMMAND='/usr/bin/python3 -B check.py' \
+    sh /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify-gate.sh --event task
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 9e8734a3b138. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+NOTE: independent review waived — dark-eligible unit (gate-classification.md); the EXECUTED negative control + tests are the oracle, not a human review
+verify: OK — all required checks passed
+gate exit = 0
+control runs logged: 2 | GH_TOKEN present: False | any GH_/GITHUB_/ORCA_/GIT_ name: []
+env names seen by the control: env names (10): CPATH HOME LANG LC_CTYPE LIBRARY_PATH MANPATH PATH SDKROOT TMPDIR __CF_USER_TEXT_ENCODING
+git stubs fired through the gate's verify.py: 0
+--- P-5b lit mutation unit on the SOUND lane with this host's worker-writable gh -> expected exit 2 (custody, per r4 O-1), control still scrubbed ---
+$ env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=… TMPDIR=… LANG=C GH_TOKEN=<throwaway> GITHUB_TOKEN=<throwaway> GIT_EXTERNAL_DIFF=<stub> GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.fsmonitor GIT_CONFIG_VALUE_0=<stub> SSL_CERT_FILE=/nonexistent \
+    ORCA_MANIFEST=manifest.json ORCA_CONTRACT_SOURCE=contract.md ORCA_CONTRACT_DIGEST=sha256:e72010f63a078ba8712e5b0e6548c686921fa10ada90196074e42b43da1602a3 ORCA_UNIT_CLASS=mutation ORCA_LIGHTING=lit ORCA_REPO=ravidsrk/orca-fleet ORCA_PROVENANCE=ci ORCA_EXECUTE_NC=1 ORCA_NC_COMMAND='/usr/bin/python3 -B check.py' \
+    sh /Users/ravindra/orca/workspaces/orca-fleet/h409-ra/runtime/scripts/verify-gate.sh --event task
+FAIL: review_authority: gh at /opt/homebrew/bin/gh is worker-writable — a lane claiming soundness (provenance=ci) cannot take its independent review from a binary the graded worker could have replaced; fail-closed (h409 F-1)
+verify: 1 invariant(s) failed — unit is NOT done
+NOTE: redaction: gitleaks at /opt/homebrew/bin/gitleaks is worker-writable — it can only add hits above the built-in floor, so it is consulted and recorded (h409 R2)
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+NOTE: commands ledger FRESH — 1 exit-0 record(s) bound to head_sha's tree 9e8734a3b138. This is the worker's own runner, so the coordinator's clean-env re-run at head_sha still stands as the stronger authority (evidence-manifest.md §2)
+NOTE: negative control EXECUTED — with the revert control applied at head_sha the bound command exited 1 on an assertion failure (RED, as required)
+NOTE: the same command exits 0 at clean head_sha — the RED above is the control's doing, not a broken suite
+verify-gate: verifier returned 2 — BLOCKING completion
+gate exit = 2
+control runs logged: 2 | GH_TOKEN present: False | any GH_/GITHUB_/ORCA_/GIT_ name: []
+env names seen by the control: env names (10): CPATH HOME LANG LC_CTYPE LIBRARY_PATH MANPATH PATH SDKROOT TMPDIR __CF_USER_TEXT_ENCODING
+git stubs fired through the gate's verify.py: 0
+--- P-5c negative: the gate with ORCA_EXECUTE_NC=1 but ORCA_NC_COMMAND unset -> block ---
+verify-gate: NOTE — ORCA_EXECUTE_NC is set without ORCA_NC_COMMAND. The executed control needs the criterion-bound command from OFF the worker; the manifest cannot supply it.
+FAIL: --execute-nc: --execute-nc requires --nc-command: the criterion-bound proof command must come from the coordinator, out of band, exactly as --contract-source does. The manifest nominates '/usr/bin/python3 -B check.py' — and the manifest is written by the graded worker, as is the `commands[]` ledger, so neither can authorise the other; fail-closed (#279)
+FAIL: dark-eligible mutation: the independent review is WAIVED in this lane, so the negative control is the ONLY oracle left — and a control that was merely READ is a text file the worker wrote. It must be EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; docs/reviews/2026-09-10-review.md A1/A2/A4/A6/A9 all landed on exactly this)
+verify: 2 invariant(s) failed — unit is NOT done
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+verify-gate: verifier returned 2 — BLOCKING completion
+gate exit = 0
+--- P-5d negative: a TAUTOLOGICAL control — the bound command is 'true' (never RED) -> block ---
+FAIL: commands ledger: fresh exit-0 record(s) exist, but none is the coordinator-named proof command 'true' (fresh records ran: ['/usr/bin/python3 -B check.py']) — the ledger proves SOMETHING ran green on this content, not the proof the coordinator named; fail-closed (#352)
+FAIL: --execute-nc: negative_control.command '/usr/bin/python3 -B check.py' is not the command the coordinator supplied out of band ('true') — a unit does not get to choose what proves it; fail-closed
+FAIL: unsupported proof command; fail-closed
+FAIL: dark-eligible mutation: the independent review is WAIVED in this lane, so the negative control is the ONLY oracle left — and a control that was merely READ is a text file the worker wrote. It must be EXECUTED (--execute-nc / ORCA_EXECUTE_NC) and go RED. Fail-closed (#256; docs/reviews/2026-09-10-review.md A1/A2/A4/A6/A9 all landed on exactly this)
+verify: 4 invariant(s) failed — unit is NOT done
+NOTE: --base not given — ancestry check skipped (pre-merge/offline)
+verify-gate: verifier returned 2 — BLOCKING completion
+worktrees left behind after all runs: 1 (1 = only the main tree) | orca-nc-* dirs left in TMPDIR: 0
+
+--------------------------------------------------------------------------------------------------------------------------
+END — worktree state after the run: only this file is new under docs/reports/h409/ (git status below, pre-existing
+deletions in the worktree are not mine and were not touched).
+?? docs/reports/h409/runtime-prove-r6.txt
