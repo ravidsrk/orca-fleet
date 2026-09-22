@@ -123,13 +123,13 @@ def _run(args, timeout=20, cwd=None, env=None):
         return 1, "", str(err)
 
 
-def _run_bytes(args, timeout=20):
+def _run_bytes(args, timeout=20, env=None):
     """Run a command; return (code, stdout_bytes, stderr). stdout is RAW bytes — no newline
     translation (#180) — stderr stays text for error messages. Never raises."""
     if args[0] is None:
         return 1, b"", _Authority.ABSENT_GIT
     try:
-        p = subprocess.run(args, capture_output=True, timeout=timeout, check=False)
+        p = subprocess.run(args, capture_output=True, timeout=timeout, check=False, env=env)
         return p.returncode, p.stdout, p.stderr.decode("utf-8", "replace")
     except (subprocess.TimeoutExpired, OSError) as err:
         return 1, b"", str(err)
@@ -148,14 +148,14 @@ _ROOTS = {"git": None, "evidence": None}
 
 def _git(args, timeout=10):
     code, out, _ = _run([_Authority.git_bin(), *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []),
-                         *args], timeout=timeout)
+                         *args], timeout=timeout, env=_Authority.git_env())
     return code, out.strip()
 
 
 def _git_bytes(args, timeout=20):
     """A git read whose stdout must stay RAW bytes (#180), against the SHA root (#442)."""
     return _run_bytes([_Authority.git_bin(), *(["-C", _ROOTS["git"]] if _ROOTS["git"] else []),
-                       *args], timeout=timeout)
+                       *args], timeout=timeout, env=_Authority.git_env())
 
 
 def infer_repo():
@@ -197,7 +197,8 @@ def _evidence_toplevel():
     another clone never silently moves this bound (#442)."""
     top = _ROOTS["evidence"]
     if top is None:
-        code, out, _ = _run([_Authority.git_bin(), "rev-parse", "--show-toplevel"])
+        code, out, _ = _run([_Authority.git_bin(), "rev-parse", "--show-toplevel"],
+                            env=_Authority.git_env())
         top = out.strip() if code == 0 else None
     return top
 
@@ -857,6 +858,13 @@ class _Authority:
                 if k in cls.AMBIENT_KEEP or k.startswith(cls.AMBIENT_KEEP_PREFIX)}
 
     @classmethod
+    def git_env(cls):
+        """The scrubbed environment every git and gitleaks leg runs under (h409 N-4) — the same
+        floor as the control's, plus a constant that stops a leg waiting on a credential prompt.
+        Applied unconditionally, as gh's is: the launch env is the worker's on the native lane."""
+        return {**cls.nc_env(), "GIT_TERMINAL_PROMPT": "0"}
+
+    @classmethod
     def api(cls, repo, endpoint, *flags, timeout=20):
         """The one seam every GitHub read goes through: the PINNED gh (F-1), invoked with a
         SCRUBBED environment (h409 R3) — the ambient env is worker-influenceable on the native
@@ -992,8 +1000,8 @@ NC_TIMEOUT_S = 600
 
 def _run_at(cwd, args, timeout=20, stdin_bytes=None, env=None):
     """Run a command in `cwd` with an optional stdin payload. argv only — never shell=True, so a
-    manifest string can never become a shell command. The control passes
-    `env=nc_env()` (h409 F-6). Returns (code, stdout, stderr)."""
+    manifest string can never become a shell command. `env` is never None from a caller here:
+    a git leg passes git_env(), the control nc_env() (h409 F-6/N-4). Returns (code, stdout, stderr)."""
     if args[0] is None:
         return 124, "", _Authority.ABSENT_GIT
     try:
@@ -1603,11 +1611,11 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
             if bind_err:
                 return bind_err
             code, _, gerr = _run_at(wt, [_Authority.git_bin(), "--literal-pathspecs", "checkout",
-                                         str(base), "--", *paths])
+                                         str(base), "--", *paths], env=_Authority.git_env())
             if code != 0:
                 return f"could not restore {paths} from base_sha in the control worktree: {gerr.strip()}"
             code, actual, gerr = _run_at(wt, [_Authority.git_bin(), "diff", "--name-only", "--no-renames",
-                                            "-z", "HEAD"])
+                                            "-z", "HEAD"], env=_Authority.git_env())
             if code != 0:
                 return f"cannot inspect restored paths: {gerr.strip()}"
             affected = set(actual.rstrip('\0').split('\0')) if actual else set()
@@ -1619,10 +1627,12 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
         if not (base and head and HEX40_RE.match(str(base)) and HEX40_RE.match(str(head))):
             return ("negative_control.paths is required for tool 'revert' (the range fallback needs "
                     "pinned base_sha and head_sha)")
-        if _run_at(wt, [_Authority.git_bin(), "merge-base", "--is-ancestor", str(base), str(head)])[0] != 0:
+        if _run_at(wt, [_Authority.git_bin(), "merge-base", "--is-ancestor", str(base), str(head)],
+                   env=_Authority.git_env())[0] != 0:
             return ("negative_control.paths is required: base_sha..head_sha is not linear "
                     "(base is not an ancestor of head), so a range revert is not well-defined")
-        code, merges, _ = _run_at(wt, [_Authority.git_bin(), "rev-list", "--merges", f"{base}..{head}"])
+        code, merges, _ = _run_at(wt, [_Authority.git_bin(), "rev-list", "--merges", f"{base}..{head}"],
+                                  env=_Authority.git_env())
         if code != 0 or merges.strip():
             return ("negative_control.paths is required: base_sha..head_sha contains merge commits, "
                     "so a range revert is not well-defined")
@@ -1640,7 +1650,7 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
                     "because the behaviour came back. Name the production paths the control should "
                     "restore (#280)")
         code, _, gerr = _run_at(wt, [_Authority.git_bin(), "revert", "--no-commit", f"{base}..{head}"],
-                                timeout=60)
+                                timeout=60, env=_Authority.git_env())
         if code != 0:
             return f"git revert of base_sha..head_sha failed in the control worktree: {gerr.strip()}"
         return None
@@ -1663,14 +1673,14 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
     if bind_err:
         return bind_err
     code, _, gerr = _run_at(wt, [_Authority.git_bin(), "apply", "--index", "--whitespace=nowarn", "-"],
-                            stdin_bytes=diff.encode("utf-8"))
+                            stdin_bytes=diff.encode("utf-8"), env=_Authority.git_env())
     if code != 0:
         return ("the hand mutant quoted in negative_control.artifact does not apply at head_sha "
                 f"({gerr.strip()}) — the quoted diff is not the diff that was run")
     # Git may relocate contextual hunks. Worker headers therefore cannot establish where the
     # edit landed. Include the index so added/deleted/renamed/mode-only effects cannot disappear.
     code, actual, gerr = _run_at(wt, [_Authority.git_bin(), "diff", "--cached", "--no-ext-diff",
-                                    "--no-textconv", "--no-renames", "-U0", "HEAD"])
+                                    "--no-textconv", "--no-renames", "-U0", "HEAD"], env=_Authority.git_env())
     if code != 0:
         return f"cannot inspect applied mutant coordinates: {gerr.strip()}"
     if (_diff_target_paths(actual) != targets or
@@ -1716,7 +1726,7 @@ def execute_negative_control(m, nc_command=None):
         holder = tempfile.mkdtemp(prefix="orca-nc-")
         wt = str(Path(holder) / "wt")
         code, _, gerr = _run([_Authority.git_bin(), "-C", top, "worktree", "add", "--detach", wt, str(head)],
-                             timeout=120)
+                             timeout=120, env=_Authority.git_env())
         try:
             if code != 0:
                 return False, [f"--execute-nc: could not create the {phase} worktree at head_sha: "
@@ -1725,7 +1735,8 @@ def execute_negative_control(m, nc_command=None):
                 apply_err = _apply_control(wt, m, nc, tool, nc_command)
                 if apply_err:
                     return False, [f"--execute-nc: {apply_err}"]
-                if not _run_at(wt, [_Authority.git_bin(), "status", "--porcelain"])[1].strip():
+                if not _run_at(wt, [_Authority.git_bin(), "status", "--porcelain"],
+                               env=_Authority.git_env())[1].strip():
                     return False, ["--execute-nc: the negative control changed NOTHING at head_sha "
                                    "— a no-op mutant cannot make any proof go RED (#255)"]
             rc, out, errout = _run_at(wt, argv, timeout=NC_TIMEOUT_S, env=_Authority.nc_env())
@@ -1733,7 +1744,8 @@ def execute_negative_control(m, nc_command=None):
             if phase == "control":
                 sig_ok, sig_err = _verify_sig._failure_signature(out, errout)
         finally:
-            _run([_Authority.git_bin(), "-C", top, "worktree", "remove", "--force", wt], timeout=60)
+            _run([_Authority.git_bin(), "-C", top, "worktree", "remove", "--force", wt], timeout=60,
+                 env=_Authority.git_env())
             shutil.rmtree(holder, ignore_errors=True)
         if phase == "control":
             if rc == 124:
@@ -1966,7 +1978,8 @@ def _gitleaks_scan(path):
     # Uses _run (not _run_at): _run_at is the negative-control executor, and
     # admission tests assert it is not called before a control is authorized.
     code, _, _ = _run([_Authority.gitleaks, "detect", "--no-git", "--no-banner", "--redact",
-                       "--source", str(path)], timeout=120, cwd=str(Path(path).parent))
+                       "--source", str(path)], timeout=120, cwd=str(Path(path).parent),
+                      env=_Authority.git_env())
     if code == 0:
         return False
     if code == 1:
@@ -2172,7 +2185,7 @@ class _Transcript:
             unit = json.loads(raw.decode("utf-8")).get("unit")
         except (OSError, ValueError, AttributeError):
             manifest_sha, unit = None, None
-        _, git_version, _ = _run([_Authority.git_bin(), "--version"])
+        _, git_version, _ = _run([_Authority.git_bin(), "--version"], env=_Authority.git_env())
         here = Path(__file__).resolve().parent
         files = {}
         for name in cls.TOOLCHAIN:
@@ -2481,7 +2494,8 @@ def _root_arg(flag, value):
     if not path.is_dir():
         return None, f"{flag}: not a directory: {value}"
     resolved = str(path.resolve())
-    code, out, _ = _run([_Authority.git_bin(), "-C", resolved, "rev-parse", "--is-inside-work-tree"])
+    code, out, _ = _run([_Authority.git_bin(), "-C", resolved, "rev-parse", "--is-inside-work-tree"],
+                        env=_Authority.git_env())
     if code != 0 or out.strip() != "true":
         return None, (f"{flag}: '{value}' is not inside a git work tree — evidence no auditor can "
                       "re-derive from a clone is refused (#267)")

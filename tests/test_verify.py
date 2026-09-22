@@ -4769,5 +4769,88 @@ class TheSeedAndTheControlNeverShareAProcess(MutationFixture):
         self.assertEqual(set(env), {"record", "sig_b64"})
 
 
+class GitLegsRunUnderAScrubbedEnvironment(MutationFixture):
+    """h409 N-4 (P2, code-exec): R3 scrubbed gh's environment in-process and left git and
+    gitleaks inheriting the ambient one — and git's env is an EXEC channel. GIT_EXTERNAL_DIFF and
+    GIT_CONFIG_COUNT + core.fsmonitor ran arbitrary code through verify's own git legs (status,
+    diff --name-only, diff --cached), including the legs that run in the control worktree. Every
+    git and gitleaks invocation now runs under _Authority.git_env(): the ambient floor plus
+    GIT_TERMINAL_PROMPT=0, nothing a worker's launch env could steer with."""
+
+    def setUp(self):
+        super().setUp()
+        self._envtmp = tempfile.TemporaryDirectory(prefix="orca-n4-")
+        self.addCleanup(self._envtmp.cleanup)
+        root = Path(self._envtmp.name)
+        self.fired = root / "fired.log"            # written by the planted exec channels
+        self.git_seen = root / "git-env.log"       # env NAMES the pinned git was launched with
+        self.gitleaks_seen = root / "gitleaks-env.log"
+        stub = root / "stub.sh"
+        stub.write_text(f"#!/bin/sh\necho \"FIRED: $0 $*\" >> {shlex.quote(str(self.fired))}\nexit 0\n")
+        stub.chmod(0o755)
+        fakebin = root / "bin"
+        fakebin.mkdir()
+        real_git = shutil.which("git")
+        (fakebin / "git").write_text(
+            "#!/bin/sh\n"
+            f"/usr/bin/env | /usr/bin/cut -d= -f1 | /usr/bin/sort >> {shlex.quote(str(self.git_seen))}\n"
+            f"exec {shlex.quote(real_git)} \"$@\"\n")
+        (fakebin / "git").chmod(0o755)
+        (fakebin / "gitleaks").write_text(
+            "#!/bin/sh\n"
+            f"/usr/bin/env | /usr/bin/cut -d= -f1 | /usr/bin/sort >> {shlex.quote(str(self.gitleaks_seen))}\n"
+            "exit 0\n")
+        (fakebin / "gitleaks").chmod(0o755)
+        self.planted = {"PATH": f"{fakebin}{os.pathsep}{os.environ['PATH']}",
+                        "GIT_EXTERNAL_DIFF": str(stub),
+                        "GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "core.fsmonitor",
+                        "GIT_CONFIG_VALUE_0": str(stub),
+                        "GIT_SSH_COMMAND": str(stub), "GIT_PROXY_COMMAND": str(stub),
+                        "GH_TOKEN": "dummy-not-a-real-token", "ORCA_PROVENANCE": "ci"}
+
+    def test_the_planted_channels_are_live_on_this_host(self):
+        # The positive control for the stub proof below: the SAME env, handed to git directly,
+        # runs the planted fsmonitor — so an empty log after the verifier's run is the scrub.
+        subprocess.run(["git", "status", "--porcelain"], cwd=self.repo, capture_output=True,
+                       env={**os.environ, **self.planted}, check=False)
+        self.assertTrue(self.fired.exists(), "core.fsmonitor via GIT_CONFIG_COUNT did not fire here")
+        self.assertIn("FIRED:", self.fired.read_text())
+
+    def _green_executed_run(self):
+        path = self._manifest(nc=self._revert_nc())
+        with mock.patch.dict(os.environ, self.planted):
+            rc, out, err = self._run_main(path, "--repo", "o/r", "--execute-nc",
+                                          "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn("negative control EXECUTED", out)  # the worktree legs all ran
+        return out
+
+    def test_no_planted_exec_channel_fires_through_any_git_leg(self):
+        out = self._green_executed_run()
+        self.assertFalse(self.fired.exists(),
+                         "a planted GIT_* exec channel ran through a verifier git leg: "
+                         + (self.fired.read_text() if self.fired.exists() else ""))
+        self.assertIn("worker-writable", out)  # the wrapper's dir is classed; advisory here
+
+    def test_git_and_gitleaks_see_the_allowlist_and_nothing_else(self):
+        self._green_executed_run()
+        for log in (self.git_seen, self.gitleaks_seen):
+            seen = set(log.read_text().split())
+            self.assertTrue(seen, f"{log.name}: the wrapper was never launched")
+            for name in ("GIT_EXTERNAL_DIFF", "GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0",
+                         "GIT_CONFIG_VALUE_0", "GIT_SSH_COMMAND", "GIT_PROXY_COMMAND",
+                         "GH_TOKEN", "ORCA_PROVENANCE"):
+                self.assertNotIn(name, seen, (log.name, seen))
+            self.assertEqual({n for n in seen if n.startswith("GIT_")}, {"GIT_TERMINAL_PROMPT"}, seen)
+            self.assertIn("PATH", seen)
+            self.assertIn("HOME", seen)
+
+    def test_git_env_is_nc_env_plus_the_prompt_guard(self):
+        with mock.patch.dict(os.environ, self.planted):
+            env = verify._Authority.git_env()
+            self.assertEqual(env, {**verify._Authority.nc_env(), "GIT_TERMINAL_PROMPT": "0"})
+        self.assertFalse({k for k in env if k.startswith(("GIT_CONFIG", "GH_", "ORCA_"))}, env)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
