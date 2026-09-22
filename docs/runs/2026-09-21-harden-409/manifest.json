@@ -1,0 +1,55 @@
+{
+  "unit": "harden-it-2026-09-21-409-run-close",
+  "base_sha": "e52297bfcdca54db336a7980e23399f21ba5d19c",
+  "head_sha": "13d1f3819632cbedd9a48de5b8cd19b5092ab12c",
+  "base_branch": "review/2026-09-21-harden-409",
+  "contract": {
+    "source": "docs/runs/2026-09-21-harden-409/contract.md@13d1f3819632cbedd9a48de5b8cd19b5092ab12c",
+    "digest": "sha256:57b1cb3f7b07abe534b06c32424e220488159927449b75f56c55b59a1e7e0c80",
+    "criterion_ids": [
+      "RC-1",
+      "RC-2",
+      "RC-3",
+      "RC-4"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "RC-1",
+      "text": "Final re-audit at the merged tip reports CLEAN \u2014 zero unrefuted P0/P1 (docs/reports/h409/reaudit-r2.md).",
+      "addressed": true
+    },
+    {
+      "id": "RC-2",
+      "text": "Final re-attack re-derives every prior attack as REFUSED, no new sound-lane false GREEN (docs/reports/h409/reattack-r3.md).",
+      "addressed": true
+    },
+    {
+      "id": "RC-3",
+      "text": "Every confirmed finding carries an independent review verdict and a real-CLI runtime-prove record on its merge train.",
+      "addressed": true
+    },
+    {
+      "id": "RC-4",
+      "text": "Gitleaks negative-control unit recorded: repo GREEN, planted RED, cleaned GREEN.",
+      "addressed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/reports/h409/reaudit-r2.md",
+      "sha256": "416b95465d8a6363de2095c4f2478119caea370201a7202944e7cbc704b943c3"
+    },
+    {
+      "path": "docs/reports/h409/reattack-r3.md",
+      "sha256": "4bbe0146d34e97de1e9fc8667e27ad2875197db51668ac3fc6a535284fe6d3c4"
+    }
+  ],
+  "reviewer_mode": "instructed-isolation",
+  "review": {
+    "artifact": "docs/reports/h409/reaudit-r2.md"
+  },
+  "toolchain": "CPython 3.13 on macOS arm64; git; unittest; gitleaks 8.30.1; claude workers via Orca (run_41e3aa41e711)",
+  "claim": "harden-it run 2026-09-21 (#409) terminally CLEAN: 6 fix rounds, 11 confirmed findings (3 P0 + 1 CI-caught P0-class + 1 P1 + residuals), every fix independently reviewed and runtime-proven, final re-attack REFUSES all, final re-audit finds zero unrefuted P0/P1.",
+  "commands": []
+}
