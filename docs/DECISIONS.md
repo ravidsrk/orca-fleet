@@ -103,3 +103,19 @@ for tests' sake. Also taken: R-2 (cwd="/" root skip) and R-3 (probe-branch unit 
 The run re-loops a second time through FIX → REVIEW before RE-AUDIT.
 2026-09-22T02:42Z · floor-waiver:test-made-easier:tests/test_verify.py · taste · allow · two geteuid-precondition decorators (h409 round 4): the system-exemplar custody cases run only where a root-owned /usr/bin exists beyond this user's reach; a host that cannot express the precondition (CI-as-root, a user-owned /usr/bin) opts out by name rather than faking the probe — the behaviour is end-to-end covered by the fixture-driven gate tests and the revert-proven custody cases ·
 2026-09-22T02:42Z · floor-waiver:assertion-removed:tests/test_verify.py · taste · allow · expectations REWRITTEN stronger, not dropped — the round-3/4 custody rewrite replaced name-list expectations with probe expectations, and review-r3.txt/review-r4.txt re-derived the revert table: every replaced expectation bites on the pre-fix verifier ·
+
+## h409-f6-reloop — 2026-09-22 — coordinator (session-gate delegation)
+
+Round-2 re-attack (docs/reports/h409/reattack-r2.md): all prior attacks REFUSE at e152304e — no
+re-loop trigger; one contained residual N-4 (GIT_EXTERNAL_DIFF / GIT_CONFIG_COUNT+core.fsmonitor
+reach code execution through verify.py's git legs; native/advisory lane only, P2). The re-audit
+(docs/reports/h409/reaudit.md) re-verified the closed classes dead and found ONE new P1: F-6 —
+the executed negative control runs worker-authored code with the verifier's uid and UNSCRUBBED
+environment, so on the documented --execute-nc + --transcript-key lane the coordinator seed is
+same-uid readable (path in parent argv) and GH_TOKEN passes through. Ruled MECHANICAL under the
+frozen bar (§0: "the whole design fails if the seed reaches the worker"; §4 P1 custody gaps);
+the run re-loops a third time. Same-pass items, same env-scrub class: N-4 (scrub git/gitleaks
+child env), O-2.2 (b64decode validate=True consistency), O-2.4 hardening (sign-transcript
+re-hashes toolchain.files + docs say sign only a verdict you produced). O-3.3 (HEAD-fallback
+self-judge, unreachable on sound lanes, P2) is PARKED to a follow-up issue — the acceptance bar
+is zero unrefuted P0/P1. Fix batch frozen in docs/runs/2026-09-21-harden-409/build-fix-r6.md.
