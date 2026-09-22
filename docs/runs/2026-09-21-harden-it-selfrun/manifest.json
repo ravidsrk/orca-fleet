@@ -55,6 +55,10 @@
     {
       "path": "docs/runs/2026-09-21-harden-it-selfrun/verifier-binding2.txt",
       "sha256": "164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65"
+    },
+    {
+      "path": "docs/runs/2026-09-21-harden-it-selfrun/verifier-binding3.txt",
+      "sha256": "164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65"
     }
   ],
   "reviewer_mode": "instructed-isolation",
@@ -63,5 +67,17 @@
   },
   "toolchain": "CPython 3.13 on macOS arm64; git; unittest; gitleaks 8.30.1; claude workers via Orca (run_41e3aa41e711)",
   "claim": "harden-it run 2026-09-21 (#409) terminally CLEAN: 6 fix rounds, 11 confirmed findings (3 P0 + 1 CI-caught P0-class + 1 P1 + residuals), every fix independently reviewed and runtime-proven, final re-attack REFUSES all, final re-audit finds zero unrefuted P0/P1.",
-  "commands": []
+  "commands": [
+    {
+      "label": "verifier (binding run 2026-09-22)",
+      "ts": "2026-09-22T06:10:29Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-21-harden-it-selfrun/manifest.json --contract-source docs/runs/2026-09-21-harden-it-selfrun/contract.md@ef53093c384f4d5e1f86fc884533e6b24fa254de --contract-digest sha256:57b1cb3f7b07abe534b06c32424e220488159927449b75f56c55b59a1e7e0c80 --unit-class report-only",
+      "cmd_sha256": "eb329e244995dd2500002a0dfe40ed6930e2aeca869786cf59718cc4dbd8b417",
+      "exit": 0,
+      "duration_s": 0.329,
+      "commit": "82fde5502bf84cb846eefb7ef63d799efba6c0e6",
+      "wtree": "bcd69c62d14bb0ca022f2612d625c2e327199164",
+      "artifact": "docs/runs/2026-09-21-harden-it-selfrun/verifier-binding3.txt"
+    }
+  ]
 }
