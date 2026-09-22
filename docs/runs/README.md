@@ -17,8 +17,8 @@ test reruns at the exact head and verification against the frozen contract and r
 remain coordinator-owned. **no** means the recorded report does not satisfy these binding checks
 here — history, kept, supporting no proof-tier advance.
 
-Two reports in the archive read **yes** — the 2026-09-14 clean-sweep close and the 2026-09-16
-prove-it run, the first tiers earned under the binding gate. Every other row reads **no**, and that
+Three reports in the archive read **yes** — the 2026-09-14 clean-sweep close, the 2026-09-16
+prove-it run, and the 2026-09-21 harden-it run, the tiers earned under the binding gate. Every other row reads **no**, and that
 is the honest state, not a broken gate: three runs kept their artifacts outside this repository;
 one recorded no inventory block; one never recorded its verifier transcript; one pinned an
 inventory to a moved tree; three pin-it runs are bounded re-witnesses, not completed mission runs;
@@ -43,7 +43,8 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-09-20 | [clean-sweep](2026-09-20-clean-sweep-tracker.md) | this repo (tracker, 10 issues) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | DRY-WITH-PARKED (4 issues closed with evidence after G1/G2 targeted repairs — verify 6/6 + 5/6-disclosed; 6 standing parks; promotion PR #486) |
 | 2026-09-20 | [pin-it](2026-09-20-pin-it-427.md) | this catalog's runtime doctrine against the installed Orca 1.4.204 binary (#427) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | PINNED-WITH-PARKED (49 claims: 46 CURRENT, 1 PATCHED, 2 PARKED + carried register; #427 closed, successor #488; promotion PR #487) |
 | 2026-09-20 | [sign-386](2026-09-20-sign-386.md) | this repo (#386: signed manifests + retention) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | CLOSED with evidence (U-SIG-1 648fcf77 + U-SIG-2 552f4af3, two full review rounds each; #386 closed; promotion PR #491) |
-| 2026-09-21 | [harden-it](2026-09-21-harden-409.md) | this catalog's own verify.py / dispatch-sign.py / verify-gate.sh (#409) | self-run | no — the living ledger of a run in flight, not a binding report | IN PROGRESS (audit waves) |
+| 2026-09-21 | [harden-it](2026-09-21-harden-409.md) | this catalog's own verify.py / dispatch-sign.py / verify-gate.sh (#409) | self-run | no — the living ledger, not a binding report; the run's close binds in the next row | CLEAN (final re-audit: 0 unrefuted P0/P1; 6 rounds, 11 findings closed) |
+| 2026-09-21 | [harden-it](2026-09-21-harden-it-self-run.md) | this catalog (#409 close: verify.py / dispatch-sign.py / verify-gate.sh; 10 waves) | self-run | yes | CLEAN (zero unrefuted P0/P1; 3 P0 + 1 CI-caught P0-class + 1 P1 + residual classes closed; gitleaks control held) |
 
 ### Self-test campaign 2026-09-16
 
@@ -99,7 +100,7 @@ make each run concrete, self-run candidates first:
 |---|---|---|---|---|
 | map-it | this catalog (report-only: planning branch, freeze commit, verified DAG) | self-run | `MAPPED` | Orca only |
 | attest-it | this catalog against the agentskills.io spec at a digest — obligations = the spec's required fields, evidence = `scripts/validate.py` checks | self-run | `CONFORMANT` (or `-WITH-GAPS`) | Orca; a frozen catalog digest |
-| harden-it | `runtime/scripts/verify.py`, `dispatch-sign.py`, `verify-gate.sh` — audit → PoC scenario → routed profile → fix → re-attack; the [gitleaks control](../reports/harden-it-externalrun/README.md) is one unit | self-run | `CLEAN` | Orca; the PoC-routing gate (human) |
+| harden-it | `runtime/scripts/verify.py`, `dispatch-sign.py`, `verify-gate.sh` — audit → PoC scenario → routed profile → fix → re-attack; the [gitleaks control](../reports/harden-it-externalrun/README.md) is one unit | self-run | `CLEAN` | — proven 2026-09-21/22 (#409, six rounds to a clean re-audit; see the archive rows above) |
 | prove-it | `scripts/validate.py` + `runtime/scripts/verify.py` critical surface — proven 2026-09-16 (single-criterion wave PF-2 + WIP-curve row; the [PF-1 control](../reports/prove-it-selfrun/README.md) stays history) | self-run | `COVERED` | — (see the archive row above) |
 | speed-it | the catalog-gates journey (`validate.py` + `tests/` + `proof_status`), declared budget e.g. ≤30s wall, guard in CI at the declared budget | self-run | `WITHIN-BUDGET` | Orca; a declared budget (human) |
 | root-cause | the next real defect filed here, or an open bug in a small OSS repo | self-run or external-run | `DIAGNOSED` | a live bug + Orca |

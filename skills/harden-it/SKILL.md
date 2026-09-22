@@ -17,7 +17,8 @@ compatibility: >-
   An ephemeral per-workspace sandbox (sandbox-policy) for exploit PoCs that can't run safely on
   the host.
 metadata:
-  proof: doctrine-only
+  proof: self-run
+  proof_evidence: docs/runs/2026-09-21-harden-it-self-run.md
   autonomy: L4
   unit: one threatened invariant and its whole vulnerability class
   state_machine: audit → prove the exploit → fix → RE-ATTACK → sweep the class → re-audit
