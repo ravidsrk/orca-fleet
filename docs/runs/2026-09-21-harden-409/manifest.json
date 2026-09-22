@@ -51,6 +51,10 @@
     {
       "path": "docs/runs/2026-09-21-harden-409/verifier-binding.txt",
       "sha256": "024a4bb528ae7a871eeb6d44ce9d64d65908fb45415363033fc1db4fc703d824"
+    },
+    {
+      "path": "docs/runs/2026-09-21-harden-409/verifier-binding2.txt",
+      "sha256": "164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65"
     }
   ],
   "reviewer_mode": "instructed-isolation",
@@ -114,6 +118,17 @@
       "commit": "1cff6938079d953cdb4f0ab03dfe05b0634a1957",
       "wtree": "17139a3228d4c9269cbe990a51761209a67e0a25",
       "artifact": "docs/runs/2026-09-21-harden-409/verifier-binding.txt"
+    },
+    {
+      "label": "verifier (binding run 2026-09-22)",
+      "ts": "2026-09-22T06:04:01Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-21-harden-409/manifest.json --contract-source docs/runs/2026-09-21-harden-409/contract.md@13d1f3819632cbedd9a48de5b8cd19b5092ab12c --contract-digest sha256:57b1cb3f7b07abe534b06c32424e220488159927449b75f56c55b59a1e7e0c80 --unit-class report-only",
+      "cmd_sha256": "456ca537a69256750c0b18229fffb14857bc17a0ccd9bfd926e382c179eed75e",
+      "exit": 0,
+      "duration_s": 0.279,
+      "commit": "9a8b6a135e9fd95c5af41c599e6a2574460ca4aa",
+      "wtree": "3c823dc4decbd4e0b7c358858b3c6841074c72ca",
+      "artifact": "docs/runs/2026-09-21-harden-409/verifier-binding2.txt"
     }
   ]
 }
