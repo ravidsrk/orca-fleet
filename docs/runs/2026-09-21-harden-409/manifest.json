@@ -51,5 +51,17 @@
   },
   "toolchain": "CPython 3.13 on macOS arm64; git; unittest; gitleaks 8.30.1; claude workers via Orca (run_41e3aa41e711)",
   "claim": "harden-it run 2026-09-21 (#409) terminally CLEAN: 6 fix rounds, 11 confirmed findings (3 P0 + 1 CI-caught P0-class + 1 P1 + residuals), every fix independently reviewed and runtime-proven, final re-attack REFUSES all, final re-audit finds zero unrefuted P0/P1.",
-  "commands": []
+  "commands": [
+    {
+      "label": "verifier",
+      "ts": "2026-09-22T05:54:39Z",
+      "cmd": "python3 runtime/scripts/verify.py --manifest docs/runs/2026-09-21-harden-409/manifest.json --contract-source docs/runs/2026-09-21-harden-409/contract.md@13d1f3819632cbedd9a48de5b8cd19b5092ab12c --contract-digest sha256:57b1cb3f7b07abe534b06c32424e220488159927449b75f56c55b59a1e7e0c80 --unit-class report-only",
+      "cmd_sha256": "456ca537a69256750c0b18229fffb14857bc17a0ccd9bfd926e382c179eed75e",
+      "exit": 0,
+      "duration_s": 0.334,
+      "commit": "61b61e51c285b1a9c0d594574b35bddc069b4c4e",
+      "wtree": "533bb6f8739ea0eed451b18a4e17969f0933a4d4",
+      "artifact": "docs/runs/2026-09-21-harden-409/verifier.txt"
+    }
+  ]
 }
