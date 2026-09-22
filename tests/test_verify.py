@@ -4852,5 +4852,36 @@ class GitLegsRunUnderAScrubbedEnvironment(MutationFixture):
         self.assertFalse({k for k in env if k.startswith(("GIT_CONFIG", "GH_", "ORCA_"))}, env)
 
 
+class MalformedEnvelopeSignaturesRefuseIdentically(RepoCase):
+    """h409 O-2.2: verify.py decoded `sig_b64` leniently while run_report.py and inventory.py
+    validate — three consumers of one envelope disagreed on what "malformed" means. All three
+    now refuse a non-alphabet byte, a newline and trailing garbage as MALFORMED, not as a
+    signature to try."""
+
+    def _tampered(self, mutate):
+        rec, pk = DispatchProvenance._signed(self, {"manifest_id": "u", "contract_digest": "sha256:a",
+                                                    "unit_class": "mutation"})
+        env = json.loads((self.repo / rec).read_text())
+        env["sig_b64"] = mutate(env["sig_b64"])
+        (self.repo / rec).write_text(json.dumps(env))
+        return verify.check_dispatch_provenance({"unit": "u"}, "sha256:a", "mutation", None, rec, pk)
+
+    def test_a_non_alphabet_byte_a_newline_and_trailing_garbage_are_malformed(self):
+        for mutate in (lambda b: b[:10] + "*" + b[10:], lambda b: b[:10] + "\n" + b[10:],
+                       lambda b: b + "!!"):
+            res = self._tampered(mutate)
+            self.assertTrue(any("malformed" in e for e in res), res)
+            self.assertFalse(any("INVALID" in e for e in res), res)  # refused before checkvalid
+
+    def test_the_three_consumers_agree(self):
+        import re
+        for name in ("verify.py", "run_report.py", "inventory.py"):
+            src = (ROOT / "runtime" / "scripts" / name).read_text(encoding="utf-8")
+            calls = re.findall(r"b64decode\([^)]*\)", src)
+            self.assertTrue(calls, name)
+            for call in calls:
+                self.assertIn("validate=True", call, (name, call))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

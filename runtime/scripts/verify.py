@@ -2305,7 +2305,7 @@ def check_dispatch_provenance(m, contract_digest, unit_class, lighting, record_r
     try:
         envelope = json.loads(rec_text.decode("utf-8"))
         record = envelope["record"]
-        sig = base64.b64decode(envelope["sig_b64"])
+        sig = base64.b64decode(envelope["sig_b64"], validate=True)  # as run_report/inventory (h409 O-2.2)
         pub = bytes.fromhex(pub_text.decode("utf-8").strip())
     except (ValueError, KeyError, TypeError) as exc:
         return [f"dispatch record / pubkey malformed ({exc})"]
