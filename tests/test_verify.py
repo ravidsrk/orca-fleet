@@ -2468,7 +2468,7 @@ class PinnedEvidenceBytes(RepoCase):
         # TemporaryDirectory tore the tree down (OSError 39 on Linux CI).
         observed = []
 
-        def fake_run(args, timeout=20, cwd=None):
+        def fake_run(args, timeout=20, cwd=None, env=None):
             observed.append((cwd, list(args)))
             return 0, "", ""
 
@@ -3789,9 +3789,9 @@ class CrossRepoRoots(RepoCase):
         seen = []
         original_run = verify._run
 
-        def recording_run(args, timeout=20, cwd=None):
+        def recording_run(args, timeout=20, cwd=None, env=None):
             seen.append((args, timeout))
-            return original_run(args, timeout=timeout, cwd=cwd)
+            return original_run(args, timeout=timeout, cwd=cwd, env=env)
 
         verify._run = recording_run
         self.addCleanup(setattr, verify, "_run", original_run)
@@ -4004,7 +4004,10 @@ class ReviewAuthorityPinnedBeforeTheControl(MutationFixture):
         (realgh / "gh").write_text("#!/bin/sh\necho 'gh: Not Found (HTTP 404)' >&2\nexit 1\n")
         (realgh / "gh").chmod(0o755)
         self.dropped_log = root / "dropped-gh.log"
-        # The worker's committed proof command: plant a gh, THEN assert the criterion.
+        # The worker's committed proof command: plant a gh, THEN assert the criterion. The head
+        # sha it bakes into the stub is read from a FILE beside the log, not from an ORCA_* env
+        # value: the control's environment is scrubbed (h409 F-6) and carries none.
+        head_file = root / "head"
         stub = ("#!/bin/sh\n"
                 f"echo \"DROPPED-GH ARGV: $*\" >> {shlex.quote(str(self.dropped_log))}\n"
                 "case \"$*\" in *reviews*) echo '[{\"state\":\"APPROVED\",\"commit_id\":\"'\"$HEAD\"'\","
@@ -4013,20 +4016,21 @@ class ReviewAuthorityPinnedBeforeTheControl(MutationFixture):
                    "import os, pathlib, stat\n"
                    f"d = pathlib.Path({str(self.droppable)!r})\n"
                    f"gh = d / 'gh'\n"
-                   f"gh.write_text({stub!r}.replace('$HEAD', os.environ.get('ORCA_HEAD', '')))\n"
+                   f"head = pathlib.Path({str(head_file)!r}).read_text().strip()\n"
+                   f"gh.write_text({stub!r}.replace('$HEAD', head))\n"
                    "gh.chmod(0o755)\n"
                    "import app\nassert app.f() == 2, 'AC-1 violated'\n")
         self.head_sha = self.commit("head: proof command that plants a gh")
+        head_file.write_text(self.head_sha + "\n")
         self.head_tree = self.git("rev-parse", "HEAD^{tree}")
-        self._env = {"PATH": f"{self.droppable}{os.pathsep}{realgh}{os.pathsep}{os.environ['PATH']}",
-                     "ORCA_HEAD": self.head_sha}
+        self._env = {"PATH": f"{self.droppable}{os.pathsep}{realgh}{os.pathsep}{os.environ['PATH']}"}
         # The SECOND startup state (G-1): no gh anywhere on PATH when the authority is pinned.
         # The stand-in above hid the round-1 hole — an absent gh was "unresolved", and the review
         # leg looked again AFTER the control had planted one. PATH carries git and nothing else.
         tools = root / "tools"
         tools.mkdir()
         os.symlink(shutil.which("git"), tools / "git")
-        self._env_no_gh = {"PATH": f"{self.droppable}{os.pathsep}{tools}", "ORCA_HEAD": self.head_sha}
+        self._env_no_gh = {"PATH": f"{self.droppable}{os.pathsep}{tools}"}
         if hasattr(verify, "_Authority"):  # absent on the pre-F-1 verifier: the revert control
             verify._Authority.reset()
             self.addCleanup(verify._Authority.reset)
@@ -4628,6 +4632,141 @@ class ThePinnedGhRunsUnderAScrubbedEnvironment(RepoCase):
         self.assertIn("cannot fetch reviews for o/r#7", fatal[0])
         for name in ("XDG_CONFIG_HOME", "HTTPS_PROXY", "SSL_CERT_FILE"):
             self.assertIn(name, fatal[0])
+
+
+class TheExecutedControlRunsUnderAScrubbedEnvironment(MutationFixture):
+    """h409 F-6 (P1): the executed control ran worker code with NO `env=`, so the unit's own
+    check.py saw everything the verifier held — GH_TOKEN / GITHUB_TOKEN (the review leg's
+    credential: a worker holding it can post the APPROVED that satisfies review_ok) and every
+    ORCA_* value. The control now runs under _Authority.nc_env(): the ambient floor (PATH, HOME,
+    TMPDIR/TMP/TEMP, LANG, LC_*) and nothing else. Same fixture as the green executed revert —
+    the scrub must leave a real revert control working end to end."""
+
+    PLANTED = {"GH_TOKEN": "dummy-not-a-real-token", "GITHUB_TOKEN": "dummy-not-a-real-token",
+               "GH_HOST": "attacker.example", "ORCA_CONTRACT_DIGEST": "sha256:weaker",
+               "ORCA_PROVENANCE": "ci", "ORCA_HEAD": "planted", "GIT_CONFIG_COUNT": "0",
+               "SSL_CERT_FILE": "/evil/ca.pem", "LC_ALL": "C.UTF-8"}
+
+    def setUp(self):
+        super().setUp()
+        self._envtmp = tempfile.TemporaryDirectory(prefix="orca-f6-")
+        self.addCleanup(self._envtmp.cleanup)
+        self.seen = Path(self._envtmp.name) / "control-env.log"
+        # The unit's committed proof command records the NAMES in its environment — never a
+        # value — then asserts the criterion, so the revert control still goes RED under it.
+        self.write("check.py",
+                   "import os, pathlib\n"
+                   f"pathlib.Path({str(self.seen)!r}).open('a').write(' '.join(sorted(os.environ)) + chr(10))\n"
+                   "import app\nassert app.f() == 2, 'AC-1 violated'\n")
+        self.head_sha = self.commit("head: proof command that records its environment")
+        self.head_tree = self.git("rev-parse", "HEAD^{tree}")
+
+    def _green_executed_run(self):
+        path = self._manifest(nc=self._revert_nc())
+        with mock.patch.dict(os.environ, self.PLANTED):
+            rc, out, err = self._run_main(path, "--repo", "o/r", "--execute-nc",
+                                          "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn("negative control EXECUTED", out)
+        self.assertIn("exits 0 at clean head_sha", out)
+        runs = [set(line.split()) for line in self.seen.read_text().splitlines()]
+        self.assertEqual(len(runs), 2, runs)  # the control run and the clean run both executed
+        return runs
+
+    def test_the_coordinators_token_and_orca_values_never_reach_the_control(self):
+        # The reaudit.md §F-6 probe: gh_token_in_env must read False in BOTH runs of check.py.
+        for seen in self._green_executed_run():
+            for name in ("GH_TOKEN", "GITHUB_TOKEN", "GH_HOST", "ORCA_CONTRACT_DIGEST",
+                         "ORCA_PROVENANCE", "ORCA_HEAD", "GIT_CONFIG_COUNT", "SSL_CERT_FILE"):
+                self.assertNotIn(name, seen, seen)
+            self.assertFalse({n for n in seen if n.startswith(("GH_", "GITHUB_", "ORCA_", "GIT_"))}, seen)
+
+    def test_the_control_still_gets_the_ambient_floor_it_needs(self):
+        for seen in self._green_executed_run():
+            self.assertIn("PATH", seen, seen)
+            self.assertIn("HOME", seen, seen)
+            self.assertIn("LC_ALL", seen, seen)  # LC_* passes as a prefix
+
+    def test_nc_env_is_the_allowlist_and_nothing_else(self):
+        with mock.patch.dict(os.environ, {**self.PLANTED, "LC_CTYPE": "C", "LCX": "not-a-prefix-hit"}):
+            env = verify._Authority.nc_env()
+        keep, prefix = verify._Authority.AMBIENT_KEEP, verify._Authority.AMBIENT_KEEP_PREFIX
+        self.assertTrue(all(k in keep or k.startswith(prefix) for k in env), env)
+        self.assertEqual({k for k in env if k.startswith("LC")}, {"LC_ALL", "LC_CTYPE"})
+        self.assertNotIn("GH_TOKEN", env)
+        self.assertNotIn("ORCA_PROVENANCE", env)
+
+
+class TheSeedAndTheControlNeverShareAProcess(MutationFixture):
+    """h409 F-6 (P1), the custody half: `--transcript-key` opens the coordinator's seed in
+    main() BEFORE verify() runs, and `--execute-nc` then runs worker code as the same uid with
+    the seed's path in the parent's argv. F-4's custody check passes it — custody was asserted
+    against the FILE, not against who executes in the process that opened it. The conjunction
+    is refused at parse time (usage exit 1), before the seed is read and before any control runs:
+    sign after the control, in a process that never ran it."""
+
+    SEED = bytes(range(1, 33))
+
+    def setUp(self):
+        super().setUp()
+        self.key = self.seed_file(self.SEED)
+        self.executed = []
+        orig = verify.execute_negative_control
+
+        def spy(*a, **k):
+            self.executed.append(a)
+            return orig(*a, **k)
+        patcher = mock.patch.object(verify, "execute_negative_control", spy)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_execute_nc_with_transcript_key_is_a_usage_refusal_before_any_control_runs(self):
+        path = self._manifest(nc=self._revert_nc())
+        rc, out, err = self._run_main(path, "--repo", "o/r", "--execute-nc",
+                                      "--nc-command", self.proof_cmd,
+                                      "--transcript-out", "docs/reports/u/transcript.json",
+                                      "--transcript-key", self.key)
+        self.assertEqual(rc, 1, out + err)
+        self.assertIn("--transcript-key cannot be combined with --execute-nc", err)
+        self.assertIn("sign-transcript", err)               # the guidance: sign after the control
+        self.assertNotIn("custody", err)                     # refused BEFORE the seed was read
+        self.assertEqual(self.executed, [])                  # and before any control ran
+        self.assertNotIn("negative control EXECUTED", out)
+        self.assertFalse((self.repo / "docs/reports/u/transcript.json").exists())
+
+    def test_execute_nc_alone_still_runs_the_control_under_the_scrub(self):
+        path = self._manifest(nc=self._revert_nc())
+        rc, out, err = self._run_main(path, "--repo", "o/r", "--execute-nc",
+                                      "--nc-command", self.proof_cmd,
+                                      "--transcript-out", "docs/reports/u/transcript.json")
+        self.assertEqual(rc, 0, out + err)
+        self.assertEqual(len(self.executed), 1)
+        rec = json.loads((self.repo / "docs/reports/u/transcript.json").read_text())
+        self.assertNotIn("sig_b64", rec)  # the unsigned verdict object sign-transcript wraps later
+        self.assertTrue(rec["args"]["execute_nc"])
+        # …and the documented seed-safe lane signs it in a process that never ran the control,
+        # re-hashing toolchain.files against the signer's own siblings on the way (O-2.4).
+        signed = self.repo / "docs/reports/u/transcript.signed.json"
+        with contextlib.redirect_stderr(io.StringIO()):
+            rc = dispatch_sign.main(["sign-transcript", "--key", self.key,
+                                     "--transcript", str(self.repo / "docs/reports/u/transcript.json"),
+                                     "--out", str(signed)])
+        self.assertEqual(rc, 0)
+        env = json.loads(signed.read_text())
+        self.assertEqual(env["record"], rec)
+        self.assertTrue(ed.checkvalid(base64.b64decode(env["sig_b64"], validate=True),
+                                      verify._canonical_transcript(rec), ed.publickey(self.SEED)))
+
+    def test_transcript_key_alone_still_signs(self):
+        path = self._manifest()
+        rc, out, err = self._run_main(path, "--repo", "o/r",
+                                      "--transcript-out", "docs/reports/u/transcript.json",
+                                      "--transcript-key", self.key)
+        self.assertEqual(rc, 0, out + err)
+        self.assertEqual(self.executed, [])
+        self.assertIn("custody", err)
+        env = json.loads((self.repo / "docs/reports/u/transcript.json").read_text())
+        self.assertEqual(set(env), {"record", "sig_b64"})
 
 
 if __name__ == "__main__":

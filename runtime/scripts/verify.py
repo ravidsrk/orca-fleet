@@ -675,6 +675,16 @@ class _Authority:
     # nothing a worker could steer it with. GH_HOST / GH_CONFIG_DIR / GH_* are NOT here — the
     # host rides the coordinator's --repo (split_repo); the token passes only when present.
     GH_ENV_KEEP = ("PATH", "HOME", "TMPDIR", "TMP", "TEMP", "GH_TOKEN", "GITHUB_TOKEN")
+    # What any OTHER child of this verifier gets (h409 F-6 / N-4): the process-hygiene floor and
+    # nothing that steers. The executed control is worker code — it runs the unit's tests, which
+    # need an interpreter and a home, never the coordinator's GH_TOKEN or an ORCA_* value. git
+    # and gitleaks are legs the verifier states facts through, and git's env is an exec channel
+    # (GIT_EXTERNAL_DIFF, GIT_CONFIG_COUNT + core.fsmonitor, GIT_SSH_COMMAND, GIT_PROXY_COMMAND,
+    # GIT_DIR/GIT_ALTERNATE_*): none passes. LC_* passes as a prefix. No identity variable is
+    # needed: revert --no-commit, apply --index, worktree add/remove, diff, rev-list and
+    # merge-base commit nothing; an identity, if a leg ever needs one, is HOME's gitconfig.
+    AMBIENT_KEEP = ("PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG")
+    AMBIENT_KEEP_PREFIX = ("LC_",)
     # h409 N-2: named in the fetch-failure fatal so a proxied or XDG-configured host reads the
     # cause as the scrub, not as a network fault.
     SCRUB_NOTE = (" (gh ran under a scrubbed environment: XDG_CONFIG_HOME, HTTPS_PROXY/NO_PROXY and "
@@ -840,6 +850,13 @@ class _Authority:
         return {k: os.environ[k] for k in cls.GH_ENV_KEEP if k in os.environ}
 
     @classmethod
+    def nc_env(cls):
+        """The scrubbed environment the EXECUTED CONTROL runs under (h409 F-6): the ambient
+        floor only — no GH_*/GITHUB_*, no ORCA_*, no GIT_*, nothing else the verifier holds."""
+        return {k: v for k, v in os.environ.items()
+                if k in cls.AMBIENT_KEEP or k.startswith(cls.AMBIENT_KEEP_PREFIX)}
+
+    @classmethod
     def api(cls, repo, endpoint, *flags, timeout=20):
         """The one seam every GitHub read goes through: the PINNED gh (F-1), invoked with a
         SCRUBBED environment (h409 R3) — the ambient env is worker-influenceable on the native
@@ -973,14 +990,15 @@ def check_review(m, repo, is_mutation, no_gh=False, corroborated=False, dispatch
 NC_TIMEOUT_S = 600
 
 
-def _run_at(cwd, args, timeout=20, stdin_bytes=None):
+def _run_at(cwd, args, timeout=20, stdin_bytes=None, env=None):
     """Run a command in `cwd` with an optional stdin payload. argv only — never shell=True, so a
-    manifest string can never become a shell command. Returns (code, stdout, stderr)."""
+    manifest string can never become a shell command. The control passes
+    `env=nc_env()` (h409 F-6). Returns (code, stdout, stderr)."""
     if args[0] is None:
         return 124, "", _Authority.ABSENT_GIT
     try:
         p = subprocess.run(args, cwd=cwd, capture_output=True, timeout=timeout, check=False,
-                           input=stdin_bytes)
+                           input=stdin_bytes, env=env)
         return (p.returncode, p.stdout.decode("utf-8", "replace"),
                 p.stderr.decode("utf-8", "replace"))
     except (subprocess.TimeoutExpired, OSError) as err:
@@ -1584,7 +1602,8 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
             bind_err = _bind_paths_to_change(paths, m, "negative_control.paths", nc_command)
             if bind_err:
                 return bind_err
-            code, _, gerr = _run_at(wt, [_Authority.git_bin(), "--literal-pathspecs", "checkout", str(base), "--", *paths])
+            code, _, gerr = _run_at(wt, [_Authority.git_bin(), "--literal-pathspecs", "checkout",
+                                         str(base), "--", *paths])
             if code != 0:
                 return f"could not restore {paths} from base_sha in the control worktree: {gerr.strip()}"
             code, actual, gerr = _run_at(wt, [_Authority.git_bin(), "diff", "--name-only", "--no-renames",
@@ -1620,7 +1639,8 @@ def _apply_control(wt, m, nc, tool, nc_command=None):
                     "fix. The bound command would then go RED because its oracle is gone, not "
                     "because the behaviour came back. Name the production paths the control should "
                     "restore (#280)")
-        code, _, gerr = _run_at(wt, [_Authority.git_bin(), "revert", "--no-commit", f"{base}..{head}"], timeout=60)
+        code, _, gerr = _run_at(wt, [_Authority.git_bin(), "revert", "--no-commit", f"{base}..{head}"],
+                                timeout=60)
         if code != 0:
             return f"git revert of base_sha..head_sha failed in the control worktree: {gerr.strip()}"
         return None
@@ -1708,7 +1728,7 @@ def execute_negative_control(m, nc_command=None):
                 if not _run_at(wt, [_Authority.git_bin(), "status", "--porcelain"])[1].strip():
                     return False, ["--execute-nc: the negative control changed NOTHING at head_sha "
                                    "— a no-op mutant cannot make any proof go RED (#255)"]
-            rc, out, errout = _run_at(wt, argv, timeout=NC_TIMEOUT_S)
+            rc, out, errout = _run_at(wt, argv, timeout=NC_TIMEOUT_S, env=_Authority.nc_env())
             tail = (errout.strip() or out.strip())[-300:]
             if phase == "control":
                 sig_ok, sig_err = _verify_sig._failure_signature(out, errout)
@@ -2552,6 +2572,15 @@ def main(argv=None):
     if args.transcript_key is not None:
         if args.transcript_out is None:
             print("usage: --transcript-key requires --transcript-out (nothing to sign)", file=sys.stderr)
+            return 1
+        if args.execute_nc:
+            # h409 F-6: the executed control is worker code running as THIS uid, and the seed
+            # is open in this process with its path in argv. The two are for different hosts.
+            print("usage: --transcript-key cannot be combined with --execute-nc — the control "
+                  "runs worker code in the process that holds the seed. Sign after the control, "
+                  "in a process that never ran it: --transcript-out alone, then "
+                  "dispatch-sign.py sign-transcript; or a second verify.py invocation without "
+                  "--execute-nc", file=sys.stderr)
             return 1
         seed, err = _Transcript.seed(args.transcript_key)
         if err:
