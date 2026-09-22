@@ -4,7 +4,7 @@
   "head_sha": "13d1f3819632cbedd9a48de5b8cd19b5092ab12c",
   "base_branch": "review/2026-09-21-harden-409",
   "contract": {
-    "source": "docs/runs/2026-09-21-harden-409/contract.md@13d1f3819632cbedd9a48de5b8cd19b5092ab12c",
+    "source": "docs/runs/2026-09-21-harden-it-selfrun/contract.md@ef53093c384f4d5e1f86fc884533e6b24fa254de",
     "digest": "sha256:57b1cb3f7b07abe534b06c32424e220488159927449b75f56c55b59a1e7e0c80",
     "criterion_ids": [
       "RC-1",
@@ -45,15 +45,15 @@
       "sha256": "4bbe0146d34e97de1e9fc8667e27ad2875197db51668ac3fc6a535284fe6d3c4"
     },
     {
-      "path": "docs/runs/2026-09-21-harden-409/verifier.txt",
+      "path": "docs/runs/2026-09-21-harden-it-selfrun/verifier.txt",
       "sha256": "164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65"
     },
     {
-      "path": "docs/runs/2026-09-21-harden-409/verifier-binding.txt",
+      "path": "docs/runs/2026-09-21-harden-it-selfrun/verifier-binding.txt",
       "sha256": "024a4bb528ae7a871eeb6d44ce9d64d65908fb45415363033fc1db4fc703d824"
     },
     {
-      "path": "docs/runs/2026-09-21-harden-409/verifier-binding2.txt",
+      "path": "docs/runs/2026-09-21-harden-it-selfrun/verifier-binding2.txt",
       "sha256": "164738a4cba78dad1f6211297e30eab2f379fa901175e8c1888a7ad9d36c6d65"
     }
   ],
