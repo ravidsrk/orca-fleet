@@ -212,9 +212,10 @@ section; the living ledger `docs/runs/2026-09-21-harden-409.md` carries the loop
 
 Final-tip gates at the evidence commit `adc426e2` (recorded below after execution):
 
-- `python3 -m unittest discover -s tests` — see below
-- `python3 scripts/validate.py` — see below
-- `python3 runtime/scripts/run_report.py docs/runs/2026-09-21-harden-it-self-run.md --mission harden-it --tier self-run` — see below
+- `python3 -m unittest discover -s tests` — exit 0, `Ran 2018 tests in 369.4s … OK` (at the close tip)
+- `python3 scripts/validate.py` — exit 0, `All 21 missions valid; three-layer separation holds; evals valid.`
+- `python3 runtime/scripts/run_report.py docs/runs/2026-09-21-harden-it-self-run.md --mission harden-it --tier self-run` — exit 0, `bound harden-it (self-run)`
+- `python3 runtime/scripts/inventory.py check docs/runs/2026-09-21-harden-it-self-run.md --at adc426e2…` — exit 0, `41 verified, 0 mismatched, 0 missing`
 
 ## Catalog proof promotion
 
