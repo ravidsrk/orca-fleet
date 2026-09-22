@@ -4401,6 +4401,16 @@ class EveryHopAndEveryOwnerIsProbed(MutationFixture):
         (self.drop / "gh").symlink_to(self.drop / "nowhere")
         self.assertEqual(verify._Authority.classify(str(self.drop / "gh")), "worker-writable")
 
+    def test_c1_a_symlink_node_itself_never_classes_controllable(self):
+        # CI on #493 (ubuntu): /bin -> usr/bin, and a link's own lstat bits are always 0777, so
+        # the world-writable mode check classed /bin/sh worker-writable on every runner. A link's
+        # custody is its directory's (the node before it) and its target hops' — never its own
+        # mode or owner. Revert the link early-return and the first assertion bites.
+        link = self.drop / "gh"
+        link.symlink_to(self._system_interpreter())
+        self.assertFalse(verify._Authority._worker_controls(link, os.lstat(link)))
+        self.assertTrue(verify._Authority._worker_controls(self.drop, os.lstat(self.drop)))
+
     # --- C-2: ownership, not mode -------------------------------------------------------------
 
     def _plant_owned_0555(self):

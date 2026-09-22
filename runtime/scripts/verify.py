@@ -782,14 +782,19 @@ class _Authority:
         is one `chmod u+w` from writable), a group they belong to can write it, anyone can, or
         access(2) says so (ACLs). W_OK alone was a MODE probe and classed a worker-OWNED 0555
         dir system."""
+        if stat.S_ISLNK(st.st_mode):
+            # a link's own bits are always 0777 and its ownership grants nothing — re-pointing or
+            # removing it takes a write on its DIRECTORY (probed as the node before it), and its
+            # target's hops are walked by _nodes. Without this, /bin -> usr/bin (ubuntu) classes
+            # every /bin/* worker-writable (CI on #493).
+            return False
         if st.st_uid == os.geteuid():
             return True
         if st.st_mode & stat.S_IWOTH:
             return True
         if st.st_mode & stat.S_IWGRP and st.st_gid in {os.getegid(), *os.getgroups()}:
             return True
-        # a link's own writability is its directory's, probed as the node before it
-        return not stat.S_ISLNK(st.st_mode) and os.access(node, os.W_OK)
+        return os.access(node, os.W_OK)
 
     @classmethod
     def classify(cls, path):

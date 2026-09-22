@@ -101,3 +101,5 @@ restricted to genuinely root-owned system dirs and SKIP with a named reason when
 has no system-class instance on the host; NO coordinator-declared trusted-dir surface is added
 for tests' sake. Also taken: R-2 (cwd="/" root skip) and R-3 (probe-branch unit case under $HOME).
 The run re-loops a second time through FIX → REVIEW before RE-AUDIT.
+2026-09-22T02:42Z · floor-waiver:test-made-easier:tests/test_verify.py · taste · allow · two geteuid-precondition decorators (h409 round 4): the system-exemplar custody cases run only where a root-owned /usr/bin exists beyond this user's reach; a host that cannot express the precondition (CI-as-root, a user-owned /usr/bin) opts out by name rather than faking the probe — the behaviour is end-to-end covered by the fixture-driven gate tests and the revert-proven custody cases ·
+2026-09-22T02:42Z · floor-waiver:assertion-removed:tests/test_verify.py · taste · allow · expectations REWRITTEN stronger, not dropped — the round-3/4 custody rewrite replaced name-list expectations with probe expectations, and review-r3.txt/review-r4.txt re-derived the revert table: every replaced expectation bites on the pre-fix verifier ·
