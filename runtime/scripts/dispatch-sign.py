@@ -31,7 +31,11 @@ repo-pinned PUBLIC key, so an in-session substitution is detected.
         # For the custody model where the seed is OFFLINE: verify.py runs without it, the
         # maintainer signs the verdict afterwards. run_report.py then requires the envelope to
         # verify against the committed .orca/dispatch-pubkey — the same pin that switches the
-        # dispatch-record check on. `verify.py --transcript-key` signs in-process instead.
+        # dispatch-record check on. `verify.py --transcript-key` signs in-process instead — on
+        # a host that never ran the executed control (verify.py refuses --execute-nc with it;
+        # h409 F-6). SIGN ONLY A VERDICT OBJECT YOU PRODUCED: this signer checks shape, not
+        # truth — the one content check it makes is that `toolchain.files` hashes THESE
+        # scripts, so a verdict from another verifier is refused (h409 O-2.4).
 
 Stdlib-only; the signature scheme is runtime/scripts/ed25519.py (vendored, RFC 8032).
 """
@@ -39,9 +43,11 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import importlib.util
 import json
 import os
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -75,6 +81,34 @@ _RECORD_FIELDS = ("manifest_id", "contract_digest", "unit_class", "lighting",
 # printed verdict, `exit` is the code. All are required — a transcript missing one signs an absence.
 TRANSCRIPT_FIELDS = ("unit", "manifest", "manifest_sha256", "args", "fatal", "notes", "exit",
                      "toolchain", "timestamp")
+
+# The files verify.py hashes into `toolchain.files` (verify.py._Transcript.TOOLCHAIN, mirrored
+# by run_report.TOOLCHAIN_FILES). sign-transcript re-hashes them against ITS OWN siblings before
+# signing (h409 O-2.4): the offline signer is otherwise a rubber stamp over any well-shaped
+# object, and after F-6 it is the seed-safe way to sign an executed-control verdict.
+TOOLCHAIN_FILES = ("verify.py", "_verify_sig.py", "diff_scope.py", "ed25519.py", "dispatch-sign.py")
+
+
+def toolchain_mismatch(record: dict) -> str | None:
+    """Why `record.toolchain.files` is not the verifier beside this signer, or None when it is."""
+    toolchain = record.get("toolchain")
+    files = toolchain.get("files") if isinstance(toolchain, dict) else None
+    if not isinstance(files, dict):
+        return ("verdict object names no toolchain.files — which verifier produced it is unknown; "
+                "sign only a verdict object you produced (h409 O-2.4)")
+    for name in TOOLCHAIN_FILES:
+        signed = files.get(name)
+        try:
+            here = hashlib.sha256((_HERE / name).read_bytes()).hexdigest()
+        except OSError:
+            return f"{name} is absent beside this signer, so the verdict's toolchain cannot be re-hashed"
+        if not isinstance(signed, str):
+            return f"verdict toolchain.files does not name {name} — a partial set binds no verifier"
+        if signed != here:
+            return (f"verdict toolchain.files pins {name} at {signed[:12]}…, not the file beside this "
+                    f"signer ({here[:12]}…) — a different verifier produced it; sign only a verdict "
+                    "object you produced (h409 O-2.4)")
+    return None
 
 
 def canonical_subset(record: dict, fields=_RECORD_FIELDS) -> dict:
@@ -177,13 +211,34 @@ def gen_key(out: Path, in_repo_ok: bool = False) -> int:
 
 
 def _seed(key: Path):
-    """(seed bytes, None) from a gen-key seed file, or (None, reason)."""
+    """(seed bytes, None) from a gen-key seed file, or (None, reason).
+
+    h409 F-4: custody is re-asserted at USE, not only at creation. gen-key writes 0600 and refuses
+    an unignored in-repo path, but a seed that was chmod'ed, copied, or committed since arrives
+    here looking like any other — and a signature by a leaked seed is exactly what the scheme
+    exists to exclude. So every signer (sign, sign-transcript, verify.py --transcript-key,
+    inventory.py sign/write --key) refuses a seed any group/other bit can read, or one inside a
+    git work tree that does not ignore it, and NAMES the custody class of a passing seed on stderr
+    so the audit trail says what signed. The check is custody class, never existence: a 0600 seed
+    outside any repo, or under an ignored path, keeps working."""
+    try:
+        mode = stat.S_IMODE(key.stat().st_mode)
+    except OSError as exc:
+        return None, f"cannot read a hex seed from {key}: {exc}"
+    if mode & 0o077:
+        return None, (f"seed custody: {key} is mode {mode:04o} — readable beyond its owner, so any "
+                      "signature it makes is unattributable; refusing (chmod 0600, or gen-key anew)")
+    if _in_unignored_worktree(key):
+        return None, (f"seed custody: {key} is inside a git work tree that does not ignore it — "
+                      "one `git add -A` (or a past one) makes it public; refusing (move it out of "
+                      "the repo or git-ignore it)")
     try:
         seed = bytes.fromhex(key.read_text(encoding="utf-8").strip())
     except (OSError, ValueError) as exc:
         return None, f"cannot read a hex seed from {key}: {exc}"
     if len(seed) != 32:
         return None, "key must be a 32-byte hex seed"
+    print(f"seed custody: {key} mode {mode:04o}, outside any unignored work tree", file=sys.stderr)
     return seed, None
 
 
@@ -229,6 +284,10 @@ def sign_transcript(key: Path, transcript: Path, out: Path | None = None) -> int
         print(f"dispatch-sign: verdict object is missing {missing} — refusing to sign an absence "
               f"(want every one of {list(TRANSCRIPT_FIELDS)})", file=sys.stderr)
         return 1
+    mismatch = toolchain_mismatch(record)
+    if mismatch:
+        print(f"dispatch-sign: {mismatch}", file=sys.stderr)
+        return 1
     text = json.dumps(envelope(seed, record, TRANSCRIPT_FIELDS), indent=2)
     if out is None:
         print(text)
@@ -263,10 +322,14 @@ def main(argv=None) -> int:
                    help="sha256 of the control's artifact CONTENT, so the evidence itself is "
                         "pinned and not just its path (optional)")
 
-    t = sub.add_parser("sign-transcript", help="sign a verify.py verdict object (#281/#386)")
+    t = sub.add_parser("sign-transcript",
+                       help="sign a verify.py verdict object (#281/#386) — only one YOU produced: "
+                            "its toolchain.files must hash the scripts beside this signer")
     t.add_argument("--key", required=True, help="private seed file from gen-key")
     t.add_argument("--transcript", required=True,
-                   help="the verdict object verify.py wrote with --transcript-out (unsigned)")
+                   help="the verdict object verify.py wrote with --transcript-out (unsigned), from "
+                        "a run you made with the scripts beside this signer — the signer re-hashes "
+                        "toolchain.files and refuses any other verifier's verdict (h409 O-2.4)")
     t.add_argument("--out", default=None,
                    help="write the envelope here instead of stdout (e.g. the run's own directory)")
 

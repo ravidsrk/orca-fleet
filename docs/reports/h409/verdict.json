@@ -1,0 +1,92 @@
+{
+  "unit": "h409-fix",
+  "pr": 492,
+  "base": "review/2026-09-21-harden-409",
+  "round": 1,
+  "verdict": "NO-GO",
+  "reviewed_sha": "54ba84ef88e655f9feca4540f5f5d30f272494de",
+  "reviewed_wtree": "ea5b36cd033107a0ae5dc0343a4840f506912531",
+  "reviewer_mode": "same-vendor-fresh",
+  "reviewer_mode_note": "codex lane dead; all three axes were fresh same-vendor build-blind sessions \u2014 no cross-vendor independence",
+  "rule": "acceptance-review: axes side by side, no cross-rerank; GO only when zero Critical/Required across axes and the held bot set",
+  "axes": {
+    "spec": {
+      "report": "docs/reports/h409/review-spec.txt",
+      "verdict": "NOT READY",
+      "critical": 1,
+      "required": 0
+    },
+    "standards": {
+      "report": "docs/reports/h409/review-standards.txt",
+      "verdict": "NOT READY",
+      "critical": 1,
+      "required": 2
+    },
+    "tests": {
+      "report": "docs/reports/h409/review-tests.txt",
+      "verdict": "NOT READY",
+      "critical": 1,
+      "required": 1
+    }
+  },
+  "stickers": [
+    {
+      "id": 1,
+      "severity": "Critical",
+      "axes": [
+        "spec F-1",
+        "standards S-1",
+        "tests M1"
+      ],
+      "where": "runtime/scripts/verify.py:618-619",
+      "summary": "gh absent at startup leaves (gh=None, custody=None) \u2014 indistinguishable from unresolved; fetch_reviews re-runs resolve() after the executed negative control, picks up a worker-planted stub, reset() wipes lane; --provenance ci -> rc 0 with the stub consulted (C5 class reopened). Reproduced on all three axes."
+    },
+    {
+      "id": 2,
+      "severity": "Required",
+      "axes": [
+        "standards S-2"
+      ],
+      "where": "tests/test_verify.py:3889",
+      "summary": "the four h409 test classes are defined after the __main__ guard: green under discover, absent under direct execution."
+    },
+    {
+      "id": 3,
+      "severity": "Required",
+      "axes": [
+        "standards S-3",
+        "tests R6/R7"
+      ],
+      "where": "runtime/scripts/verify.py:1970, runtime/scripts/run_report.py:471",
+      "summary": "_Transcript.TOOLCHAIN and TOOLCHAIN_FILES mirrored by comment only; mutants dropping dispatch-sign.py from either survive the full suite."
+    }
+  ],
+  "held_bot_threads": [
+    {
+      "id": 4060043691,
+      "hold": "stands (FALSE-POSITIVE)",
+      "action": "correct the reply: verify.py emits no verdict NOTE for an unrecognised --provenance; choices= is a follow-up nit"
+    },
+    {
+      "id": 4060043696,
+      "hold": "stands (spec F-1(b) carve-out)",
+      "action": "correct the reply: gh on this host is in /opt/homebrew/bin (drwxrwxr-x ravindra), Greptile's premise is true here; add one sentence to docs/verify-gate.md on the Homebrew same-uid residual"
+    }
+  ],
+  "findings_summary": "1 Critical (gh-absent-at-startup lazy re-resolve after the negative control, reproduced on all three axes) + 2 Required (h409 test classes below the __main__ guard; F-5 toolchain file set unpinned between verify.py and run_report.py). Nits: verify.py:1177 raw-spelling cat-file probe; ../x@ref cwd-relative in read_source; sound-lane predicate phrased three ways; run_report.py:697 double .get; F-4 mode & 0o077 vs 'not 0600' and one stderr string for two custody classes. F-2/F-3/F-4/F-5 met; all reverted fixes RED (R1-R5); suite 1967 OK, validate 0, gitleaks clean, own transcript binds at HEAD. Both Greptile holds stand but both replies need evidence corrections.",
+  "pr_review": {
+    "id": 5267341997,
+    "submitted_at": "2026-09-21T13:44:32Z",
+    "commit_id": "54ba84ef88e655f9feca4540f5f5d30f272494de",
+    "body_sha256": "5996587d0ba31a5b94b28770fa7aaf9f9a5b73e8c7fa4d86dda911dfbb26b66e",
+    "egress_receipt": "1e719e18544e91146eb4cf37e413713d17a110d45e0d5ef78a3621c0c99c45a2"
+  },
+  "empty_review_objects_left_in_place": {
+    "ids": [
+      5264039032,
+      5264039226
+    ],
+    "reason": "they are the integrator's inline thread replies (comments 4060054081, 4060054256); GitHub wraps each inline reply in a bodiless COMMENTED review \u2014 deleting them deletes the held-thread replies"
+  },
+  "timestamp": "2026-09-21T13:45:00Z"
+}

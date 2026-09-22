@@ -1,0 +1,169 @@
+REVIEW — h409-fix — STANDARDS axis (build-blind, pack: addy)
+==============================================================
+Unit: h409-fix  Branch: h409-fix (worktree h409-w2)  Diff: origin/review/2026-09-21-harden-409..HEAD
+Base: 0d552ec9  Content head: 81a25d4e  Head (docs): 54ba84ef
+Spec: docs/runs/2026-09-21-harden-409/build-fix.md  Held threads: docs/reports/h409/integrate.json (2, both FALSE-POSITIVE — concur, see FYI-2)
+Reviewer: task_a7174efe716c  Timebox: 30 min (13:03–13:25)  Mutations: scratch only (scratchpad probes; the worktree is untouched)
+
+BLIND-FIX EXPECTATIONS (written before opening the diff; scratchpad/expectations.md)
+  F-1  one resolver, called ONCE in main() before any NC subprocess; check_review never re-resolves;
+       classification must CHANGE the exit code on a sound lane, not only print; argv-only subprocess.
+  F-2  --repo omitted + sound lane -> refuse; advisory lane -> inferred via `git remote get-url` (argv), recorded.
+  F-3  one spelling helper used by BOTH the containment check and the git lookup; no `..` collapse; below-toplevel killer test.
+  F-4  ONE shared helper for all four signers; S_IMODE / unignored-worktree / stderr class; fail-closed on OSError;
+       return value acted on before any signing; fixtures composed not inherited.
+  F-5  per-file hashes; ONE source of truth for the file set shared by producer and consumer (or a test that
+       binds the two lists); consumer reads files at the graded pin via git; absent/partial/mismatch -> no bind.
+  X    stdlib-only, no new deps, no network, no shell=True; the same sound-lane predicate in verify.py,
+       verify-gate.sh, run_report.py, docs.
+
+DELTA vs EXPECTATION — where it matched
+  - F-1/F-2 main(): `repo = _Authority.resolve(args.provenance, bool(args.dispatch_record and args.dispatch_pubkey), args.repo)`
+    runs before verify(); NC executes at verify.py:2275, check_review at :2280 — ordering as the spec demands.
+    `_Authority.review_leg` returns a non-NOTE line on a sound lane, and check_review returns it before
+    fetch_reviews — the classification is enforced, not decorative (rc=2 in the fixture's sound-lane test).
+  - F-3: `Path(path).as_posix()` on both git lookups; `..` is not collapsed; killer tests from cwd=<root>/docs and
+    --git-dir <root>/docs are present and RED with the fix reverted (fix-negctrl.txt).
+  - F-4: one `_seed` in dispatch-sign.py; inventory.py already read through `_dispatch_sign()._seed` (inventory.py:493),
+    verify.py `_Transcript.seed` now loads the same reader — four signers, one rule. Refusal precedes the read;
+    OSError on stat fails closed; `_in_unignored_worktree` resolves symlinks. Creation override (`--in-repo-ok`)
+    is tested to NOT carry over to use.
+  - F-5: run_report reads `blob_at(rev, f"runtime/scripts/{name}", root)` — the file AT THE PIN, argv git.
+    The unit's own fix-transcript.json toolchain.files match `git show 81a25d4e:runtime/scripts/<name>` for all
+    five files (hand-checked: 4dd53003…, acc3d5cf…, 1d6276ce…, 471fd3da…, e7293955…).
+  - Conventions: every subprocess is an argv list through `_run`/`_git`/`_git_bytes`; new imports are `stat`
+    (dispatch-sign.py) only; `importlib.util`/`tempfile` were already imported in verify.py; no network; no new deps.
+    The `_WAIVER_NEEDS_EXECUTED_NC` fold into check_review is paid for by the <92 module-name pin
+    (tests/test_reshape_width_verify.py) — not churn.
+
+FINDINGS
+--------
+
+[CRITICAL] S-1  F-1 is re-opened when `gh` is absent at startup: fetch_reviews re-pins AFTER the control
+  File: runtime/scripts/verify.py:618-620
+  Motivating lines (verbatim):
+      if _Authority.gh is None and _Authority.custody is None:
+          _Authority.resolve()  # a library caller that never ran main(): pin on first use (F-1)
+  and resolve() begins with `cls.reset()`, which clears `lane`.
+  Why: main() DID run, but with no gh on PATH `resolve()` leaves gh=None AND custody=None — indistinguishable
+  from "never resolved". The executed NC then runs worker code; when check_review reaches fetch_reviews the
+  guard fires, shutil.which finds the gh the NC just planted, and — because reset() wiped `lane` and
+  review_leg() was already evaluated (custody was None then) — the stub answers the review leg with no
+  NOTE and no fatal. This is the C5 class verbatim ("a stub gh in a writable PATH dir can never again produce
+  a same-run GREEN") on the one PATH shape the killer test does not cover.
+  Reproduction (scratch, scratchpad/test_c5_absent_gh.py — subclass of ReviewAuthorityPinnedBeforeTheControl
+  with PATH = <droppable>:<git,sh only>, no gh anywhere at startup; NC plants the stub as in the fixture):
+      native lane        -> rc 0, "verify: OK — all required checks passed", dropped-gh.log exists: True
+      --provenance ci    -> rc 0, "verify: OK — all required checks passed", dropped-gh.log exists: True
+  Expected: rc 2 on both ("cannot fetch reviews … gh not on PATH — fail-closed" at minimum), and on the sound
+  lane the F-1 fatal. Acceptance box "resolution happens before any NC execution" is not met for this shape.
+  Fix (minimal, keeps the library-caller ergonomics): add an explicit `pinned = False` class attribute that
+  resolve() sets True and reset() clears; fetch_reviews re-pins only `if not _Authority.pinned`. Never call
+  reset()-then-resolve() from fetch_reviews when main() has pinned. Add the absent-at-startup killer test
+  (both lanes) beside the existing C5 test; it is the fixture plus one PATH line.
+
+[REQUIRED] S-2  All four h409 test classes are defined AFTER the `__main__` guard — dead under direct execution
+  File: tests/test_verify.py:3889-3893
+  Motivating lines (verbatim):
+      if __name__ == "__main__":
+          unittest.main(verbosity=2)
+
+
+      class DotSlashEvidenceSpelling(RepoCase):
+  (likewise TranscriptKeyCustody :3945, ReviewAuthorityPinnedBeforeTheControl :3978, ReviewRepoIsCoordinatorPinned :4063)
+  Why: the file is 100755 with a shebang and is documented as runnable. `unittest discover` imports the
+  module so the suite is green, but `python3 tests/test_verify.py` runs unittest.main() before the 14 h409
+  killer tests exist and silently omits them; a named invocation errors:
+      $ python3 tests/test_verify.py ReviewAuthorityPinnedBeforeTheControl  ->  Ran 1 test … FAILED (errors=1)
+  A killer test that vanishes depending on the invocation is the "decorative" failure mode this axis exists
+  to catch. Fix: move the guard to the end of the file (pure move; no behavior change under discover).
+
+[REQUIRED] S-3  F-5 file set is duplicated with no test binding the two copies; drift is silent on the unsafe side
+  Files: runtime/scripts/verify.py:1970 and runtime/scripts/run_report.py:471
+  Motivating lines (verbatim):
+      TOOLCHAIN = ("verify.py", "_verify_sig.py", "diff_scope.py", "ed25519.py", "dispatch-sign.py")
+      # per file into toolchain.files; run_report.py (TOOLCHAIN_FILES mirrors this) binds each to
+      TOOLCHAIN_FILES = ("verify.py", "_verify_sig.py", "diff_scope.py", "ed25519.py", "dispatch-sign.py")
+      # loads by path (verify.py _Transcript.TOOLCHAIN mirrors this). The transcript hashes each file;
+  Why: run_report iterates ONLY its own tuple and ignores extra keys in `toolchain.files`. So the next
+  sibling verify.py starts loading (added to TOOLCHAIN by whoever adds the import) is hashed by the producer
+  and never checked by the consumer — exactly the "substituted sibling" hole F-5 closes, re-opened by a
+  one-sided edit. The asymmetry matters: a consumer-side addition fails every transcript (noisy); a
+  producer-side addition is unbound (silent). tests/test_run_report.py builds its transcripts from
+  run_report.TOOLCHAIN_FILES on both sides, so agreement is never exercised. (Fowler: duplicated code /
+  shotgun surgery.) Fix, either: (a) one assertion in tests/test_run_report.py —
+  `self.assertEqual(verify._Transcript.TOOLCHAIN, run_report.TOOLCHAIN_FILES)` (test_verify already
+  shows how to load verify.py by path); or (b) run_report additionally refuses when
+  `set(files) != set(TOOLCHAIN_FILES)` so an unexpected extra/missing name cannot bind. (b) is the
+  fail-closed one and is a two-line change.
+
+[NIT] S-4  `../`-spelled path@ref sources are still cwd-relative to git (same class as F-3, outside its letter)
+  File: runtime/scripts/verify.py:264
+  Motivating line (verbatim):
+      code, out, err = _git_bytes(["show", f"{ref}:{Path(path).as_posix()}"])  # F-3
+  Why: git treats a leading `..` like a leading `./` — relative to ITS cwd. Manifest artifact paths are
+  safe (they go through _resolve's containment: "evidence path escapes the repo toplevel (#267)"), but
+  read_source's path@ref form has no containment check. Scratch probe (scratchpad/probe_dotdot.py):
+      from <root>/other:  read_source("../docs/reports/u/nc.txt@<head>") -> b'KILLED\n'   (reads)
+      from <root>:        same                                            -> fatal: '../docs/…' is outside repository
+  A coordinator-supplied `--contract-source ../x@ref` therefore binds a different object per cwd. The spec
+  froze the fix at "strip leading `./` segments", so this is a follow-up, not a spec miss: refuse a leading
+  `..` segment in the path@ref branch next to the existing `-` and absolute-path refusals (fail-closed, one
+  line, no behavior change for any sane spelling).
+
+[NIT] S-5  The sound-lane predicate is phrased three ways; verify-gate.sh's header omits enforcement mode
+  Files: runtime/scripts/verify-gate.sh:22-23, docs/verify-gate.md:86-87, runtime/scripts/verify.py:653-656
+  Motivating lines (verbatim):
+      #   ORCA_REPO             owner/name for the independent review lookup. REQUIRED on the sound
+      #                         surfaces (ORCA_PROVENANCE set) — verify.py fails the review leg closed
+      surfaces** (`ORCA_PROVENANCE` set, or an enforcement-mode run): without it verify.py fails the
+      ci|mcp|sdk|dispatch provenance classes, or an enforcement-mode run with a signed dispatch
+  Why: the code's predicate is `provenance in ("ci","mcp","sdk","dispatch") or (dispatch_record and
+  dispatch_pubkey)`. The .sh says "ORCA_PROVENANCE set" (an unknown value is NOT sound — held thread
+  4060043691 relies on exactly that) and drops the enforcement arm; the .md has the arm but also says
+  "set". Operators read the .sh header first. Fix: one sentence in the .sh — "ORCA_PROVENANCE is one of
+  ci|mcp|sdk|dispatch, or a dispatch record + pubkey are in force" — and mirror it in the .md line 86.
+
+[NIT] S-6  run_report.py: the toolchain extraction line reads `record.get("toolchain")` twice in a 115-col conditional
+  File: runtime/scripts/run_report.py:697
+  Motivating line (verbatim):
+      files = (record.get("toolchain") or {}).get("files") if isinstance(record.get("toolchain"), dict) else None
+  Fix: `toolchain = record.get("toolchain"); files = toolchain.get("files") if isinstance(toolchain, dict) else None`.
+  Behavior-neutral; the following `isinstance(files, dict)` already fails closed.
+
+[FYI] F-1  `_seed`'s mode rule is `mode & 0o077` (any group/other bit), not "!= 0o600" as the spec words it
+  File: runtime/scripts/dispatch-sign.py:195
+      if mode & 0o077:
+  A 0400 seed therefore signs. That is the stricter-in-spirit reading (owner-only is the property the class
+  protects) and the stderr line names the actual mode, so the trail is truthful. No change asked; noting
+  the deliberate divergence from the spec's letter so the acceptance box reads "0644 / tracked / unignored"
+  (as written) and not "not 0600".
+
+[FYI] F-2  On this host the "system" carve-out is by convention: /opt/homebrew/bin is drwxrwxr-x ravindra
+  File: runtime/scripts/verify.py:661-663  (`"/opt/homebrew/bin", "/opt/homebrew/sbin", …` in SYSTEM_BINS)
+  Held thread 4060043696 already triages this as the spec's explicit F-1(b) design ("not a standard system
+  bin dir") and classify()'s docstring says so in words ("the carve-out is by convention, a user-owned
+  /opt/homebrew is not a worker's drop zone"). Concur with the hold: the alternative fails every sound lane
+  closed on every Homebrew host, and a worker writing system bin dirs owns the toolchain. Standards-wise
+  the classification is consistent between code, docstring, and the held reply. Nothing to change.
+
+[FYI] F-3  Every pre-F-5 signed transcript now fails to bind (no grandfathering) — by design, and there are none
+  run_report.py:698-701 refuses a transcript whose toolchain "names no file set". `rg -l '"verify_sha256"'
+  docs/runs` finds only this unit's transcript, which carries `files`. Fail-closed is the right default;
+  if an older proof-tier run is ever replayed it will need a regenerated transcript, not a code change.
+
+[FYI] F-4  Full-suite counts differ between the two reports (fix-report.md: 1999 OK; integrate.json: ran 1967)
+  Not this axis (the integrator's numbers govern); mentioned so the discrepancy is not read as a hidden skip.
+
+VERDICT ON THIS AXIS
+  NOT READY. One Critical (S-1) re-opens the P0 class the unit exists to close on the "gh absent at startup"
+  shape — reproduced, both lanes, exit 0 with the planted stub consulted. Two Required (S-2 dead-under-direct-
+  execution killer tests; S-3 unbound duplicate of the F-5 file set). Everything else in the delta meets the
+  AGENTS.md conventions (argv-only, stdlib-only, fail-closed, no new deps) and the enforcement of the custody /
+  writability classifications is real where the pin holds. S-1 is a ~6-line fix plus one test; S-2 is a move;
+  S-3 is one assertion or two lines in run_report. Re-review after those lands should be short.
+
+SCRATCH ARTIFACTS (not in the repo; under the session scratchpad)
+  expectations.md          — the blind expectations above, written before the diff was opened
+  test_c5_absent_gh.py     — S-1 reproduction (subclasses the unit's own C5 fixture; PATH without gh)
+  probe_dotdot.py          — S-4 probe

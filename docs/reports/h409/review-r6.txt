@@ -1,0 +1,222 @@
+h409 — ROUND-6 targeted re-review (PR #494, head 617c372e, base origin/review/2026-09-21-harden-409 = 8d5bf50d)
+Reviewer: build-blind (did not write the fix). Pack: addy (code-review-and-quality → security-and-hardening lens).
+Scope: ONLY the round-6 diff (4 commits: 1086d8de F-6+O-2.4, 5f292d6b N-4, 7e7ef989 O-2.2, 617c372e report).
+Host: macOS Darwin 25.6.0, git 2.55.0, Python 3.13, euid != 0. gh api read-only: PR #494 open, base
+review/2026-09-21-harden-409, head 617c372e (matches this worktree's HEAD).
+Every gate below carries file:line evidence AND my own re-derivation (/private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-h409-w1/e7e2e940-1fcf-4301-9fc8-a772b1785cab/scratchpad/probe_r6.py, subprocess where
+the gate asks for it, scratch only; output in /private/tmp/claude-501/-Users-ravindra-orca-workspaces-orca-fleet-h409-w1/e7e2e940-1fcf-4301-9fc8-a772b1785cab/scratchpad/probe_r6.out). The repo working tree was edited only
+transiently for the revert-bite checks and is clean again (git diff --quiet: yes).
+
+VERDICT: GO — with two honest residuals (both P2-class, outside the frozen bar) and three
+observations for the coordinator's tracker. No P0/P1 found in the round-6 diff.
+
+======================================================================================================
+GATES
+======================================================================================================
+
+G-1  --execute-nc + --transcript-key refused at PARSE, before the seed is read            PASS
+  Evidence: runtime/scripts/verify.py:2590-2598 — the check sits in main() after argparse and the
+  "--transcript-key requires --transcript-out" check, BEFORE _Transcript.seed() (:2599), before
+  _root_arg() (the first git leg, :2603-2610), before _Authority.resolve() (:2615) and before
+  verify() reads the manifest (:2617). Only shutil.which("git") (:2582) precedes it.
+  Re-derived (subprocess): the seed path handed to --transcript-key was a FIFO with no writer
+  (any open-for-read blocks forever), and the unit's committed check.py writes a canary file if it
+  ever runs:
+      rc=1 elapsed=0.03s | stderr: usage: --transcript-key cannot be combined with --execute-nc —
+      the control runs worker code in the process that holds the seed. Sign after the control, in a
+      process that never ran it: --transcript-out alone, then dispatch-sign.py sign-transcript; or
+      a second verify.py invocation without --execute-nc
+      control ran: False | transcript written: False | 'custody' in stderr: False
+  A second canary (--transcript-key /nonexistent/seed AND --manifest /nonexistent/manifest.json)
+  returns the same conjunction message: neither the seed nor the manifest is read first.
+
+G-2  reaudit §F-6 probe observes gh_token_in_env False; nothing GH_*/ORCA_* reaches the control;
+     the scrubbed control still RUNS real revert-type controls                                PASS
+  Evidence: verify.py:687-688 AMBIENT_KEEP/AMBIENT_KEEP_PREFIX; :854-859 nc_env() is the
+  projection of os.environ onto that allow-list and nothing else; :1742 the control's argv runs
+  `_run_at(wt, argv, timeout=NC_TIMEOUT_S, env=_Authority.nc_env())`.
+  Re-derived (subprocess, the reaudit's own invocation shape: --no-gh --execute-nc, GH_TOKEN,
+  GITHUB_TOKEN, GH_HOST, ORCA_CONTRACT_DIGEST, ORCA_PROVENANCE, ORCA_HEAD, GIT_CONFIG_COUNT,
+  SSL_CERT_FILE, PYTHONWARNINGS planted; check.py records the reaudit's dict + env NAMES):
+      verify.py exit 2 | NC executed: True      (the exit-2 is the unrelated --no-gh review.artifact RED,
+                                                 exactly as in the reaudit)
+      control run: {'same_uid': True, 'r_ok': True, 'mode': '0o600', 'gh_token_in_env': False,
+                    'transcript_key_in_parent_argv': False}   leaked names: []
+      clean run:   same
+      whole env of control: HOME LANG LC_ALL PATH TMPDIR (+ __CF_USER_TEXT_ENCODING, which macOS
+      libSystem injects into EVERY child — `env -i python3` shows it too; not a passthrough)
+      == nc_env() projection of the launch env exactly: True
+  same_uid/r_ok stay True by design (the threat model sanctions running the unit's tests with the
+  verifier's privileges); what F-6 graded — the seed open in the same process with its path in
+  argv, and the token in the env — is gone.
+  Real control still works: in-process green executed revert under the same planted env:
+      rc=0 | EXECUTED: True | clean-head line: True | check.py ran 2x | GH_TOKEN in any run: False
+  Suite: EndToEndMutationGreen, ReviewAuthorityPinnedBeforeTheControl (7/7), EveryPostControl…
+  all green inside the full run (G-8).
+
+G-3  nc_env/git_env are the WHOLE env; GIT_EXTERNAL_DIFF / GIT_CONFIG_COUNT+core.fsmonitor never
+     execute through any git/gitleaks leg incl. control-worktree legs; identity still resolves  PASS
+  Evidence: verify.py:861-866 git_env() = nc_env() + GIT_TERMINAL_PROMPT=0. I enumerated every
+  subprocess site in verify.py (rg over _run(/_run_bytes(/_run_at(/subprocess.): 16 git/gitleaks
+  invocations, ALL carry env=_Authority.git_env(): _git :150, _git_bytes :157, _evidence_toplevel
+  :200, checkout :1613, diff --name-only :1617, merge-base :1630, rev-list :1634, revert :1652,
+  apply --index :1675, diff --cached :1682, worktree add :1728, status :1738, worktree remove :1747,
+  gitleaks :1980, git --version :2188, rev-parse --is-inside-work-tree :2497. gh keeps gh_env()
+  (:851). The lazily-loaded siblings spawn no git from verify's process (diff_scope.git() exists
+  at diff_scope.py:145 but verify only reads ds.PATH_RULES, :1097-1101; ed25519 is pure Python).
+  Re-derived: a /bin/sh `git` wrapper first on PATH logs the env NAMES of every launch then execs
+  the real git; a `gitleaks` stub logs the same; planted: GIT_EXTERNAL_DIFF, GIT_CONFIG_COUNT=1/
+  GIT_CONFIG_KEY_0=core.fsmonitor/GIT_CONFIG_VALUE_0=<stub>, GIT_SSH_COMMAND, GIT_PROXY_COMMAND,
+  GIT_DIR, GH_TOKEN, ORCA_PROVENANCE, XDG_CONFIG_HOME. Full green executed revert in-process:
+      positive control (bare git status, same env): fired = True     <- the channel is live here
+      green executed run under planted env: rc=0 EXECUTED=True | worker-writable NOTE: True
+      stub FIRED through any verifier leg: False
+      git legs launched via wrapper: 38; gitleaks: 3
+      every git leg env == git_env() keys exactly: True   (minus PWD/SHLVL/_ which /bin/sh itself
+      adds — `env -i /bin/sh -c env` prints exactly those three)
+      every gitleaks leg env == git_env() keys exactly: True
+      env -i K=V… /usr/bin/env  keys == git_env() keys: True
+  Identity: scratch repo, HOME=empty dir, GIT_CONFIG_NOSYSTEM=1, `git config user.email` → unset;
+  `worktree add --detach` rc=0; `git revert --no-commit base..head` rc=0, status 'M  a.py'. The
+  revert control needs NO identity, so the builder's "identity passthrough: none" argument holds
+  empirically, not just by reading.
+  Revert-bite sensitivity: reverting env= on ONE leg only (the status leg, :1738) turns
+  GitLegsRunUnderAScrubbedEnvironment 2/4 red (both the fired-stub and the allow-list test) — the
+  wrapper logs every launch, so a single un-scrubbed leg cannot hide.
+
+G-4  sign-transcript re-hashes toolchain.files and refuses a mismatch                       PASS
+  Evidence: runtime/scripts/dispatch-sign.py:89 TOOLCHAIN_FILES (== verify._Transcript.TOOLCHAIN
+  :2166 == run_report.TOOLCHAIN_FILES :471; test-pinned by test_the_file_set_mirrors_the_verifiers);
+  :92-111 toolchain_mismatch() re-hashes _HERE/<name>; :287-290 refuses (rc 1, nothing on stdout)
+  before envelope(). Docstring :34-38, subcommand help :325-327, --transcript help :330-332 say
+  "sign only a verdict object you produced". docs/verify-gate.md:205-208 says the same and that
+  the key lane and the executed control are for different hosts.
+  Re-derived (subprocess dispatch-sign.py sign-transcript, 0600 out-of-repo seed, verdict object
+  produced by a real verify.py --transcript-out run):
+      genuine                            rc=0  stdout 2292 B (envelope)
+      one hash zeroed (verify.py)        rc=1  stdout empty
+      all zero (reaudit probe C)         rc=1  stdout empty
+      partial set (ed25519.py dropped)   rc=1  stdout empty
+      no toolchain.files                 rc=1  stdout empty
+      case-flipped hex                   rc=1  (string compare, no normalisation — fail-closed)
+      non-string hash                    rc=1
+      exit/fatal doctored, hashes real   rc=0   <- KNOWN LIMIT, see O-3 below
+  The unsigned-verdict → sign-transcript → ed.checkvalid lane end to end is also exercised by
+  TheSeedAndTheControlNeverShareAProcess.test_execute_nc_alone_still_runs_the_control_under_the_scrub.
+
+G-5  b64decode validate=True; the re-audit's malformed matrix refuses identically at all three  PASS
+  Evidence: verify.py:2308 (was :2275 at BASE) `base64.b64decode(envelope["sig_b64"], validate=True)`
+  inside the (ValueError, KeyError, TypeError) → "dispatch record / pubkey malformed" branch
+  (:2310-2311); run_report.py:639; inventory.py:304. `rg b64decode runtime/scripts` finds exactly
+  those three calls, all validate=True.
+  Re-derived in-process (DispatchProvenance._signed envelope, throwaway key):
+      clean               verify ACCEPT (NOTE …verified) | inventory decoded | run_report decoded
+      non-alphabet '*'    verify malformed | inventory REFUSE(malformed) | run_report REFUSE(Only base64…)
+      newline             verify malformed | inventory REFUSE(malformed) | run_report REFUSE
+      trailing '!!'       verify malformed | inventory REFUSE(malformed) | run_report REFUSE
+  Identical on the audit's three shapes; "INVALID" never reached from any of them.
+
+G-6  every new test above the __main__ guard, collected, revert-biting                     PASS
+  tests/test_verify.py: guard at :4886 (file is 4887 lines); the four new classes span
+  :4637-4884. tests/test_dispatch_sign.py: guard at :428; new class :367-424. Collected by name:
+  12 (test_verify) + 5 (test_dispatch_sign) = 17, matching the builder's count; all OK.
+  Revert-bite, five spot checks (edit in place, run the class, git checkout -- restore):
+    R1 control env=nc_env() → dropped (:1742)      → 1/3 red (…token_and_orca_values_never_reach…)
+    R2 parse-time block deleted (:2590-2598)       → 1/3 red (…usage_refusal_before_any_control_runs)
+    R3 status leg env=git_env() → dropped (:1738)  → 2/4 red (…no_planted_exec_channel…, …allowlist…)
+    R4 toolchain_mismatch call removed (:287-290)  → 3/5 red (hand-typed, substituted, partial/absent)
+    R5 validate=True removed (:2308)               → 2/2 red (matrix reads INVALID; source check)
+  Each matches the builder's stated revert-proof; R3 is stronger than stated (one leg suffices).
+
+G-7  the changed F-1 fixture (ORCA_HEAD channel) does not weaken what it proves           PASS
+  tests/test_verify.py:4007-4030. Before: the head sha the planted gh bakes into its fabricated
+  APPROVED travelled to check.py through ORCA_HEAD in the control's env — the very channel F-6
+  closes (nc_env() carries no ORCA_*; confirmed: 'ORCA_HEAD' in nc_env() → False under the
+  fixture's env). After: check.py reads it from a file beside the log. The attacker-strength is
+  unchanged (a worker always knows its own head sha), and every assertion is untouched:
+  the gh IS planted (assertTrue exists), the dropped log is ABSENT (never consulted), "cannot
+  fetch reviews"/"gh absent at startup" from the pre-pinned authority. Re-derived: the planted
+  gh's text contains the real head sha (True), rc 2, EXECUTED True, clean-head True; class 7/7 OK.
+
+G-8  full unittest suite + validate.py green at HEAD on this host                          PASS
+  python3 -m unittest discover -s tests → Ran 2018 tests in 428.470s — OK (rc 0).
+  python3 scripts/validate.py → "All 21 missions valid; three-layer separation holds; evals
+  valid." (rc 0). assets/badges/tests.json says 1886 in source; re-running gen-badges.py produces
+  no diff (badge is current). No skip literal added (validate's floor guard green).
+
+======================================================================================================
+THE BUILDER'S TWO NAMED RESIDUALS — where they sit against the frozen bar
+======================================================================================================
+
+R-A  HOME passes to git (native lane) — HONEST RESIDUAL, P2, INSIDE the frozen shape, OUTSIDE the bar.
+  The spec froze the allow-list WITH HOME ("PATH, HOME, TMPDIR/TMP/TEMP, LANG/LC_*") and its
+  acceptance names GIT_EXTERNAL_DIFF and GIT_CONFIG_COUNT+core.fsmonitor — both closed (G-3). What
+  remains is git reading $HOME/.gitconfig, and — because XDG_CONFIG_HOME is dropped —
+  $HOME/.config/git/config. Re-derived under git_env() exactly:
+      HOME/.gitconfig core.fsmonitor=<stub>            → fires: True
+      HOME/.config/git/config core.fsmonitor=<stub>    → fires: True
+  Reach: only where the worker controls the launch env, i.e. the native/advisory lane, where verify
+  runs in the worker's own session — code-exec "in the verifier" there is code-exec as the worker
+  on the worker's machine, which it already has; the breaker is the off-worker re-run. On every
+  sound lane HOME is the coordinator's and its gitconfig is coordinator state (the same standing
+  the reaudit gave gh's config.yml under gh_env). That is the containment class reattack-r2 graded
+  N-4 P2 / not-a-re-loop, and the frozen bar (sound-lane false GREEN / custody) is not touched.
+  → Not P0/P1. Track it. Recommended closure for a later round, cheaper and wider than the
+  builder's "-c core.fsmonitor=false" belt (which covers ONE key of many: diff.external,
+  core.sshCommand, core.gitProxy, credential.helper, core.hooksPath, filter.*.smudge on the
+  checkout legs…): add the constants GIT_CONFIG_GLOBAL=/dev/null and GIT_CONFIG_NOSYSTEM=1 to
+  git_env(). The revert control needs no identity (G-3 proved it with an empty HOME), so nothing
+  the legs need is lost; the only config git then sees is the repo's own.
+
+R-B  _load_ed25519()/_load_diff_scope() load lazily after the control — OBSERVATION, not graded,
+  and NARROWED by this round. The post-control ed25519 load is inside _Transcript.write and runs
+  only when a seed is present (verify.py:2236-2243); after F-6 a seed and an executed control can
+  no longer share a process, so on an --execute-nc run that load never happens. _load_diff_scope
+  is consulted by _is_test_path during _apply_control (phase "control", BEFORE the control's argv
+  runs) and by the pre-control checks; nothing loads it after worker code has run. What remains
+  post-control is _Transcript.build re-hashing the toolchain files from disk (:2189-2193) —
+  which is the F-5/O-2.4 binding's INPUT, not a code load, and a tampered sibling shows up as a
+  hash mismatch at the pin (run_report) or at signing on a different host (sign-transcript).
+  → Outside the bar; the reaudit itself filed it as an observation. Nothing to do this round.
+
+======================================================================================================
+OBSERVATIONS (no action required for GO; for the tracker)
+======================================================================================================
+
+O-1  Wrong-LENGTH but valid-base64 sig_b64 refuses at all three consumers but with different
+  words: verify.py and run_report → "INVALID" (checkvalid's len!=64 gate, ed25519.py:144),
+  inventory → "malformed (decodes to 63 bytes…)" (inventory.py:307). Outside O-2.2's three-shape
+  matrix; fail-closed everywhere; naming only.
+
+O-2  nc_env() is a frozen allow-list of six names. A unit whose tests need a toolchain rooted
+  outside HOME/PATH (JAVA_HOME, ANDROID_HOME, GOPATH, CARGO_HOME, VIRTUAL_ENV, SSL_CERT_FILE for
+  a corporate CA…) will go RED under the executed control on that host. That is the spec's
+  choice and the right security default; the consequence is a false RED (fail-closed), never a
+  false GREEN. Worth one sentence in docs/verify-gate.md when it first bites a real run.
+
+O-3  sign-transcript's content check binds the VERIFIER, not the VERDICT: a verdict with real
+  toolchain hashes and a doctored exit/fatal still signs (G-4 last row, rc=0). This is exactly
+  the documented limit ("checks shape, not truth", dispatch-sign.py:36-38; verify-gate.md:207
+  "sign only a verdict object you produced") and O-2.4's shape asked for no more; run_report
+  binds manifest bytes/exit/args at the pin. Noting it so nobody reads O-2.4 as a truth oracle.
+
+O-4  docs/verify-gate.md:205-208 lands the F-6 sentence inside an already long parenthetical
+  (#281/#386) — correct, but dense. Prose only.
+
+======================================================================================================
+NUMBERED FINDINGS
+======================================================================================================
+  1. (R-A, P2 residual, tracked) HOME-routed gitconfig is a live core.fsmonitor channel on the
+     native lane under git_env(); GIT_CONFIG_GLOBAL=/dev/null + GIT_CONFIG_NOSYSTEM=1 would close
+     it without losing anything the legs need. Not in the frozen shape; not a GO blocker.
+  2. (R-B, observation) post-control lazy loads are effectively eliminated for executed-control
+     runs by F-6's conjunction refusal; nothing left to grade.
+  3. (O-1..O-4) hygiene/prose; none changes a verdict.
+
+GO. The round-6 diff closes F-6 (P1) on both halves — custody (parse-time refusal, seed never
+opened, nothing executed, nothing written) and reach (the control sees exactly the six-name floor,
+proven from inside the control and by the env -i comparison) — closes N-4 on the two acceptance
+channels across every one of the 16 git/gitleaks sites, makes sign-transcript a check on which
+verifier produced the verdict, and aligns the three sig_b64 consumers. All 17 new tests are
+collected, above the guard, and revert-bite (five reverts, all red as stated or stronger). The
+full suite (2018) and validate.py are green at 617c372e on this host.

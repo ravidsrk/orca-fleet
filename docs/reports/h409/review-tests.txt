@@ -1,0 +1,136 @@
+REVIEW — h409-fix, axis: TEST-ADEQUACY (mutation-hunt.md)   reviewer: build-blind, pack: addy
+Head 54ba84ef88e655f9feca4540f5f5d30f272494de vs base origin/review/2026-09-21-harden-409 @ 0d552ec9
+Spec: docs/runs/2026-09-21-harden-409/build-fix.md.  Mutations ran ONLY in a scratch clone (removed
+after); nothing committed here except this file (uncommitted).  Blind expectations written before the
+diff was opened (7 items, E1–E7); deltas vs expectation are marked [E-n].
+
+VERDICT: NOT READY — 1 Critical (the C5 class is still open on one startup state), 1 Required
+(the F-5 toolchain set is pinned by no test in either direction), 1 Nit, 3 FYI.  Every other killer
+mutant I wrote went RED (R1–R5 quoted below).
+
+==================================================================================================
+CRITICAL — F-1: gh ABSENT at startup is lazily re-resolved AFTER the executed control; a planted
+           stub answers the review leg and the SOUND lane goes GREEN (same-run false GREEN, C5).
+==================================================================================================
+Motivating lines (verbatim):
+  spec build-fix.md: "resolve the review authority to an ABSOLUTE path ONCE, at startup, BEFORE any
+    negative-control execution, and invoke only that resolved path — a mid-run PATH write can never
+    redirect the review leg"
+  verify.py fetch_reviews():
+    "    if _Authority.gh is None and _Authority.custody is None:"
+    "        _Authority.resolve()  # a library caller that never ran main(): pin on first use (F-1)"
+  verify.py _Authority.resolve(): "        cls.reset()"
+Mechanism: after main() ran resolve() and found NO gh, the state is (gh=None, custody=None) — the
+SAME state as "never resolved", so the guard above cannot tell them apart.  fetch_reviews() then
+re-runs shutil.which('gh') AFTER check_negative_control executed the unit's own check.py, finds the
+stub it planted in a user-writable PATH dir, AND resolve() with no args reset()s lane/repo_source to
+None — so review_leg's sound-lane fatal is gone too.  The existing covering test hides this because
+its fixture pre-seeds a stand-in "realgh" on PATH ("realgh = root / 'realgh'  # the stand-in 'real'
+gh"): the authority is FOUND at startup there, and only that branch is pinned.
+Mutant M1 (scratch clone, subclass of ReviewAuthorityPinnedBeforeTheControl; PATH = <empty writable
+dir> + a tools dir holding git/sh/python3 only — no gh anywhere; the control's committed check.py
+plants the stub exactly as the fixture's does):
+  native lane:   rc=0  stdout ends "verify: OK — all required checks passed"; dropped-gh.log EXISTS
+                 (the planted gh WAS consulted):  "AssertionError: True is not false : the planted
+                 gh WAS consulted after the control (lazy re-resolution)"
+  --provenance ci (SOUND lane): rc=0, "verify: OK — all required checks passed", no
+                 review_authority line at all:  "AssertionError: True is not false : planted gh
+                 consulted on a SOUND lane"
+Unit probe of the reset: A.resolve("ci",False,"o/r"); A.gh=A.custody=None; A.resolve()
+  -> "M1 before lazy: provenance=ci" / "M1 after fetch_reviews' lazy resolve(): None inferred"
+Realism: "gh not on PATH" is the state every CI runner without gh, and any coordinator PATH that
+omits it, starts in — and it is the state the spec's own text says must fail closed ("gh not on
+PATH").  ~/.local/bin, mise shims, and the worktree's node_modules/.bin are user-writable PATH dirs
+a control can write into without touching the parent's env.
+Fix shape (not prescribing code): a distinct "resolved" sentinel (e.g. custody="absent") set by
+main()'s resolve() so fetch_reviews never re-resolves after startup; the library fallback must not
+reset() a lane main() pinned.  Killer test = M1 above (both lanes), which must assert the stub was
+never consulted AND rc=2 with "gh not on PATH" / "cannot fetch reviews".
+
+==================================================================================================
+REQUIRED — F-5: the verifier file SET is mirrored in two constants that no test pins; the covering
+           tests derive their expected set FROM the production constant (vacuity guard failed).
+==================================================================================================
+Motivating lines (verbatim):
+  spec: "the transcript's toolchain block hashes verify.py AND its sibling modules as one set (named
+    per file), and run_report.py's transcript check VERIFIES those hashes"
+  run_report.py: "TOOLCHAIN_FILES = ("verify.py", "_verify_sig.py", "diff_scope.py", "ed25519.py",
+    "dispatch-sign.py")" with the comment "(verify.py _Transcript.TOOLCHAIN mirrors this)"
+  tests/test_run_report.py fixture: "files = {name: hashlib.sha256((ROOT / "runtime" / "scripts" /
+    name).read_bytes()).hexdigest() for name in run_report.TOOLCHAIN_FILES}"
+Survivors (scratch clone; four affected modules):
+  R7  run_report TOOLCHAIN_FILES drops "dispatch-sign.py"  -> "Ran 554 tests in 110.100s / OK"
+      Consequence: a substituted dispatch-sign.py — the ONE shared seed reader every signer now
+      routes through (F-4) — signs a transcript that BINDS.  That is the substitution F-5 exists to
+      refuse, on the most valuable sibling.
+  R6  verify.py _Transcript.TOOLCHAIN drops "dispatch-sign.py" -> "Ran 631 tests in 121.979s / OK"
+      Consequence: every real transcript omits a sibling and run_report refuses it at grading time —
+      fail-closed, but a silent drift that kills every verdict, pinned by nothing.
+  Only a two-file mirror survives R8 (TOOLCHAIN_FILES = ("verify.py",)) because the test hard-codes
+  "_verify_sig.py" and "ed25519.py" by name — the set's completeness is never asserted.
+Fix shape: one test that asserts the literal five-name set on BOTH constants (or asserts
+verify._Transcript.TOOLCHAIN == run_report.TOOLCHAIN_FILES == the literal), plus a round-trip: a real
+verify.py --transcript-out/--transcript-key run whose envelope run_report.signed_transcript binds at
+HEAD (spec AC: "the unit's own verify.py transcript binds under the new rules").  The checked-in
+docs/runs/2026-09-21-harden-409/fix-transcript.json is UNSIGNED (no "record"/"sig_b64" envelope;
+top-level keys: args, exit, fatal, manifest, …) so that AC is currently demonstrated by nothing
+executable — fix-report.md says so: "The transcript is unsigned (the coordinator's seed is off-
+worker, as it should be)".
+
+==================================================================================================
+NIT — F-4: spec says "mode not 0600 → refuse"; the shared reader refuses only group/other bits.
+==================================================================================================
+Motivating lines: spec "stat the seed: mode not 0600 → refuse"; dispatch-sign.py "    if mode &
+0o077:".  Mutant M3 (0700 seed, out of repo): "rc=0 / STDERR: seed custody: …/k700 mode 0700,
+outside any unignored work tree" — it signs.  0640, 0604 and a 0600 symlink → 0644 target all
+refuse ("is mode 0640 — readable beyond its owner").  0700 leaks nothing; the divergence is
+wording-vs-spec and the stderr line names it, so Nit — either tighten to == 0o600 or reword the
+spec's line in docs.
+
+==================================================================================================
+KILLED (context only — every reverted/mutated fix went RED on its covering tests in the clone)
+==================================================================================================
+  R1 main() pin removed (repo = args.repo or infer_repo()) -> "FAILED (failures=5)" incl.
+     test_a_gh_dropped_by_the_executed_control_never_answers_the_review_leg,
+     test_no_repo_on_a_sound_lane_refuses_to_infer
+  R2 classify() always "system"            -> "FAILED (failures=3)" (sound-lane fatal, native NOTE, classify)
+  R3a _read_artifact hands git the raw manifest spelling -> "FAILED (failures=3)"
+  R3b read_source hands git the raw path@ref spelling    -> "FAILED (failures=3)"
+  R4a _seed drops the mode check     -> RED in test_dispatch_sign, test_inventory AND test_verify
+     ("test_a_world_readable_seed_is_refused_by_both_signers", "…_is_refused",
+      "…_is_refused_before_any_verdict")
+  R4b _seed drops _in_unignored_worktree -> RED in test_dispatch_sign + test_verify
+  R5 run_report iterates `for name in files` (transcript-supplied names only)
+     -> "FAIL: test_a_partial_toolchain_set_does_not_bind"
+  M2 F-3 spellings from cwd=<root>/docs — "reports/./u/nc.txt", "docs/../reports/u/nc.txt",
+     ".//reports/u/nc.txt", "." — all raw=None ("No such file or directory: <root>/reports/u/nc.txt";
+     "." -> "Is a directory") — no cwd-relative read smuggles through pathlib's normalization. [E5 met]
+  M3 F-4 tracked seed under a gitignored dir (git add -f) -> "is inside a git work tree that does not
+     ignore it … refusing" (check-ignore ignores tracked files — correct); untracked 0600 under an
+     ignored dir -> rc=0 "mode 0600, outside any unignored work tree" (spec: "under an ignored path,
+     keeps working"). [E6 met]
+  M5 system-bin-LOOKING paths: "<tmp>/usr/local/bin/gh -> worker-writable";
+     "/usr/local/bin/../../../<tmp>/usr/local/bin/gh -> worker-writable" (abspath normalizes first).
+  M4 provenance smuggling: 'CI', 'ci ', 'ci,x', 'advisory-ci' -> lane=None (advisory only, never
+     sound) — an unknown value can only DOWNGRADE, confirming the Greptile #4060043691 FALSE-POSITIVE
+     triage.  'dispatch' is sound (stricter than the spec's "ci|mcp|sdk"; fine).
+
+==================================================================================================
+FYI
+==================================================================================================
+1. Greptile #4060043696 residual, forced: with os.access(W_OK) mocked True, classify("/usr/local/bin/gh")
+   -> "system" — the carve-out is by NAME, so on an Intel-Homebrew host (user-owned /usr/local/bin) a
+   worker-planted gh there is classed system.  Spec-sanctioned ("not a standard system bin dir");
+   the triage reply's "premise false on the build host" is host-specific, and docs/verify-gate.md
+   does not say the carve-out is by name.  Suggest one sentence in verify-gate.md.
+2. On the NATIVE lane a worker-writable gh still ANSWERS and exit is 0 with only a NOTE
+   ("rc, out, err = self._attack(); self.assertEqual(rc, 0…); assertIn('NOTE: review_authority:
+   advisory (gh at', out)").  Per spec F-1(b), but the spec's own "can never again produce a same-run
+   GREEN" line is only true if the coordinator treats that NOTE as non-GREEN — verify-gate.sh does
+   not distinguish it from any other NOTE.
+3. Scratch-clone survivors of my own tests inherited from the fixture (M1 subclass) are reported
+   above under Critical; my mutant file was never placed in this worktree.
+
+Timebox: 30 min, partial-report STOP honoured at ~25 min; not run: a forced re-attack of the
+enforcement lane (signed dispatch record + pubkey) with gh absent at startup — same code path as M1,
+expected identical.

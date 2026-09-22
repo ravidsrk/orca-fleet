@@ -75,3 +75,49 @@
 2026-09-20T18:28:20Z · ask-msg_6d4bba0a00dc-Q2 · taste · superseded · the at-rev premise ("dodge-by-pinning-old blocked by artifacts-at-rev") is refuted — round-1 review of PR #489 (spec F-1, standards R-1, tests F-3, Greptile BOT-2) forked from a pre-key commit, committed fresh artifacts there, pinned the fork, and bound unsigned; replaced by the ancestry-aware rule of build-u-sig-1-r2.md G-1: the unsigned lane only when inventory_at is an ancestor of the grading base (default-branch tip) AND the pubkey is absent there, an off-ancestry pin evaluated against the pubkey at the grading base; the original line stays as recorded · task_00e3a32df6df
 2026-09-21T02:37:25Z · merge-pr-491-487 · one-way · human:Ravindra instructed in-session 'address the review comments and merge this PR and pull all the changes' · recorded grant for merging the promotion PRs #491 (sign-386) and #487 (pin-it re-pin) to main after the Greptile fix ·
 2026-09-21T03:00:27Z · floor-waiver:assertion-removed:tests/test_spawn_worker.py · taste · allow · assertion CHANGED not removed — the pin-coupled expected-version string moved v1.4.203→v1.4.204 with the re-pin (#427 run, docs/runs/2026-09-20-pin-it-427.md); same assertion, new pin ·
+2026-09-21T17:30:16Z · h409-native-lane-policy · one-way (delegated) · ACCEPTED as designed — on the NATIVE lane a pre-planted worker-writable gh yields 'verify: OK' with an advisory NOTE naming the binary and its custody. That is the #112 contract (the native in-session lane is advisory by definition, stated in-band by verify-gate.sh), and the audit trail is honest (the NOTE names the authority). The soundness boundary holds exactly where it must: sound lanes (ci|mcp|sdk|dispatch, enforcement) refuse fail-closed with the stub never invoked (runtime-prove, seven runs). A consumer gating on native-lane exit code alone is using the lane beyond its contract — the docs already say so; no code change, the ruling is recorded so no later audit re-argues it ·
+
+## h409-r1-reloop — 2026-09-21 — coordinator (session-gate delegation)
+
+The independent re-attack of the F-1..F-5 batch (docs/reports/h409/reattack.md) refused all five
+original fixes but demonstrated ONE new P0 (R1: `_Authority.classify()` trusts `SYSTEM_BINS`
+directory NAMES — including worker-writable `/opt/homebrew/bin`/`sbin` — before its writability
+probe, yielding a sound-lane FALSE GREEN) plus residuals R2 (git/gitleaks unpinned) and R3
+(un-scrubbed gh env). Classified MECHANICAL under the frozen threat model's acceptance bar (a
+sound lane never takes an authority from something the worker could replace or redirect); the run
+re-loops through FIX → REVIEW → RUNTIME-PROVE → LAND → RE-ATTACK before RE-AUDIT. Fix batch frozen
+in docs/runs/2026-09-21-harden-409/build-fix-r3.md.
+
+## h409-r3-review-reloop — 2026-09-22 — coordinator (session-gate delegation)
+
+The round-3 targeted re-review (docs/reports/h409/review-r3.txt) confirmed R1/R2/R3 as specified
+but found the rewritten probe incomplete by two more keys, each a demonstrated sound-lane FALSE
+GREEN: C-1 only the RESOLVED path's parent is probed (a worker-planted symlink in a writable PATH
+dir pointing at a root-owned target classes "system") and C-2 the probe is mode-only (a worker-
+OWNED 0555 dir classes "system"). Both are MECHANICAL under the frozen bar (an authority is
+worker-controllable when the effective user can write OR owns the file, its directory, or any
+symlink hop). Fixture ruling (review R-1, option b): the gate tests run sound lanes with PATH
+restricted to genuinely root-owned system dirs and SKIP with a named reason when a needed tool
+has no system-class instance on the host; NO coordinator-declared trusted-dir surface is added
+for tests' sake. Also taken: R-2 (cwd="/" root skip) and R-3 (probe-branch unit case under $HOME).
+The run re-loops a second time through FIX → REVIEW before RE-AUDIT.
+2026-09-22T02:42Z · floor-waiver:test-made-easier:tests/test_verify.py · taste · allow · two geteuid-precondition decorators (h409 round 4): the system-exemplar custody cases run only where a root-owned /usr/bin exists beyond this user's reach; a host that cannot express the precondition (CI-as-root, a user-owned /usr/bin) opts out by name rather than faking the probe — the behaviour is end-to-end covered by the fixture-driven gate tests and the revert-proven custody cases ·
+2026-09-22T02:42Z · floor-waiver:assertion-removed:tests/test_verify.py · taste · allow · expectations REWRITTEN stronger, not dropped — the round-3/4 custody rewrite replaced name-list expectations with probe expectations, and review-r3.txt/review-r4.txt re-derived the revert table: every replaced expectation bites on the pre-fix verifier ·
+
+## h409-f6-reloop — 2026-09-22 — coordinator (session-gate delegation)
+
+Round-2 re-attack (docs/reports/h409/reattack-r2.md): all prior attacks REFUSE at e152304e — no
+re-loop trigger; one contained residual N-4 (GIT_EXTERNAL_DIFF / GIT_CONFIG_COUNT+core.fsmonitor
+reach code execution through verify.py's git legs; native/advisory lane only, P2). The re-audit
+(docs/reports/h409/reaudit.md) re-verified the closed classes dead and found ONE new P1: F-6 —
+the executed negative control runs worker-authored code with the verifier's uid and UNSCRUBBED
+environment, so on the documented --execute-nc + --transcript-key lane the coordinator seed is
+same-uid readable (path in parent argv) and GH_TOKEN passes through. Ruled MECHANICAL under the
+frozen bar (§0: "the whole design fails if the seed reaches the worker"; §4 P1 custody gaps);
+the run re-loops a third time. Same-pass items, same env-scrub class: N-4 (scrub git/gitleaks
+child env), O-2.2 (b64decode validate=True consistency), O-2.4 hardening (sign-transcript
+re-hashes toolchain.files + docs say sign only a verdict you produced). O-3.3 (HEAD-fallback
+self-judge, unreachable on sound lanes, P2) is PARKED to a follow-up issue — the acceptance bar
+is zero unrefuted P0/P1. Fix batch frozen in docs/runs/2026-09-21-harden-409/build-fix-r6.md.
+2026-09-21T04:53:32Z · session-gate-delegation · one-way · human:Ravindra delegated human-gate answers to coordinator judgement for this session ('You your judgement for human gate and go ahead') · scope: the remaining open items (#434 #409 #235 #407 + the gen-key switch); answers are recorded per-decision with reasons; the delegation never creates external accounts, secrets, or key material the maintainer alone holds ·
+2026-09-21T04:58:16Z · gen-key-switch · one-way (delegated) · NO for now — committing .orca/dispatch-pubkey arms BOTH transcript and dispatch-record enforcement; every current verify.py hook run without a signed --dispatch-record would fail half-configured (the U-SIG-1 builder's Q2(ii) blast radius, verified in-tree). Precondition before the switch: dispatch-record signing wired into spawn/preamble generation. Dormant-by-design stays the deliberate standing state ·

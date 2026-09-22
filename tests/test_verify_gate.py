@@ -7,9 +7,11 @@ passes against the coordinator-supplied contract.
 """
 import atexit
 import hashlib
+import importlib.util
 import itertools
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -38,10 +40,63 @@ def _digest(repo, rel):
     return "sha256:" + hashlib.sha256((repo / rel).read_bytes()).hexdigest()
 
 
+_spec = importlib.util.spec_from_file_location("verify", SCRIPTS / "verify.py")
+verify = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(verify)
+
+# The dirs a host installs its root-owned tools into. NAMES only nominate: each is admitted to the
+# sound-lane PATH only after verify.py's own ownership+mode probe says no node on the way to it
+# is the effective user's (h409 R-1 ruling, docs/DECISIONS.md h409-r3-review-reloop).
+_SYSTEM_DIR_CANDIDATES = ("/usr/bin", "/bin", "/usr/sbin", "/sbin")
+_SYSTEM_PATH = []
+
+
+def _system_path():
+    """The PATH a SOUND-lane gate run gets: the host's genuinely root-owned system dirs and
+    nothing else — no coordinator-trusted dir, no fixture dir the effective user owns (a 0555
+    of one's own is one chmod from writable: review-r3 C-2), no hard links, nothing to reap.
+    A sound lane pins git/gh/gitleaks by verify.py's custody PROBE and fails closed on a
+    worker-writable git, so driving it with the host PATH is RED wherever git lives in a
+    user-writable dir (every Homebrew host). Each candidate dir is admitted only when every
+    node from `/` down to it passes the same probe the production code applies."""
+    if not _SYSTEM_PATH:
+        admitted = []
+        for d in _SYSTEM_DIR_CANDIDATES:
+            if os.path.isdir(d) and verify._Authority.classify(d) == "system":
+                admitted.append(d)
+        _SYSTEM_PATH.append(os.pathsep.join(admitted))
+    return _SYSTEM_PATH[0]
+
+
+def _require_system_tools(*tools):
+    """Skip — with the tool and the reason named — when a tool the sound lane needs has no
+    system-class instance on this host. verify-gate.sh itself runs `python3` from PATH, so the
+    interpreter must be present there too (it is not an authority verify.py classes, so
+    presence is enough)."""
+    path = _system_path()
+    if not path:
+        raise unittest.SkipTest("no root-owned system bin dir on this host "
+                                f"(candidates: {', '.join(_SYSTEM_DIR_CANDIDATES)})")
+    for tool in tools:
+        found = shutil.which(tool, path=path)
+        if not found:
+            raise unittest.SkipTest(f"{tool} has no instance under the system dirs ({path}); the "
+                                    "sound-lane gate cannot run against a user-writable one")
+        if tool != "python3" and verify._Authority.classify(found) != "system":
+            raise unittest.SkipTest(f"{tool} at {found} is not system-class by verify.py's probe")
+    return path
+
+
 def run_gate(manifest=None, contract_source=None, contract_digest=None, unit_class=None,
              provenance=None, event=None, dispatch_record=None, dispatch_pubkey=None,
-             gate=None, cwd=None, execute_nc=None, lighting=None):
-    env = {"PATH": os.environ.get("PATH", "")}
+             gate=None, cwd=None, execute_nc=None, lighting=None, path_prefix=None):
+    # A lane that claims soundness — off-worker provenance, or a signed dispatch record whose key
+    # the gate may discover — resolves its authorities from the host's root-owned system dirs
+    # only; the native lane runs on the host PATH and records worker-writable ones as NOTEs.
+    sound = provenance is not None or dispatch_record is not None
+    env = {"PATH": _require_system_tools("git", "python3") if sound else os.environ.get("PATH", "")}
+    if path_prefix is not None:  # a dir the test plants FIRST on PATH, ahead of the system dirs
+        env["PATH"] = str(path_prefix) + os.pathsep + env["PATH"]
     if execute_nc is not None:
         env["ORCA_EXECUTE_NC"] = execute_nc
     if lighting is not None:
@@ -470,6 +525,49 @@ class VerifyGateDispatchPinDiscovery(GateCase):
         r = self._run_discovered(src, rec)
         self.assertEqual(r.returncode, 2)
         self.assertIn("missing --dispatch-pubkey", r.stderr)
+
+
+class SoundLaneAuthoritiesAreSystemClass(GateCase):
+    """h409 R-1 (review-r3): the round-3 fixture gave sound-lane gate runs a mkdtemp dir the
+    effective user OWNED, hard-linked the host's git/gh/gitleaks into it and chmod'ed it 0555 —
+    exactly the shape C-2 showed classes "system" under a mode-only probe, RED on a Linux temp
+    layout, and a leak per run. The ruling: sound lanes run against the host's genuinely
+    root-owned system dirs and SKIP with a named reason when a needed tool has no system-class
+    instance; nothing is planted, linked or left behind."""
+
+    def test_the_sound_lane_path_is_root_owned_system_dirs_only(self):
+        path = _require_system_tools("git", "python3")
+        dirs = path.split(os.pathsep)
+        self.assertTrue(dirs)
+        for d in dirs:
+            self.assertIn(d, _SYSTEM_DIR_CANDIDATES)
+            self.assertEqual(verify._Authority.classify(d), "system", d)
+            for node in (Path(d), *Path(d).resolve().parents):
+                self.assertNotEqual(os.stat(node).st_uid, os.geteuid(), f"{node} is the effective user's")
+        self.assertEqual(verify._Authority.classify(shutil.which("git", path=path)), "system")
+
+    def test_a_worker_owned_0555_dir_first_on_the_sound_lane_path_is_refused(self):
+        # The round-3 fixture's shape, planted deliberately: a dir this user owns at 0555 holding
+        # a git, FIRST on PATH. The sound lane must refuse it by name (C-2 through the gate), and
+        # the dir goes back to 0755 before it is reaped — no hard link, nothing left behind.
+        if os.geteuid() == 0:
+            self.skipTest("running as root: ownership is not a boundary")
+        system_git = shutil.which("git", path=_require_system_tools("git", "python3"))
+        owned = Path(tempfile.mkdtemp(prefix="vgate-owned-", dir=Path.home()))
+        self.addCleanup(shutil.rmtree, owned, True)
+        self.addCleanup(os.chmod, owned, 0o755)  # cleanups run LIFO: chmod, then rmtree
+        (owned / "git").write_text(f"#!/bin/sh\nexec {shlex.quote(system_git)} \"$@\"\n", encoding="utf-8")
+        (owned / "git").chmod(0o555)
+        owned.chmod(0o555)
+        self.assertEqual(owned.stat().st_uid, os.geteuid())
+        self.assertFalse(os.access(owned, os.W_OK))
+        src = self.src(["AC-1"])
+        m = self.manifest(src, ["AC-1"], ["AC-1"])
+        r = self.gate(m, src, self.digest(src), unit_class="report-only", provenance="ci",
+                      path_prefix=owned)
+        self.assertEqual(r.returncode, 2, f"stdout={r.stdout} stderr={r.stderr}")
+        self.assertIn(f"authority: git at {owned / 'git'} is worker-writable", r.stderr)
+        self.assertIn("h409 R2", r.stderr)
 
 
 class SymlinkInstallGate(unittest.TestCase):

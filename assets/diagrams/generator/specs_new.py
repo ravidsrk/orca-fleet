@@ -71,7 +71,7 @@ Arrow 1 label: a run report that BINDS — a RUN: header, a manifest in the run'
 Middle rung: self-run, caption: run against this repository
 Arrow 2 label: the same binding, on a repository you do not control
 Top rung: external-run, caption: run against someone else's repository
-Right side, a note with an amber marker: today every mission reads doctrine-only — the archived runs kept their artifacts outside this repo, or never recorded the verifier's command line
+Right side, a note with an amber marker: the live state is the archive — docs/runs/README.md names each mission's tier as its evidence lands; the ladder climbs only through the binding gate
 Footer, small, centred: a mission is never presented as more proven than its evidence — validate.py enforces the field"""),
 
 n("verify-gate", """Content: the completion gate and its trust boundary.

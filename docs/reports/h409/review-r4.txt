@@ -1,0 +1,193 @@
+harden-it 409 — round-4 targeted re-review (PR #493, head 3278b934)
+=====================================================================
+
+Reviewer: task_39fce75daae8 (did NOT write the fix). Pack: addy (code-review-and-quality lens,
+debugging-and-error-recovery for the repros). Re-gating docs/reports/h409/review-r3.txt (NO-GO:
+C-1 symlink hops, C-2 ownership) against the ruling in docs/DECISIONS.md h409-r3-review-reloop and
+the builder report docs/reports/h409/fix-r4.md. Reviewed the round-4 diff d932803d...HEAD
+(verify.py +74/-10, test_verify.py +229, test_verify_gate.py +120/-42, badge, DECISIONS, reports)
+and re-verified the round-3 classify()/fixture surface the round-4 rewrite replaced.
+Every claim below was re-derived on this host (macOS 26 / Darwin 25.6.0, Homebrew, euid != 0,
+/ /usr /usr/bin /bin root-owned 0755): verify.py driven as a SUBPROCESS from a scratch copy of
+runtime/scripts (verify.py loads a sibling _verify_sig.py) under a crafted PATH on the suite's real
+two-commit mutation fixture, git isolated to root-owned /usr/bin so the gh leg is the only authority
+under test; the round-3 verifier (fb3f68c9) and the pre-round-3 verifier (3b5c0ea8) ran the same
+repros as the negative control of my own harness. Harness: $SP/rv4.py, $SP/cls.py (scratchpad, not
+committed). Nothing outside this file was written in the repo; every drop dir was created under
+$HOME and removed inside the run (0 present afterwards); the only network was one read-only
+`gh api repos/ravidsrk/orca-fleet/pulls/493` plus the two fetch seams against the same PR.
+Reviewed at 2026-09-22 (~55 min wall, of which 15 min was the background suite).
+
+VERDICT: GO
+===========
+
+Both Criticals are closed by the same repro that opened them, on the sound lane AND at the
+classify() level; the ownership probe walks every hop; the fixture ruling is implemented as ruled
+(option b) with no leak and no host-owned dir; R-2/R-3 are covered by tests that bite; the full
+suite (2000) and validate.py are green at HEAD on this host. Five nits, none blocking — none
+changes the verdict, and none is a false-GREEN key. Gate table, then numbered findings.
+
+Gate table
+----------
+G-1 review-r3 C-1 repro fails CLOSED on sound, advisory on native ............. PASS
+    Repro (rv4.py c1): $HOME/rv4-drop-*/ (mkdtemp, 0755, outside temp/cwd/toplevel) first on
+    PATH, `gh -> /bin/sh`, a COMMITTED `api` at the graded repo's root (the verifier's cwd) that
+    forges an APPROVED at `$(git rev-parse HEAD)` by carol, `--repo o/r --provenance ci`, PATH
+    tail /usr/bin:/bin. Round-3 verifier (my harness's own negative control):
+      SOUND  rc=0  verify: OK — all required checks passed
+             CONSULTED: ['SH-API ARGV: --paginate repos/o/r/pulls/7/reviews', 'SH-API ARGV: repos/o/r/pulls/7']
+    HEAD:
+      SOUND  rc=2  FAIL: review_authority: gh at /Users/ravindra/rv4-drop-…/gh is worker-writable — a
+             lane claiming soundness (provenance=ci) cannot take its independent review from a binary
+             the graded worker could have replaced; fail-closed (h409 F-1)   CONSULTED: False
+      NATIVE rc=0  NOTE: review_authority: advisory (gh at /Users/ravindra/rv4-drop-…/gh is
+             worker-writable)   CONSULTED: True (both legs)
+    Mechanism: verify.py:756-778 `_nodes()` lstat's every component and, at a symlink, yields the
+    link then restarts on its target; :819 probes every node with `_worker_controls`, so the drop
+    dir (euid-owned) classes the entry before its target is even considered.
+G-2 review-r3 C-2 repro fails closed on sound, advisory on native ............. PASS
+    Repro (rv4.py c2): stub gh under $HOME/rv4-drop-*/, file AND dir chmod 0555, asserted
+    `owner==euid: True | mode: 0o555 | W_OK: False`; the stub's log lives OUTSIDE the 0555 dir (the
+    builder's 086d69cf point — a log inside a 0555 dir makes "never consulted" vacuous).
+    Round-3 verifier: SOUND rc=0 verify: OK, CONSULTED ['PLANTED-GH ARGV: api --paginate …',
+    'PLANTED-GH ARGV: api repos/o/r/pulls/7'] — the false GREEN, reproduced. HEAD: SOUND rc=2 with
+    the F-1 fatal naming the drop path, CONSULTED False; NATIVE rc=0 with the advisory NOTE and
+    the stub consulted twice. Mechanism: verify.py:780-792 `_worker_controls` returns True on
+    `st_uid == geteuid()` (:786) before any mode bit is read.
+G-3 hop-walking complete; nothing escapes as "system" ......................... PASS
+    cls.py at HEAD, drop under $HOME: `gh -> /bin/sh` → worker-writable; DIRECTORY hop
+    `drop/sys -> /bin`, entry `drop/sys/sh` (resolves to root-owned /bin/sh) → worker-writable,
+    `_nodes` yields ['/', '/Users', '/Users/ravindra', drop, drop/sys, '/', '/bin', '/bin/sh'] — the
+    link and its target's components both probed; loop a<->b → worker-writable (OSError at
+    :772, `seen`); dangling link → worker-writable (lstat ENOENT); 45-hop chain to /bin/sh →
+    worker-writable (>40 hops raises); unstattable /var/root/gh (root 0700, EACCES) → worker-
+    writable; ENOTDIR /bin/sh/x → worker-writable; missing /usr/bin/gh-nope → worker-writable;
+    relative name 'sh' → worker-writable (cwd root); '' → worker-writable. No exception escaped
+    any case (classify catches OSError+RuntimeError at :807). The round-3 verifier answers
+    "system" for 8 of these 13 (link, dir hop, 45-hop, unstattable, ENOTDIR, missing, dotdot-
+    via-link, ..-relative link). The builder's test coverage of this gate:
+    test_c1_a_symlinked_directory_hop_inside_a_writable_dir_is_worker_writable and
+    test_c1_a_link_loop_or_a_dangling_link_fails_closed (tests/test_verify.py:4388-4402) — an
+    EACCES node is not unit-tested (see N-1's neighbour, minor; the exception path is the same).
+G-4 ownership probe: euid-owned → worker-writable, root-owned exemplars → system,
+    real gh + R3 scrub work end to end ......................................... PASS
+    Exemplars at HEAD on this host: /usr/bin/git /bin/sh /usr/bin/env /usr/bin /bin /usr/sbin
+    /sbin /usr/local/bin /Library → system; /opt/homebrew/bin /opt/homebrew/sbin (euid-owned),
+    /tmp (1777 → S_IWOTH), /Users/ravindra (euid-owned), /Applications → worker-writable;
+    owned 0555 dir+file under $HOME → worker-writable with W_OK(dir)=False. Real gh
+    (/opt/homebrew/bin/gh, correctly worker-writable here): with GH_HOST=attacker.invalid
+    GH_CONFIG_DIR=/evil XDG_CONFIG_HOME=/evil-xdg in the ambient env, `_Authority.resolve(
+    provenance="ci", explicit_repo="ravidsrk/orca-fleet")` → gh_env keys = [GITHUB_TOKEN, HOME,
+    PATH, TMPDIR]; `api("ravidsrk/orca-fleet","pulls/493")` rc 0, title "fix(verify): h409 round 3
+    — …"; fetch_pr_author → ravidsrk; fetch_reviews → 2 reviews, err None. The scrub preserves
+    function; the probe does not break the happy path.
+G-5 R-1 fixture: production-probe-admitted host dirs only, named skip, no leak,
+    green under TMPDIR=/tmp ..................................................... PASS
+    tests/test_verify_gate.py:43-45 imports runtime/scripts/verify.py itself; :54-66
+    `_system_path()` admits a candidate from ("/usr/bin","/bin","/usr/sbin","/sbin") only when
+    `isdir` AND `verify._Authority.classify(d) == "system"`; :69-84 `_require_system_tools` raises
+    unittest.SkipTest naming the tool and reason; :96-99 the sound lane (provenance or dispatch
+    record set) gets that PATH, native keeps the host PATH. Re-derived: admitted PATH here =
+    /usr/bin:/bin:/usr/sbin:/sbin; a euid-owned 0555 dir injected into the candidate list is NOT
+    admitted; candidates=("/nonexistent-sysdir",) → both a SoundLane test and
+    VerifyGateDispatchPinDiscovery.test_remote_blob_hit skip with 'no root-owned system bin dir
+    on this host (candidates: /nonexistent-sysdir)'; candidates=("/sbin",) → skip 'git has no
+    instance under the system dirs (/sbin); the sound-lane gate cannot run against a user-writable
+    one'. `python3 -m unittest tests.test_verify_gate` → Ran 29 OK under the default temp AND
+    under TMPDIR=/tmp (the layout that was RED in round 3); the 10 sound-lane tests run `ok`, not
+    skipped. Leaks: 0 vgate-sysbin-* / vgate-owned-* / orca-h409-r4-* before and after every run
+    (including the failing revert runs — the LIFO chmod-then-rmtree cleanups at :557-558 and
+    _reap at :4328-4332 hold). Nothing is linked, copied into a shared dir, or chmod'ed on the
+    host. The 0555 test COPIES a wrapper script (:559), never links the host binary.
+G-6 tests above the guard, collected, revert-biting set genuine ................ PASS
+    Guards: tests/test_verify.py:4623 (file 4624 lines; EveryHopAndEveryOwnerIsProbed at :4280,
+    test_a_fetch_failure_names_the_scrub at :4609); tests/test_verify_gate.py:635
+    (SoundLaneAuthoritiesAreSystemClass at :530). unittest collects and passes all 17 new/rewritten
+    tests at HEAD (`Ran 15` + gate `Ran 2`, 0 skipped on this host). Revert, HEAD's tests against a
+    `git archive HEAD` scratch tree with verify.py swapped:
+      round-3 verifier fb3f68c9: FAILED (failures=11, errors=1) — EveryHop 8 FAIL + 1 ERROR
+        (test_c2_…_file_in_a_root_owned_dir: AttributeError _worker_controls — interface-only, as
+        the builder qualified) + 3 pass (the two R-3 positive controls and loop/dangling, which
+        round 3 already fail-closed); AuthorityCustody…_is_still_system FAIL; SoundLane 0555 FAIL
+        (`0 != 2`); test_a_fetch_failure_names_the_scrub FAIL; a_system_gh and
+        the_sound_lane_path_is_root_owned pass (exemplar / fixture self-check).
+      pre-round-3 verifier 3b5c0ea8: FAILED (failures=14, errors=1) — every EveryHop case bites
+        including both R-3 cases and loop/dangling.
+    This is the builder's table verbatim, re-derived — not a sample.
+G-7 R-2 and R-3 covered by biting tests ........................................ PASS
+    R-2: test_r2_a_cwd_of_root_… (:4453) chdir("/") then classify(/bin/sh) == "system"; on both
+    older verifiers `'worker-writable' != 'system'` FAIL. Fix at verify.py:815-816 skips a root
+    equal to its own anchor. R-3: the whole EveryHop class builds its drop under $HOME (mkdtemp
+    dir=Path.home(), chmod 0755, :4296-4303), skipTest's by name if $HOME is under a root
+    (_outside_every_root :4267-4277) or euid==0; the two test_r3_* cases FAIL on the name-list
+    verifier (3b5c0ea8) and pass on round 3 — the probe branch is exercised on every host, as the
+    review asked. cwd roots other than "/" that are still root-owned (e.g. cwd=/usr) would still
+    class /usr/bin/git worker-writable; that is outside the ruling's scope and fail-closed.
+Suite + validator at HEAD on this host .......................................... PASS
+    `python3 scripts/validate.py` → "All 21 missions valid; three-layer separation holds; evals
+    valid." `python3 -m unittest discover -s tests` at 3278b934 → "Ran 2000 tests in 899.372s …
+    OK" (contended with my repros; the builder saw 321s clean). `git status --porcelain` empty
+    afterwards (the badge the suite regenerates matches the committed 1868). `ruff check scripts
+    runtime/scripts tests bench demo` → All checks passed (the CI lint step).
+
+Findings (none blocking)
+------------------------
+
+N-1 (Nit) — `classify()` feeds `_nodes()` `os.path.abspath(path)` (verify.py:805), and abspath
+    collapses `..` LEXICALLY, so the walk probes the lexically-normalised path, not the path the
+    kernel would exec when a `..` follows a symlink. Re-derived: `/tmp/../etc/hosts` → abspath
+    /etc/hosts (walk: /, /etc, /private, /private/etc, /private/etc/hosts) vs kernel
+    /private/tmp/../etc/hosts (which also passes /private/tmp). I could NOT turn this into a false
+    "system": the lexical path always retains the directory that holds any worker-planted link (so
+    ownership catches it), `Path.resolve(strict=True)` at :806 fails closed whenever the lexical
+    and kernel paths name different existing/non-existing files (`/tmp/../usr/bin/git` →
+    worker-writable), and the only root-owned symlinks on macOS/ubuntu (/tmp /var /etc → /private;
+    /bin /lib /sbin → /usr) alias parallel trees. The walk's last node equalled `resolve()` on
+    every path I tried. It is still a soundness argument that rests on the host's link layout
+    rather than on the code. Cheap hardening: pass `os.path.join(os.getcwd(), path)` (un-
+    normalised) to `_nodes`, and/or return worker-writable when `nodes[-1][0] != p`.
+
+N-2 (Nit) — `test_c2_a_worker_owned_0555_file_in_a_root_owned_dir_is_worker_writable`
+    (tests/test_verify.py:4429) overclaims in its name: the file sits in $HOME/orca-h409-r4-*/,
+    not in a root-owned dir (a euid-owned file in a root-owned dir cannot be built without root).
+    It is a correct PREDICATE test of `_worker_controls` on the file's own lstat and is the one
+    round-4 test that ERRORs rather than FAILs on revert (interface-only, as the builder said).
+    Rename to say what it proves (…_file_alone_satisfies_the_ownership_probe).
+
+N-3 (Nit) — On a macOS host the admitted sound-lane PATH carries git only: no gh, no gitleaks
+    live under /usr/bin here, so the 10 sound-lane GATE tests now exercise custody "absent" for
+    both (round 3's fixture hard-linked all three). On ubuntu-latest /usr/bin/gh exists, so CI
+    exercises the pinned-gh sound lane; the gh custody behaviour itself is covered in-process by
+    EveryHopAndEveryOwnerIsProbed and end-to-end by my subprocess repro. Coverage note, not a
+    defect — worth one sentence in the fixture docstring so the next reader does not think the
+    gate's gh leg is tested on every host.
+
+N-4 (Nit) — `_nodes()`:766 `if part == ".": continue` is dead: `Path(...).parts` never yields
+    "." (pathlib collapses it). Harmless.
+
+N-5 (Nit) — `run_gate`'s `sound = provenance is not None or dispatch_record is not None`
+    (test_verify_gate.py:96) puts a run with provenance="worker" (native by verify.py's own
+    SOUND_PROVENANCE) on the system-only PATH too. Harmless — verify.py decides the lane, the
+    system PATH merely lacks Homebrew tools — but the comment says "off-worker provenance" and the
+    code says "any provenance".
+
+Confirmations (what HOLDS — do not re-fix)
+------------------------------------------
+- review-r3 C-1 verbatim repro (link in writable PATH dir → /bin/sh, committed `api`): sound
+  lane rc=2 with the F-1 fatal and the worker's script never run; native lane NOTE + advisory (G-1).
+- review-r3 C-2 verbatim repro (euid-owned 0555 dir+file): same split (G-2). Both were rc=0 with
+  the stub consulted twice on the round-3 verifier, in my harness, this session.
+- Ownership probe: uid, other-write, group-write ∩ getgroups(), access(2) for non-links; a link's
+  writability is its directory's (verify.py:780-792). Root-owned exemplars still class system;
+  Homebrew dirs, /tmp, $HOME class worker-writable (G-4).
+- Fixture ruling (option b) implemented as ruled: host dirs admitted by the PRODUCTION probe,
+  named skips, no trusted-dir surface, nothing created/linked/chmod'ed on the host, no leak,
+  green under TMPDIR=/tmp (G-5).
+- R2 (git pinned once, no post-control re-resolve) and R3 (gh env scrub) untouched by round 4
+  except the N-2 fatal text (verify.py:951-952, SCRUB_NOTE :680-683, appended only when a gh was
+  pinned); no transcript/SIGNED_ARGS change; run_report untouched.
+- Round-3 findings R-1(iii)/(iv) (leaks, chmod through a hard link): gone with `_system_bin()`.
+
+Scratch state: rv4.py, cls.py, the three verifier scratch trees and two `git archive` trees live
+under $SP only; $HOME carries no rv4-*/orca-h409-r4-*/vgate-owned-* dir; $TMPDIR and /tmp carry no
+vgate-*; /opt/homebrew/sbin/gh absent. The one network call was read-only against this repo's PR.
