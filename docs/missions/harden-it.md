@@ -2,7 +2,7 @@
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel audit, PoC, and fix workers on isolated findings; PoC routing and the promotion are your one-way gates.
 > **Activation load:** ~31,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
-> **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
+> **Proof:** self-run — the 2026-09-21 run against the catalog's own verification stack (#409) closed CLEAN: six rounds, 11 confirmed findings (3 P0, 1 CI-caught P0-class, 1 P1, residual classes), final re-audit zero unrefuted P0/P1; binding report [`docs/runs/2026-09-21-harden-it-self-run.md`](../runs/2026-09-21-harden-it-self-run.md).
 
 > Fix it, then try to break the fix. Give it a system to harden and come back to a closed threat
 > model: every P0/P1 proven with an exploit, fixed as a class, re-attacked by a worker that wants
