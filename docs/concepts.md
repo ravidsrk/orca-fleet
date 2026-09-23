@@ -448,12 +448,11 @@ verifier transcript checked against a committed key
 actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
 
 The live state is the [run archive](runs/): it names each mission's tier as its evidence
-lands, and says per run whether and why it binds. Tiers are earned only through the binding gate,
-even when that makes the proven count go *down* as the mechanism gets
-stronger — which is the mechanism working. The predecessor shipped twelve missions with two proven
-and paid for it, and a tier whose artifacts are gone is the same claim in better packaging. The
-[run archive](runs/) records every run that really happened and says, per run, whether and why it
-binds.
+lands and records every run that really happened, saying per run whether and why it binds. Tiers
+are earned only through the binding gate, even when that makes the proven count go *down* as the
+mechanism gets stronger — which is the mechanism working. The predecessor shipped twelve missions
+with two proven and paid for it, and a tier whose artifacts are gone is the same claim in better
+packaging.
 
 ## Autonomy
 
