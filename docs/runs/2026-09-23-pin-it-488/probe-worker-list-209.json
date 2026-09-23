@@ -1,0 +1,5703 @@
+{
+  "id": "c0156323-2b8c-4eea-8e9b-571f2d0f849f",
+  "ok": true,
+  "result": {
+    "workers": [
+      {
+        "dispatchId": "ctx_4b0fae7a648c",
+        "taskId": "task_161f1dfaa60b",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_50f99573-d5d8-4410-9dc1-6ee8d8e07ad8",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_4b0fae7a648c",
+          "dispatchId": "ctx_4b0fae7a648c",
+          "taskId": "task_161f1dfaa60b",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_e1227eef72dd",
+        "taskId": "task_757b43368636",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_3bfe7018-0333-4ef8-9e72-b50b373a0fbb",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_e1227eef72dd",
+          "dispatchId": "ctx_e1227eef72dd",
+          "taskId": "task_757b43368636",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_a9e24f5a53e4",
+        "taskId": "task_db1c5866a4c3",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_51d3c543-6490-4171-8320-43566a852565",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_a9e24f5a53e4",
+          "dispatchId": "ctx_a9e24f5a53e4",
+          "taskId": "task_db1c5866a4c3",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_a9049423a87d",
+        "taskId": "task_fcb7c826fa27",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_7b3fe4fb-73af-4a1b-9487-fa6d7a894e48",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_a9049423a87d",
+          "dispatchId": "ctx_a9049423a87d",
+          "taskId": "task_fcb7c826fa27",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_b217ba149211",
+        "taskId": "task_f707ba013027",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_3cbd4641-9771-4d07-8d49-7fd854b5da2c",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_b217ba149211",
+          "dispatchId": "ctx_b217ba149211",
+          "taskId": "task_f707ba013027",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_bc410f2412ee",
+        "taskId": "task_5c4acd2e0649",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_a2342398-2f97-4b04-a00e-8ce6eea1dbbd",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_bc410f2412ee",
+          "dispatchId": "ctx_bc410f2412ee",
+          "taskId": "task_5c4acd2e0649",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_e43943043188",
+        "taskId": "task_af23a392fd97",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_47df884a-48b5-4067-a77c-64c4bec11f75",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_e43943043188",
+          "dispatchId": "ctx_e43943043188",
+          "taskId": "task_af23a392fd97",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_959a7af44a55",
+        "taskId": "task_c61ddcfc3017",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_69a854a7-06fb-4953-a22d-f75a1de274b3",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_959a7af44a55",
+          "dispatchId": "ctx_959a7af44a55",
+          "taskId": "task_c61ddcfc3017",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_6c1b7885fda3",
+        "taskId": "task_39fce75daae8",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_64f95387-79ed-4739-95c6-1bc4c94e146e",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_6c1b7885fda3",
+          "dispatchId": "ctx_6c1b7885fda3",
+          "taskId": "task_39fce75daae8",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_1d7411af5bf5",
+        "taskId": "task_a136142442c2",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_c71ff289-c84f-47cf-bc23-a307518fea99",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_1d7411af5bf5",
+          "dispatchId": "ctx_1d7411af5bf5",
+          "taskId": "task_a136142442c2",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_5a2ba13bf3a3",
+        "taskId": "task_7cc0c0aaf1e8",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_c329022b-0748-4417-8632-e57f3d26f28f",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_5a2ba13bf3a3",
+          "dispatchId": "ctx_5a2ba13bf3a3",
+          "taskId": "task_7cc0c0aaf1e8",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_a02e4bf011d5",
+        "taskId": "task_7cc0c0aaf1e8",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "failed",
+        "agentTerminalHandle": "term_a7f43ecd-bbc8-4450-91c0-ee9d9f417302",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_a02e4bf011d5",
+          "dispatchId": "ctx_a02e4bf011d5",
+          "taskId": "task_7cc0c0aaf1e8",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "failed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "failed",
+          "liveness": {
+            "verdict": "exited",
+            "source": "execution_host"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "recover",
+            "argv": [
+              "orchestration",
+              "worker-read",
+              "--dispatch",
+              "ctx_a02e4bf011d5"
+            ]
+          },
+          "attention": {
+            "categories": [
+              "failure",
+              "interruption"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_a9870b1f2f59",
+        "taskId": "task_f33707fa0548",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "failed",
+        "agentTerminalHandle": "term_2082068c-5678-4873-bfd9-c5517965fc41",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_a9870b1f2f59",
+          "dispatchId": "ctx_a9870b1f2f59",
+          "taskId": "task_f33707fa0548",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "failed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "failed",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "failure"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_bd3a5bd0dd4c",
+        "taskId": "task_df10a73a7388",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_2211555e-cb0f-4245-a4e4-24df96964f56",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_bd3a5bd0dd4c",
+          "dispatchId": "ctx_bd3a5bd0dd4c",
+          "taskId": "task_df10a73a7388",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_8a56fc360c99",
+        "taskId": "task_66bd8adb7ed9",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_3b1a9859-a8a4-4488-815b-c7966df59d1a",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_8a56fc360c99",
+          "dispatchId": "ctx_8a56fc360c99",
+          "taskId": "task_66bd8adb7ed9",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_2e9c40723277",
+        "taskId": "task_4792939b2e7a",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_70e3ae78-82e7-4158-8808-6de755a8b63b",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_2e9c40723277",
+          "dispatchId": "ctx_2e9c40723277",
+          "taskId": "task_4792939b2e7a",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_fc471c88f199",
+        "taskId": "task_7d745419e531",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_1a6ca9af-b481-4fa2-b2b3-700112c0a4c3",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_fc471c88f199",
+          "dispatchId": "ctx_fc471c88f199",
+          "taskId": "task_7d745419e531",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_8dcad1f50fe6",
+        "taskId": "task_c24f32214175",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_73317990-9cd1-4f46-b791-617e0b865c10",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_8dcad1f50fe6",
+          "dispatchId": "ctx_8dcad1f50fe6",
+          "taskId": "task_c24f32214175",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_91dac5719e07",
+        "taskId": "task_2902260503aa",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_3a48fc1a-a28f-4d6f-9385-f20cc54abd10",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_91dac5719e07",
+          "dispatchId": "ctx_91dac5719e07",
+          "taskId": "task_2902260503aa",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_732d56d2d041",
+        "taskId": "task_a7174efe716c",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_17208273-ac0a-40de-b841-5cc60f32949b",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_732d56d2d041",
+          "dispatchId": "ctx_732d56d2d041",
+          "taskId": "task_a7174efe716c",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_c652e554a9e8",
+        "taskId": "task_d5ee12476356",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_a938adf3-291d-4ae1-8ec8-a83300a3f65d",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_c652e554a9e8",
+          "dispatchId": "ctx_c652e554a9e8",
+          "taskId": "task_d5ee12476356",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_0071eed98a15",
+        "taskId": "task_5bba504a8acc",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_5caa13eb-b435-444c-9d60-87e252bee8a0",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_0071eed98a15",
+          "dispatchId": "ctx_0071eed98a15",
+          "taskId": "task_5bba504a8acc",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_cde45288b6cd",
+        "taskId": "task_b879ad45c5b2",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_446f1eb5-1eed-4711-ad6b-b1ea2e5dcad1",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_cde45288b6cd",
+          "dispatchId": "ctx_cde45288b6cd",
+          "taskId": "task_b879ad45c5b2",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_f2e056b95498",
+        "taskId": "task_606a916faf0d",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_9374e4bb-ddf2-4255-8036-be8f97e01f65",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_f2e056b95498",
+          "dispatchId": "ctx_f2e056b95498",
+          "taskId": "task_606a916faf0d",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_f3f1b2581685",
+        "taskId": "task_bd0200755b22",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_dc4d4d83-282c-496a-a32a-352273929a43",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_f3f1b2581685",
+          "dispatchId": "ctx_f3f1b2581685",
+          "taskId": "task_bd0200755b22",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_22ce955ef18c",
+        "taskId": "task_fadc1417879c",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_ccb2d9a0-e585-4470-ba12-c3711391ff15",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_22ce955ef18c",
+          "dispatchId": "ctx_22ce955ef18c",
+          "taskId": "task_fadc1417879c",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_1ef5c3110f4c",
+        "taskId": "task_fba9b03d241e",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_c859124a-1e9e-4577-84a9-377890ffc803",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_1ef5c3110f4c",
+          "dispatchId": "ctx_1ef5c3110f4c",
+          "taskId": "task_fba9b03d241e",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_184eb31656eb",
+        "taskId": "task_988759aac441",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_c3f7293d-1bf5-4cae-8d9c-ef4151e4ae03",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_184eb31656eb",
+          "dispatchId": "ctx_184eb31656eb",
+          "taskId": "task_988759aac441",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_8c25f2e6f7fc",
+        "taskId": "task_243c2c439eaa",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_2f3b88ef-dcf6-4249-8e03-cc4427c5e153",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_8c25f2e6f7fc",
+          "dispatchId": "ctx_8c25f2e6f7fc",
+          "taskId": "task_243c2c439eaa",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_3423a05494ca",
+        "taskId": "task_bcd51fdbe2a8",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_d5104eaf-7410-40ba-943a-a1e870cb8a3f",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_3423a05494ca",
+          "dispatchId": "ctx_3423a05494ca",
+          "taskId": "task_bcd51fdbe2a8",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_6dece26db0d3",
+        "taskId": "task_6af07fdca70b",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_ec4fcd5f-0bba-40f7-85ea-91043d97ae0c",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_6dece26db0d3",
+          "dispatchId": "ctx_6dece26db0d3",
+          "taskId": "task_6af07fdca70b",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_8e73aa5c959f",
+        "taskId": "task_a8b65e094ccd",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_67fe6903-cdfa-49c4-8b01-945f41f1a579",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_8e73aa5c959f",
+          "dispatchId": "ctx_8e73aa5c959f",
+          "taskId": "task_a8b65e094ccd",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_b35b87975634",
+        "taskId": "task_3637a08a57d2",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_44cd788d-fe09-436e-8d95-d4219effa4bf",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_b35b87975634",
+          "dispatchId": "ctx_b35b87975634",
+          "taskId": "task_3637a08a57d2",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_ca4bd534c786",
+        "taskId": "task_d1df04fbe20d",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_d6269459-ff12-422d-850a-37a97cdc3a38",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_ca4bd534c786",
+          "dispatchId": "ctx_ca4bd534c786",
+          "taskId": "task_d1df04fbe20d",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_9354f8b9bcd3",
+        "taskId": "task_e561135400d4",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_0b2eb75d-92b3-45b5-87b9-a0371ca8e587",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_9354f8b9bcd3",
+          "dispatchId": "ctx_9354f8b9bcd3",
+          "taskId": "task_e561135400d4",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_12b143df15d1",
+        "taskId": "task_923ba8248ce1",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_0088f536-1f41-446d-98bb-f19e4a871ca6",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_12b143df15d1",
+          "dispatchId": "ctx_12b143df15d1",
+          "taskId": "task_923ba8248ce1",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_6efd2af331c1",
+        "taskId": "task_00e3a32df6df",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_c249290a-1df7-419c-980d-4c4a399d9573",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_6efd2af331c1",
+          "dispatchId": "ctx_6efd2af331c1",
+          "taskId": "task_00e3a32df6df",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_daa0eb433d1c",
+        "taskId": "task_f1922acef83c",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_82bddcfc-0c5b-44ef-b6d7-69b3ae0f9bc3",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_daa0eb433d1c",
+          "dispatchId": "ctx_daa0eb433d1c",
+          "taskId": "task_f1922acef83c",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_71ab2bf143f4",
+        "taskId": "task_3d3d35e852e6",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_cefad723-0927-4dc1-ab49-7817fb552d1a",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_71ab2bf143f4",
+          "dispatchId": "ctx_71ab2bf143f4",
+          "taskId": "task_3d3d35e852e6",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_378a3684a6ca",
+        "taskId": "task_7651156faf5b",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_448e2e5c-746f-4b0e-ab6d-c33e5f486367",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_378a3684a6ca",
+          "dispatchId": "ctx_378a3684a6ca",
+          "taskId": "task_7651156faf5b",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_e3ed5c922bd6",
+        "taskId": "task_d2f0fefa43e0",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_bbb8a122-2a6e-4f18-81d2-814ce3c3bb5a",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_e3ed5c922bd6",
+          "dispatchId": "ctx_e3ed5c922bd6",
+          "taskId": "task_d2f0fefa43e0",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_ea922c43a1cd",
+        "taskId": "task_b3ea7f0525df",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_e1c096b8-f039-4472-bc77-f5033056cd27",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_ea922c43a1cd",
+          "dispatchId": "ctx_ea922c43a1cd",
+          "taskId": "task_b3ea7f0525df",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_072aedae07fe",
+        "taskId": "task_cb45c80c8a03",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_5fd75b43-ae6e-410b-9a49-b1c890a23de2",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_072aedae07fe",
+          "dispatchId": "ctx_072aedae07fe",
+          "taskId": "task_cb45c80c8a03",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_748a2247fb6e",
+        "taskId": "task_29df92b5448b",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_ff9bd049-fadb-46ce-8793-0383633d4ad0",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_748a2247fb6e",
+          "dispatchId": "ctx_748a2247fb6e",
+          "taskId": "task_29df92b5448b",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_edd258260e65",
+        "taskId": "task_9233d349f968",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_44e32f14-a20e-4299-a1a6-e19c69f9d329",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_edd258260e65",
+          "dispatchId": "ctx_edd258260e65",
+          "taskId": "task_9233d349f968",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_36a1da48db88",
+        "taskId": "task_9233d349f968",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "failed",
+        "agentTerminalHandle": "term_d5f74abb-54d0-4e46-9603-ed816cbddd4e",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_36a1da48db88",
+          "dispatchId": "ctx_36a1da48db88",
+          "taskId": "task_9233d349f968",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "failed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "failed",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "failure"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_19c62ec14cf9",
+        "taskId": "task_16eaacae5e3a",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_ec015f71-8363-4183-a6f1-6a2703fd11c6",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_19c62ec14cf9",
+          "dispatchId": "ctx_19c62ec14cf9",
+          "taskId": "task_16eaacae5e3a",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_14093908e1cb",
+        "taskId": "task_23fb0ff8798d",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_41da264a-8aec-4aca-a840-cbcb89fc6e93",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_14093908e1cb",
+          "dispatchId": "ctx_14093908e1cb",
+          "taskId": "task_23fb0ff8798d",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_edcaadb7e4a9",
+        "taskId": "task_97ca9732fd98",
+        "runId": "run_41e3aa41e711",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_a603b8cd-f165-4de7-ab84-1b0e35763315",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_edcaadb7e4a9",
+          "dispatchId": "ctx_edcaadb7e4a9",
+          "taskId": "task_97ca9732fd98",
+          "runId": "run_41e3aa41e711",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_73995ddcb301",
+        "taskId": "task_92b0bcbf0011",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_35beb831-cea2-4f36-8324-b7ab87d6340b",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_73995ddcb301",
+          "dispatchId": "ctx_73995ddcb301",
+          "taskId": "task_92b0bcbf0011",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_ac0ef96b3c5d",
+        "taskId": "task_6d74187e0783",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_e74203f5-c3a7-40b2-a4bf-f48571ae5d38",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_ac0ef96b3c5d",
+          "dispatchId": "ctx_ac0ef96b3c5d",
+          "taskId": "task_6d74187e0783",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_c7a59aacf811",
+        "taskId": "task_5d3efd6689f4",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_25c63842-5ed2-485f-b267-5d5a0d35a8c2",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_c7a59aacf811",
+          "dispatchId": "ctx_c7a59aacf811",
+          "taskId": "task_5d3efd6689f4",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_2711c9be90f2",
+        "taskId": "task_d74ecf85c11d",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_e0cbe15b-0603-4233-8b6a-263f2eb09d9d",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_2711c9be90f2",
+          "dispatchId": "ctx_2711c9be90f2",
+          "taskId": "task_d74ecf85c11d",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_d38666f6e9c9",
+        "taskId": "task_57ea07ec0722",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_1bd1f089-2b8f-4636-bb05-4abc2dc948bc",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_d38666f6e9c9",
+          "dispatchId": "ctx_d38666f6e9c9",
+          "taskId": "task_57ea07ec0722",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_06cec0d44adb",
+        "taskId": "task_fd34e15af706",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_715282eb-8233-4fe4-a2c3-eebea812602e",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_06cec0d44adb",
+          "dispatchId": "ctx_06cec0d44adb",
+          "taskId": "task_fd34e15af706",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_5c583f4eb536",
+        "taskId": "task_a0920360cf2a",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_1f495462-c48a-4cc6-9d3c-28fd56880ec6",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_5c583f4eb536",
+          "dispatchId": "ctx_5c583f4eb536",
+          "taskId": "task_a0920360cf2a",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_e9a00a252342",
+        "taskId": "task_9a5a5fb70280",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_b4314b77-7201-458f-9a4b-b58dc8674f4c",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_e9a00a252342",
+          "dispatchId": "ctx_e9a00a252342",
+          "taskId": "task_9a5a5fb70280",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_37f66fec3c6e",
+        "taskId": "task_a3dcf19e1d91",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_ec229de2-4ac0-45d9-b1c9-7db3b1271449",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_37f66fec3c6e",
+          "dispatchId": "ctx_37f66fec3c6e",
+          "taskId": "task_a3dcf19e1d91",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_e6b97d34fdc6",
+        "taskId": "task_6daf209c2548",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_72f05e14-ed54-4e7a-915d-af46b3744ca7",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_e6b97d34fdc6",
+          "dispatchId": "ctx_e6b97d34fdc6",
+          "taskId": "task_6daf209c2548",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_20020dda65b0",
+        "taskId": "task_c2c948e1987f",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_035a8a79-c58f-4379-9a15-281df6099367",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_20020dda65b0",
+          "dispatchId": "ctx_20020dda65b0",
+          "taskId": "task_c2c948e1987f",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_f2a24c0e369c",
+        "taskId": "task_98567ecbb515",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_caa04fa0-5063-432a-b779-927468d28757",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_f2a24c0e369c",
+          "dispatchId": "ctx_f2a24c0e369c",
+          "taskId": "task_98567ecbb515",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_9630335cbaac",
+        "taskId": "task_83fd4a2c8186",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_91d5f0ed-858e-4f94-a2a1-dcc94c7a8787",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_9630335cbaac",
+          "dispatchId": "ctx_9630335cbaac",
+          "taskId": "task_83fd4a2c8186",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_67ca0445f880",
+        "taskId": "task_21ed299df460",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_bcae1cd8-3e9b-4ad9-8d4f-b3e3ed5124ab",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_67ca0445f880",
+          "dispatchId": "ctx_67ca0445f880",
+          "taskId": "task_21ed299df460",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_b9160c2352bc",
+        "taskId": "task_8d5bc3ab4de1",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_70a30067-6eb3-422c-966a-4714939a0e72",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_b9160c2352bc",
+          "dispatchId": "ctx_b9160c2352bc",
+          "taskId": "task_8d5bc3ab4de1",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_085e03fb7266",
+        "taskId": "task_c71a9c244015",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_630b9905-7afe-4047-81bd-55f26707ef5b",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_085e03fb7266",
+          "dispatchId": "ctx_085e03fb7266",
+          "taskId": "task_c71a9c244015",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_13beb7a631bf",
+        "taskId": "task_728ba3caffe9",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_65b8cf90-6798-476c-a92a-52e98d356981",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_13beb7a631bf",
+          "dispatchId": "ctx_13beb7a631bf",
+          "taskId": "task_728ba3caffe9",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_5adc2b64d668",
+        "taskId": "task_fca8f7f33479",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_fd9e3a65-5312-47e1-8cc9-207c3e7ec7b8",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_5adc2b64d668",
+          "dispatchId": "ctx_5adc2b64d668",
+          "taskId": "task_fca8f7f33479",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_99efe0dd0274",
+        "taskId": "task_aeb2e5dc5e06",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_b545ef34-35c8-4694-9ac9-e3202ba17c81",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_99efe0dd0274",
+          "dispatchId": "ctx_99efe0dd0274",
+          "taskId": "task_aeb2e5dc5e06",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_1f01be7994bb",
+        "taskId": "task_c3b292b75f56",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_40826a62-d444-4d25-9ec7-ba7f0162f84c",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_1f01be7994bb",
+          "dispatchId": "ctx_1f01be7994bb",
+          "taskId": "task_c3b292b75f56",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_f18bb5c8144c",
+        "taskId": "task_ed293bd7d1d8",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_afb945ab-1a70-40e6-b536-dbbf46135e92",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_f18bb5c8144c",
+          "dispatchId": "ctx_f18bb5c8144c",
+          "taskId": "task_ed293bd7d1d8",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_7a6fea9dc192",
+        "taskId": "task_a4a0d7ba48a3",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_f4abce2c-f492-40ff-a5f9-1f01bd9b9f2f",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_7a6fea9dc192",
+          "dispatchId": "ctx_7a6fea9dc192",
+          "taskId": "task_a4a0d7ba48a3",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_495bcbbef5e4",
+        "taskId": "task_14fe56e3cd29",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_bb52652d-a569-4231-b95d-b2a6fba6b4ce",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_495bcbbef5e4",
+          "dispatchId": "ctx_495bcbbef5e4",
+          "taskId": "task_14fe56e3cd29",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_f63d3ad1c14a",
+        "taskId": "task_e842d3e68c58",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_0d9de635-2410-4183-86da-002d6069cf28",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_f63d3ad1c14a",
+          "dispatchId": "ctx_f63d3ad1c14a",
+          "taskId": "task_e842d3e68c58",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_125e8213b58e",
+        "taskId": "task_2c6e0642e3c0",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_b695c937-9243-4c6b-95a8-86f5aaf41c38",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_125e8213b58e",
+          "dispatchId": "ctx_125e8213b58e",
+          "taskId": "task_2c6e0642e3c0",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_c01bb33069bb",
+        "taskId": "task_99fd6b826460",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_99f75411-26a8-4e11-ac37-6a44f71d47bb",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_c01bb33069bb",
+          "dispatchId": "ctx_c01bb33069bb",
+          "taskId": "task_99fd6b826460",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_44904f482ecf",
+        "taskId": "task_9af4e0003988",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_96461a92-3506-4dd4-afb5-db834c24637c",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_44904f482ecf",
+          "dispatchId": "ctx_44904f482ecf",
+          "taskId": "task_9af4e0003988",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_8c2287f177bb",
+        "taskId": "task_c01a07c4fb08",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_a2768396-210b-46e7-9d6c-1c6eb70d6d8a",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_8c2287f177bb",
+          "dispatchId": "ctx_8c2287f177bb",
+          "taskId": "task_c01a07c4fb08",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_97eb51b58dbf",
+        "taskId": "task_83d2f645badb",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_239b915c-ab30-4285-965f-a934a920389a",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_97eb51b58dbf",
+          "dispatchId": "ctx_97eb51b58dbf",
+          "taskId": "task_83d2f645badb",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_edafdbd261c9",
+        "taskId": "task_fa64821477cd",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_681d04c2-e302-4099-ba58-e801d7450b3d",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_edafdbd261c9",
+          "dispatchId": "ctx_edafdbd261c9",
+          "taskId": "task_fa64821477cd",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_7a14fe6e706b",
+        "taskId": "task_18e1477e843e",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_f528a13f-f874-48fa-8eb0-1c1f6d64aa35",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_7a14fe6e706b",
+          "dispatchId": "ctx_7a14fe6e706b",
+          "taskId": "task_18e1477e843e",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_847e6680c4b9",
+        "taskId": "task_bf8332aed4e9",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_956f95b3-81a7-4bee-b309-f4878527d0fd",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_847e6680c4b9",
+          "dispatchId": "ctx_847e6680c4b9",
+          "taskId": "task_bf8332aed4e9",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_d853ae0fe96c",
+        "taskId": "task_4b39f5058111",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_5941f8b4-5b9f-4301-b093-61f60affde86",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_d853ae0fe96c",
+          "dispatchId": "ctx_d853ae0fe96c",
+          "taskId": "task_4b39f5058111",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_baa2bcaf8263",
+        "taskId": "task_b44329122b48",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_4c863306-a421-4e24-858c-5d6a9b29f652",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_baa2bcaf8263",
+          "dispatchId": "ctx_baa2bcaf8263",
+          "taskId": "task_b44329122b48",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_147ba196881c",
+        "taskId": "task_1eba2dcf50f5",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_1203e16a-567f-496f-b601-368e8fc5f1c6",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_147ba196881c",
+          "dispatchId": "ctx_147ba196881c",
+          "taskId": "task_1eba2dcf50f5",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_7f47b80e2503",
+        "taskId": "task_067ec69be832",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_83e191bd-b7cb-4ea4-a5c7-049a1fe02dad",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_7f47b80e2503",
+          "dispatchId": "ctx_7f47b80e2503",
+          "taskId": "task_067ec69be832",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_b3dc36fcf886",
+        "taskId": "task_b6c94c187b09",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_1927d806-66d2-44a2-b41b-a3c65ab7aad8",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_b3dc36fcf886",
+          "dispatchId": "ctx_b3dc36fcf886",
+          "taskId": "task_b6c94c187b09",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_bb8c5282bde1",
+        "taskId": "task_017a294f6f1a",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_452b7a7a-997d-49c8-8381-aa1c4e24a029",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_bb8c5282bde1",
+          "dispatchId": "ctx_bb8c5282bde1",
+          "taskId": "task_017a294f6f1a",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_62655b197318",
+        "taskId": "task_86f696b9efc8",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_1464f749-d82e-49c9-8f41-df7a976cb7b3",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_62655b197318",
+          "dispatchId": "ctx_62655b197318",
+          "taskId": "task_86f696b9efc8",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_4ddee86000e1",
+        "taskId": "task_a25c91eeff96",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_cdd92b44-5d5a-4f8d-9868-9e21d818fb7a",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_4ddee86000e1",
+          "dispatchId": "ctx_4ddee86000e1",
+          "taskId": "task_a25c91eeff96",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_43bea0d588b3",
+        "taskId": "task_61b5e8accc70",
+        "runId": "run_bec47e54b673",
+        "workerState": "unsupervised",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_98fd0f79-9118-4cd2-b057-f955b9e85500",
+        "terminalState": "retained",
+        "resource": null,
+        "projection": {
+          "id": "ctx_43bea0d588b3",
+          "dispatchId": "ctx_43bea0d588b3",
+          "taskId": "task_61b5e8accc70",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": null,
+          "stage": {
+            "worker": "unsupervised",
+            "dispatch": "completed",
+            "detail": null,
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "unsupervised_settled"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "absent",
+            "reason": "unsupervised"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_02702604cecd",
+        "taskId": "task_61b5e8accc70",
+        "runId": "run_bec47e54b673",
+        "workerState": "stopped",
+        "dispatchStatus": "failed",
+        "agentTerminalHandle": "term_51e8c532-70f5-4d58-9ec7-20fd5248292e",
+        "terminalState": "retained",
+        "resource": {
+          "id": "wtr_cc4bb94e26fc",
+          "ownershipState": "owned",
+          "releaseState": "not_requested",
+          "retainedReason": null,
+          "terminalHandle": "term_51e8c532-70f5-4d58-9ec7-20fd5248292e",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/U-CHAIN-builder-2649789649",
+          "endpointId": "0e3d77f3-b0e7-4aa1-a21d-a960aa212104",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/U-CHAIN-builder-2649789649@@9a8f3193:7798793f-1133-42dd-8a55-35cf7319f8d8",
+          "originDispatchId": "ctx_02702604cecd",
+          "ownerDispatchId": "ctx_02702604cecd",
+          "releaseRequestedAt": null,
+          "releaseCompletedAt": null,
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": null,
+            "status": null
+          }
+        },
+        "projection": {
+          "id": "ctx_02702604cecd",
+          "dispatchId": "ctx_02702604cecd",
+          "taskId": "task_61b5e8accc70",
+          "runId": "run_bec47e54b673",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/U-CHAIN-builder-2649789649",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "stopped",
+            "dispatch": "failed",
+            "detail": "process_stopped",
+            "activity": "unknown"
+          },
+          "outcome": "failed",
+          "liveness": {
+            "verdict": "exited",
+            "source": "worker_stop"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "owned"
+          },
+          "nextAction": {
+            "kind": "release",
+            "argv": [
+              "orchestration",
+              "worker-release",
+              "--dispatch",
+              "ctx_02702604cecd"
+            ]
+          },
+          "attention": {
+            "categories": [
+              "failure"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_1bf8670818e5",
+        "taskId": "task_065e9d165753",
+        "runId": "run_1e33949c0db0",
+        "workerState": "succeeded",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_fb921f60-6111-4308-8ea8-43ad400da0bb",
+        "terminalState": "released",
+        "resource": {
+          "id": "wtr_3ecb098f39d0",
+          "ownershipState": "released",
+          "releaseState": "released",
+          "retainedReason": null,
+          "terminalHandle": "term_fb921f60-6111-4308-8ea8-43ad400da0bb",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun",
+          "endpointId": "75429d93-a441-4225-9f94-18e893d3212e",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun@@08eed207:8fb8cc77-ff16-4503-8b44-ec8e0483e754",
+          "originDispatchId": "ctx_1bf8670818e5",
+          "ownerDispatchId": "ctx_1bf8670818e5",
+          "releaseRequestedAt": "2026-09-16 07:10:41",
+          "releaseCompletedAt": "2026-09-16 07:10:42",
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": "transcript",
+            "status": "captured"
+          }
+        },
+        "projection": {
+          "id": "ctx_1bf8670818e5",
+          "dispatchId": "ctx_1bf8670818e5",
+          "taskId": "task_065e9d165753",
+          "runId": "run_1e33949c0db0",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "succeeded",
+            "dispatch": "completed",
+            "detail": "settled",
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "exited",
+            "source": "resource_release"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "released"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_2ebfe6f130dd",
+        "taskId": "task_2f6b230aab94",
+        "runId": "run_1e33949c0db0",
+        "workerState": "succeeded",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_8f3832b1-6305-435c-abe1-a7cc711061b4",
+        "terminalState": "released",
+        "resource": {
+          "id": "wtr_322209e2ce73",
+          "ownershipState": "released",
+          "releaseState": "released",
+          "retainedReason": null,
+          "terminalHandle": "term_8f3832b1-6305-435c-abe1-a7cc711061b4",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun",
+          "endpointId": "75429d93-a441-4225-9f94-18e893d3212e",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun@@6d2eb96d:8614bf18-0a12-44ec-92cb-43d1a1ada668",
+          "originDispatchId": "ctx_2ebfe6f130dd",
+          "ownerDispatchId": "ctx_2ebfe6f130dd",
+          "releaseRequestedAt": "2026-09-16 07:01:26",
+          "releaseCompletedAt": "2026-09-16 07:01:26",
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": "transcript",
+            "status": "captured"
+          }
+        },
+        "projection": {
+          "id": "ctx_2ebfe6f130dd",
+          "dispatchId": "ctx_2ebfe6f130dd",
+          "taskId": "task_2f6b230aab94",
+          "runId": "run_1e33949c0db0",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/prove-it-pf2-rerun",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "succeeded",
+            "dispatch": "completed",
+            "detail": "settled",
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "exited",
+            "source": "resource_release"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "released"
+          },
+          "nextAction": {
+            "kind": "none",
+            "argv": []
+          },
+          "attention": {
+            "categories": [
+              "root_completion"
+            ],
+            "requiresAction": false
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_471e086fbf75",
+        "taskId": "task_1eada78ad120",
+        "runId": "run_0607bdc681e6",
+        "workerState": "succeeded",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_30c5bac3-ea9c-4a44-b9d9-d1d0c078c2ee",
+        "terminalState": "retained",
+        "resource": {
+          "id": "wtr_473802cf4c71",
+          "ownershipState": "owned",
+          "releaseState": "retained",
+          "retainedReason": "identity_unproven",
+          "terminalHandle": "term_30c5bac3-ea9c-4a44-b9d9-d1d0c078c2ee",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+          "endpointId": "75429d93-a441-4225-9f94-18e893d3212e",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race@@3fad9bfe:2eb1fe77-ba06-4a85-8f3f-559960b901ca",
+          "originDispatchId": "ctx_471e086fbf75",
+          "ownerDispatchId": "ctx_471e086fbf75",
+          "releaseRequestedAt": "2026-09-16 04:31:43",
+          "releaseCompletedAt": null,
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": null,
+            "status": null
+          }
+        },
+        "projection": {
+          "id": "ctx_471e086fbf75",
+          "dispatchId": "ctx_471e086fbf75",
+          "taskId": "task_1eada78ad120",
+          "runId": "run_0607bdc681e6",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "succeeded",
+            "dispatch": "completed",
+            "detail": "settled",
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "missing_status"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "owned"
+          },
+          "nextAction": {
+            "kind": "release",
+            "argv": [
+              "orchestration",
+              "worker-release",
+              "--dispatch",
+              "ctx_471e086fbf75"
+            ]
+          },
+          "attention": {
+            "categories": [
+              "unverifiable",
+              "root_completion"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_9885d57e0e62",
+        "taskId": "task_8c7d14a36f0e",
+        "runId": "run_0607bdc681e6",
+        "workerState": "succeeded",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_423ee1e1-6a42-4314-9a73-d15de6de5642",
+        "terminalState": "retained",
+        "resource": {
+          "id": "wtr_16d787440491",
+          "ownershipState": "owned",
+          "releaseState": "retained",
+          "retainedReason": "identity_unproven",
+          "terminalHandle": "term_423ee1e1-6a42-4314-9a73-d15de6de5642",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+          "endpointId": "75429d93-a441-4225-9f94-18e893d3212e",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race@@920c414c:4ae0adc3-38c0-4708-9f3e-786373456ac8",
+          "originDispatchId": "ctx_9885d57e0e62",
+          "ownerDispatchId": "ctx_9885d57e0e62",
+          "releaseRequestedAt": "2026-09-16 04:31:43",
+          "releaseCompletedAt": null,
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": null,
+            "status": null
+          }
+        },
+        "projection": {
+          "id": "ctx_9885d57e0e62",
+          "dispatchId": "ctx_9885d57e0e62",
+          "taskId": "task_8c7d14a36f0e",
+          "runId": "run_0607bdc681e6",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "succeeded",
+            "dispatch": "completed",
+            "detail": "settled",
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "missing_status"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "owned"
+          },
+          "nextAction": {
+            "kind": "release",
+            "argv": [
+              "orchestration",
+              "worker-release",
+              "--dispatch",
+              "ctx_9885d57e0e62"
+            ]
+          },
+          "attention": {
+            "categories": [
+              "unverifiable",
+              "root_completion"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_f83cf1f81753",
+        "taskId": "task_c37d9e229a9a",
+        "runId": "run_0607bdc681e6",
+        "workerState": "succeeded",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_19551d1b-1060-49cc-8314-09f3bb7d179f",
+        "terminalState": "retained",
+        "resource": {
+          "id": "wtr_25c75fe934ed",
+          "ownershipState": "owned",
+          "releaseState": "retained",
+          "retainedReason": "identity_unproven",
+          "terminalHandle": "term_19551d1b-1060-49cc-8314-09f3bb7d179f",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+          "endpointId": "75429d93-a441-4225-9f94-18e893d3212e",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race@@1c7678ec:d94e3714-8f47-4b88-956a-eb3da7f08b3c",
+          "originDispatchId": "ctx_f83cf1f81753",
+          "ownerDispatchId": "ctx_f83cf1f81753",
+          "releaseRequestedAt": "2026-09-16 04:31:43",
+          "releaseCompletedAt": null,
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": null,
+            "status": null
+          }
+        },
+        "projection": {
+          "id": "ctx_f83cf1f81753",
+          "dispatchId": "ctx_f83cf1f81753",
+          "taskId": "task_c37d9e229a9a",
+          "runId": "run_0607bdc681e6",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "succeeded",
+            "dispatch": "completed",
+            "detail": "settled",
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "missing_status"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "owned"
+          },
+          "nextAction": {
+            "kind": "release",
+            "argv": [
+              "orchestration",
+              "worker-release",
+              "--dispatch",
+              "ctx_f83cf1f81753"
+            ]
+          },
+          "attention": {
+            "categories": [
+              "unverifiable",
+              "root_completion"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_c20ce1c37ab6",
+        "taskId": "task_dbe370603631",
+        "runId": "run_0607bdc681e6",
+        "workerState": "succeeded",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_d93654cc-92eb-4be7-903a-3209774de93e",
+        "terminalState": "retained",
+        "resource": {
+          "id": "wtr_c46bb60f3f85",
+          "ownershipState": "owned",
+          "releaseState": "retained",
+          "retainedReason": "identity_unproven",
+          "terminalHandle": "term_d93654cc-92eb-4be7-903a-3209774de93e",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+          "endpointId": "75429d93-a441-4225-9f94-18e893d3212e",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race@@0647e0a3:67806071-a792-4ff5-b6d7-c7897a4cc687",
+          "originDispatchId": "ctx_c20ce1c37ab6",
+          "ownerDispatchId": "ctx_c20ce1c37ab6",
+          "releaseRequestedAt": "2026-09-16 04:31:50",
+          "releaseCompletedAt": null,
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": null,
+            "status": null
+          }
+        },
+        "projection": {
+          "id": "ctx_c20ce1c37ab6",
+          "dispatchId": "ctx_c20ce1c37ab6",
+          "taskId": "task_dbe370603631",
+          "runId": "run_0607bdc681e6",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "succeeded",
+            "dispatch": "completed",
+            "detail": "settled",
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "missing_status"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "owned"
+          },
+          "nextAction": {
+            "kind": "release",
+            "argv": [
+              "orchestration",
+              "worker-release",
+              "--dispatch",
+              "ctx_c20ce1c37ab6"
+            ]
+          },
+          "attention": {
+            "categories": [
+              "unverifiable",
+              "root_completion"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_497490a5e589",
+        "taskId": "task_9f0c5e821221",
+        "runId": "run_0607bdc681e6",
+        "workerState": "succeeded",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_4f0b1d8c-e474-492b-a896-561c5d6188e8",
+        "terminalState": "retained",
+        "resource": {
+          "id": "wtr_d51486c57bba",
+          "ownershipState": "owned",
+          "releaseState": "retained",
+          "retainedReason": "identity_unproven",
+          "terminalHandle": "term_4f0b1d8c-e474-492b-a896-561c5d6188e8",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+          "endpointId": "75429d93-a441-4225-9f94-18e893d3212e",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race@@87f1954f:8893f03b-72af-4e6c-bac5-015f244f8d99",
+          "originDispatchId": "ctx_497490a5e589",
+          "ownerDispatchId": "ctx_497490a5e589",
+          "releaseRequestedAt": "2026-09-16 04:31:43",
+          "releaseCompletedAt": null,
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": null,
+            "status": null
+          }
+        },
+        "projection": {
+          "id": "ctx_497490a5e589",
+          "dispatchId": "ctx_497490a5e589",
+          "taskId": "task_9f0c5e821221",
+          "runId": "run_0607bdc681e6",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "succeeded",
+            "dispatch": "completed",
+            "detail": "settled",
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "missing_status"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "owned"
+          },
+          "nextAction": {
+            "kind": "release",
+            "argv": [
+              "orchestration",
+              "worker-release",
+              "--dispatch",
+              "ctx_497490a5e589"
+            ]
+          },
+          "attention": {
+            "categories": [
+              "unverifiable",
+              "root_completion"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_b762fb2b0696",
+        "taskId": "task_b33e1f8d2b79",
+        "runId": "run_0607bdc681e6",
+        "workerState": "succeeded",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_39d0b7c5-535f-4ae9-bec0-7d4d48b813f5",
+        "terminalState": "retained",
+        "resource": {
+          "id": "wtr_354bde11c697",
+          "ownershipState": "owned",
+          "releaseState": "retained",
+          "retainedReason": "identity_unproven",
+          "terminalHandle": "term_39d0b7c5-535f-4ae9-bec0-7d4d48b813f5",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+          "endpointId": "75429d93-a441-4225-9f94-18e893d3212e",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race@@7d36b9d7:37ba9de0-793c-4cdf-9f4c-f3b8b8294066",
+          "originDispatchId": "ctx_b762fb2b0696",
+          "ownerDispatchId": "ctx_b762fb2b0696",
+          "releaseRequestedAt": "2026-09-16 04:31:43",
+          "releaseCompletedAt": null,
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": null,
+            "status": null
+          }
+        },
+        "projection": {
+          "id": "ctx_b762fb2b0696",
+          "dispatchId": "ctx_b762fb2b0696",
+          "taskId": "task_b33e1f8d2b79",
+          "runId": "run_0607bdc681e6",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "succeeded",
+            "dispatch": "completed",
+            "detail": "settled",
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "missing_status"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "owned"
+          },
+          "nextAction": {
+            "kind": "release",
+            "argv": [
+              "orchestration",
+              "worker-release",
+              "--dispatch",
+              "ctx_b762fb2b0696"
+            ]
+          },
+          "attention": {
+            "categories": [
+              "unverifiable",
+              "root_completion"
+            ],
+            "requiresAction": true
+          }
+        }
+      },
+      {
+        "dispatchId": "ctx_7dd83010fa88",
+        "taskId": "task_c20a33d202b9",
+        "runId": "run_0607bdc681e6",
+        "workerState": "succeeded",
+        "dispatchStatus": "completed",
+        "agentTerminalHandle": "term_56f5326a-c1b3-4c0c-a3f5-deea6550fe89",
+        "terminalState": "retained",
+        "resource": {
+          "id": "wtr_9984b59770f6",
+          "ownershipState": "owned",
+          "releaseState": "retained",
+          "retainedReason": "identity_unproven",
+          "terminalHandle": "term_56f5326a-c1b3-4c0c-a3f5-deea6550fe89",
+          "worktreeId": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+          "endpointId": "75429d93-a441-4225-9f94-18e893d3212e",
+          "endpointIncarnation": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race@@6a26f0e2:030017ff-8d62-47f5-95a8-2473cfbb850a",
+          "originDispatchId": "ctx_7dd83010fa88",
+          "ownerDispatchId": "ctx_7dd83010fa88",
+          "releaseRequestedAt": "2026-09-16 04:31:43",
+          "releaseCompletedAt": null,
+          "releaseError": null,
+          "recoveryAttemptCount": 0,
+          "lastRecoveryAt": null,
+          "archive": {
+            "source": null,
+            "status": null
+          }
+        },
+        "projection": {
+          "id": "ctx_7dd83010fa88",
+          "dispatchId": "ctx_7dd83010fa88",
+          "taskId": "task_c20a33d202b9",
+          "runId": "run_0607bdc681e6",
+          "role": "worker",
+          "parent": null,
+          "provider": null,
+          "host": {
+            "kind": "local",
+            "id": "local"
+          },
+          "workspace": {
+            "id": "3cf2cdae-bda6-4774-a26f-e6f3b7a9852a::/Users/ravindra/orca/workspaces/orca-fleet/u393-race",
+            "kind": "folder_or_worktree"
+          },
+          "stage": {
+            "worker": "succeeded",
+            "dispatch": "completed",
+            "detail": "settled",
+            "activity": "unknown"
+          },
+          "outcome": "succeeded",
+          "liveness": {
+            "verdict": "unverifiable",
+            "reason": "missing_status"
+          },
+          "evidence": {
+            "durable": true,
+            "liveStatus": "unavailable",
+            "lastObservedAt": null
+          },
+          "resource": {
+            "state": "owned"
+          },
+          "nextAction": {
+            "kind": "release",
+            "argv": [
+              "orchestration",
+              "worker-release",
+              "--dispatch",
+              "ctx_7dd83010fa88"
+            ]
+          },
+          "attention": {
+            "categories": [
+              "unverifiable",
+              "root_completion"
+            ],
+            "requiresAction": true
+          }
+        }
+      }
+    ],
+    "counts": {
+      "active": 1,
+      "reclaimable": 25,
+      "retained": 392,
+      "release_unknown": 36,
+      "released": 97
+    },
+    "page": {
+      "limit": 100,
+      "total": 551,
+      "hasMore": true,
+      "nextCursor": "eyJ2ZXJzaW9uIjoyLCJzbmFwc2hvdCI6eyJkYXRhYmFzZUlkIjo1NTF9LCJhZnRlciI6eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTE1IDE1OjAzOjE4IiwiZGlzcGF0Y2hJZCI6ImN0eF83ZGQ4MzAxMGZhODgiLCJkYXRhYmFzZUlkIjo0NTJ9fQ"
+    },
+    "warnings": [
+      "Showing 100 of 551 Dispatches, newest first; more are on later pages. Follow page.nextCursor with --cursor."
+    ],
+    "scope": {
+      "source": "all"
+    }
+  },
+  "_meta": {
+    "runtimeId": "dc46d459-6082-45b1-8f3d-bb36ce0afa53"
+  }
+}

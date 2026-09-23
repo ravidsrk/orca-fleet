@@ -22,8 +22,9 @@ new handles.
 prompt (`orchestration/recovery-and-cleanup:25-31` at v1.4.203). The fleet taught this inverted for two runs; the projection half is re-witnessed live at v1.4.203 (docs/runs/2026-09-16-pin-it-416/receipts/worker-list-unscoped.json).
 it is the reason pane-reading felt authoritative.
 
-Always scope it: `worker-list --run <run_id>`. Unscoped, it reports every Dispatch this runtime ever recorded
-and buries the live ones.
+Always scope it: `worker-list --run <run_id>`. Unscoped it reports every Dispatch this runtime ever
+recorded — ≥ v1.4.206 pages newest-first with a truncation `warnings[]`, so live rows no longer bury,
+but an unscoped page is still everyone's rows, not your run's: scope or the convergence math is fiction.
 
 Two states the old vocabulary lacked, and neither is a failure:
 
