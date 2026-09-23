@@ -321,8 +321,10 @@ def _read_artifact(m, path):
     head = m.get("head_sha")
     split = _roots_are_split()
     spelled = Path(path).as_posix()  # the spelling _resolve bounded, never the manifest's (F-3)
-    if (not split and head and HEX40_RE.match(str(head))
-            and _git(["cat-file", "-e", f"{head}:{spelled}"])[0] == 0):
+    typed = _git(["cat-file", "-t", f"{head}:{spelled}"]) if (not split and head
+                                                              and HEX40_RE.match(str(head))) else (1, "")
+    if typed[0] == 0 and typed[1] == "blob":  # a tracked DIRECTORY passes `cat-file -e`, and
+        # `git show` would print its listing as if it were artifact bytes (reaudit-r2 P3)
         code, out, gerr = _git_bytes(["show", f"{head}:{spelled}"])
         if code == 0:
             return out, None
@@ -860,9 +862,19 @@ class _Authority:
     @classmethod
     def git_env(cls):
         """The scrubbed environment every git and gitleaks leg runs under (h409 N-4) — the same
-        floor as the control's, plus a constant that stops a leg waiting on a credential prompt.
-        Applied unconditionally, as gh's is: the launch env is the worker's on the native lane."""
-        return {**cls.nc_env(), "GIT_TERMINAL_PROMPT": "0"}
+        floor as the control's, plus constants that stop a leg waiting on a credential prompt
+        and close the config-driven execution channels (h409 B4/B5): the GIT_CONFIG_* env pairs
+        carry `-c` precedence over repo-local config (B5: a `core.fsmonitor` in the graded
+        repo's own .git/config), and /dev/null + NOSYSTEM drop the global and system files
+        (B4: ~/.gitconfig). `safe.directory=*` replaces the one legitimate use of the global
+        file (CI ownership belts) so exotic images fail nowhere new. Applied unconditionally,
+        as gh's is: the launch env is the worker's on the native lane."""
+        return {**cls.nc_env(), "GIT_TERMINAL_PROMPT": "0",
+                "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1",
+                "GIT_CONFIG_COUNT": "3",
+                "GIT_CONFIG_KEY_0": "core.fsmonitor", "GIT_CONFIG_VALUE_0": "false",
+                "GIT_CONFIG_KEY_1": "protocol.ext.allow", "GIT_CONFIG_VALUE_1": "never",
+                "GIT_CONFIG_KEY_2": "safe.directory", "GIT_CONFIG_VALUE_2": "*"}
 
     @classmethod
     def api(cls, repo, endpoint, *flags, timeout=20):
