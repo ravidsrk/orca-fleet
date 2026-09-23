@@ -723,6 +723,19 @@ esac
             self._stub(tmp)
             notes, p = self._notes(tmp, "orca v1.4.209")
             self.assertEqual(notes, [], "a matching runtime must say nothing")
+
+    def test_an_owed_app_update_advises_the_update_not_a_completed_pin(self):
+        # Review on #501: pins.json advanced to v1.4.209 while PATH still runs exactly the
+        # version the witness recorded (onpath_at_witness 1.4.204) — the owed-update case.
+        # The note must say 'update the app', never 're-run a completed pin-it'. A version
+        # that is NOT the recorded one (1.5.0 above) still arms pin-it as fresh drift.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            notes, p = self._notes(tmp, "orca 1.4.204")
+            self.assertTrue(notes, "the owed-update divergence produced no note at all")
+            self.assertIn("update Orca to v1.4.209", notes[0])
+            self.assertNotIn("run pin-it to re-witness", notes[0])
+            self.assertEqual(p.returncode, 0)
             self.assertEqual(p.returncode, 0, p.stderr)
 
     def test_the_v_prefix_is_not_a_difference(self):
