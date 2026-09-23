@@ -1,5 +1,5 @@
 {
-  "_about": "Upstream sources the missions execute against, pinned by commit and witness date (issue #271). tests/test_pins.py requires an entry for every pack a SKILL.md compatibility: field names. witness: 'source' means the pin was read from a full-history clone of the upstream at that commit, not from a release note; 'live' means the mechanism claims were re-witnessed against the INSTALLED binary in a pin-it run (the commit then records what that build reports, which may sit on a pre-release line rather than at the named tag \u2014 see docs/runs/2026-09-13-pin-it-266/). Ownership: pin-it re-witnesses the `orca` entry against the installed binary; the pack pins (gstack, addyosmani, mattpocock) are re-witnessed by the upstream-adoption audit cadence (docs/research/2026-09-10-upstream-audit/), not by pin-it, whose SKILL scopes to runtime mechanics (#377). Pack pins should be re-witnessed whenever an audit runs or an adopted skill changes upstream (#378). The human-readable pin record \u2014 upstream URL, diff summary, re-pin cadence, owner, next trigger \u2014 is runtime/orca-pin.md.",
+  "_about": "Upstream sources the missions execute against, pinned by commit and witness date (issue #271). tests/test_pins.py requires an entry for every pack a SKILL.md compatibility: field names. witness: 'source' means the pin was read from a full-history clone of the upstream at that commit, not from a release note; 'live' means the mechanism claims were re-witnessed against a real binary in a pin-it run \u2014 normally the INSTALLED one; when the pin advances ahead of the app on PATH, `witness_binary` names the exact artifact witnessed and `onpath_at_witness` what PATH then ran, and spawn_worker.sh's drift note says 'update the app', never 're-run a completed pin' (the commit then records what that build reports, which may sit on a pre-release line rather than at the named tag \u2014 see docs/runs/2026-09-13-pin-it-266/). Ownership: pin-it re-witnesses the `orca` entry against the installed binary; the pack pins (gstack, addyosmani, mattpocock) are re-witnessed by the upstream-adoption audit cadence (docs/research/2026-09-10-upstream-audit/), not by pin-it, whose SKILL scopes to runtime mechanics (#377). Pack pins should be re-witnessed whenever an audit runs or an adopted skill changes upstream (#378). The human-readable pin record \u2014 upstream URL, diff summary, re-pin cadence, owner, next trigger \u2014 is runtime/orca-pin.md.",
   "orca": {
     "repo": "stablyai/orca",
     "commit": "ee1c52207000c7d70282549c73e9945bd1cec1e8",
@@ -9,7 +9,9 @@
     "aliases": [
       "orca",
       "stablyai/orca"
-    ]
+    ],
+    "witness_binary": "release bundle Orca-1.4.209-arm64-mac.zip (isolated at /tmp/orca-1209)",
+    "onpath_at_witness": "1.4.204"
   },
   "gstack": {
     "repo": "garrytan/gstack",

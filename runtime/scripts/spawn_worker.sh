@@ -212,6 +212,18 @@ except Exception:
     print("")
 PIN
 )
+witness_state=$(python3 - "$HERE/../pins.json" <<'PIN'
+import json, sys
+try:
+    with open(sys.argv[1]) as fh:
+        o = json.load(fh).get("orca") or {}
+        print((o.get("witness_binary") or "") + "|" + (o.get("onpath_at_witness") or ""))
+except Exception:
+    print("|")
+PIN
+)
+witness_binary=${witness_state%%|*}
+onpath_at_witness=${witness_state##*|}
 if [ -n "$pin_version" ] && command -v orca >/dev/null 2>&1; then
   # `orca --version` is not source-witnessed as to its exact wording, so take the
   # first version-shaped token anywhere in its output rather than the whole line.
@@ -221,7 +233,14 @@ if [ -n "$pin_version" ] && command -v orca >/dev/null 2>&1; then
     # fix, and a check that quietly stops working is that defect wearing a fix.
     echo "SPAWN=NOTE task=${task} could not read a version from \`orca --version\`, so drift from runtime/pins.json (${pin_version}) could not be checked at all. If the output format changed, the check needs re-witnessing — pin-it (#301)." >&2
   elif [ "${installed#v}" != "${pin_version#v}" ]; then
-    echo "SPAWN=NOTE task=${task} Orca on PATH is ${installed}, runtime/pins.json was witnessed against ${pin_version}. Every behaviour this script relies on was read off the PINNED version's source, so the difference is unwitnessed, not known-wrong: run pin-it to re-witness before trusting the launch map or the receipt shape (#301)." >&2
+    if [ -n "$witness_binary" ] && [ "${installed#v}" = "${onpath_at_witness#v}" ]; then
+      # The pin advanced ahead of the app and PATH still reports exactly what it reported at
+      # the witness: the honest advice is to update the app, never to re-run a completed pin.
+      echo "SPAWN=NOTE task=${task} Orca on PATH is ${installed} but runtime/pins.json was witnessed against ${pin_version} from ${witness_binary} — the app update is owed: update Orca to ${pin_version} and this note clears. Do NOT re-run pin-it; it already completed for ${pin_version} (#301)." >&2
+    else
+      # Any OTHER divergence — a newer Orca, or a third version — is fresh drift.
+      echo "SPAWN=NOTE task=${task} Orca on PATH is ${installed}, runtime/pins.json was witnessed against ${pin_version}. Every behaviour this script relies on was read off the PINNED version's source, so the difference is unwitnessed, not known-wrong: run pin-it to re-witness before trusting the launch map or the receipt shape (#301)." >&2
+    fi
   fi
 fi
 

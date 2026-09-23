@@ -69,7 +69,7 @@ Operational specifics: a worktree id is the composite `<repoId>::<worktreePath>`
 (unambiguous) or that full id, never the bare repo id. On Linux, a bare `orca` outside an Orca-managed terminal is usually the GNOME screen reader — use
 `orca-ide` there. After an accepted `worker_done`, run **`worker-release --dispatch <id>`** (Orca preserves inspectable output, then closes only the exact
 agent terminal that dispatch owned) — or `worker-retain` at the user's explicit request. Its exit contract: `retained`, `release_pending`, and
-`already_released` all exit 0 (it is idempotent); an unknown dispatch exits 1 (`dispatch_not_found` at v1.4.204) and needs the receipt's own recovery action
+`already_released` all exit 0 (it is idempotent); an unknown dispatch exits 1 (`dispatch_not_found`, witnessed at v1.4.204, re-verified CURRENT at v1.4.209) and needs the receipt's own recovery action
 (`orchestration-worker-specs.ts:101`). The pane that outlived its `worker_done` under a new handle (the old dual-writer class) is now fenced by the runtime at
 settlement; release is still the fleet's hygiene step — never on a timeout, TUI-idle, or a heartbeat gap (those are liveness questions, liveness-resume.md,
 not completion).
@@ -150,8 +150,8 @@ ledger it as a leak, never force it.
 
 ## Live probes owed (pin-it)
 
-The live PIN is v1.4.204 (`docs/runs/2026-09-20-pin-it-427.md`). Every probe the 1.4.203 session parked
-for want of a live Orca terminal was retired there (scratch Run + workers, receipts on disk): roster
+The live PIN is v1.4.209 (`docs/runs/2026-09-23-pin-it-488.md` — witnessed against the release bundle; the on-PATH app update is owed, `pins.json` `witness_binary`/`onpath_at_witness` carry the divergence). The 1.4.204 pin before it is `docs/runs/2026-09-20-pin-it-427.md`. Every probe the 1.4.203 session parked
+for want of a live Orca terminal was retired at 1.4.204 (scratch Run + workers, receipts on disk): roster
 `worker-start` on a MANUAL host (`launch.effective` carries no args → LAUNCHED_UNUSABLE), inject
 `prompt.stages=input_accepted` (never replayed), a `--types` wake delivers the whole batch,
 `merge_ready --to @all` (resolution error only — `worker_done` gets the type-level refusal),
