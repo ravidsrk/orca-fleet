@@ -59,10 +59,16 @@ from pathlib import Path
 GIT = shutil.which("git")
 
 
+_GIT_ABSENT = "/nonexistent/git"
+
+
 def _git_cmd(*args):
-    if GIT is None:
-        raise SystemExit("git is required on PATH — no bare-name fallback (Greptile #498)")
-    return [GIT, *args]
+    """Argv head for every git call: the git resolved once at import — never a bare name that
+    would re-resolve against a later PATH (Greptile #498). With no git on PATH the head is a
+    fixed nonexistent absolute path, so the failure arrives at EXEC as FileNotFoundError: the
+    exact OSError shape the callers' handlers are written for (git-less operation proceeds
+    where documented, e.g. dispatch-sign's out-of-repo probe)."""
+    return [GIT if GIT is not None else _GIT_ABSENT, *args]
 
 _HERE = Path(__file__).resolve().parent
 

@@ -128,6 +128,29 @@ class GenKeyInRepoGuard(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertTrue(out.exists())
 
+    def test_a_none_git_resolves_to_an_exec_failure_not_an_abort(self):
+        # Greptile on #498: with git absent the OSError handlers ARE the git-less-operation
+        # contract — an out-of-repo gen-key must still succeed, an in-repo one must still
+        # refuse. Exercise the real subprocess with GIT=None (no subprocess mock): the argv
+        # head must fail at EXEC as FileNotFoundError, never raise SystemExit while the
+        # arguments are still being built.
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "dispatch-key"
+            with unittest.mock.patch.object(dispatch_sign, "GIT", None):
+                rc, _ = _gen_key(out)
+            self.assertEqual(rc, 0)
+            self.assertTrue(out.exists())
+
+    def test_a_none_git_in_a_worktree_still_refuses(self):
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d)
+            _git_init(repo)
+            out = repo / "dispatch-key"
+            with unittest.mock.patch.object(dispatch_sign, "GIT", None):
+                rc, _ = _gen_key(out)
+            self.assertNotEqual(rc, 0)
+            self.assertFalse(out.exists())
+
     def test_external_git_dir_env_detected(self):
         # A repo resolved via GIT_DIR/core.worktree has no .git ancestor — refuse anyway.
         with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as b:
