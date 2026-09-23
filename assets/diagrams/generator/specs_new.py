@@ -72,7 +72,8 @@ Middle rung: self-run, caption: run against this repository
 Arrow 2 label: the same binding, on a repository you do not control
 Top rung: external-run, caption: run against someone else's repository
 Right side, a note with an amber marker: the live state is the archive — docs/runs/README.md names each mission's tier as its evidence lands; the ladder climbs only through the binding gate
-Footer, small, centred: a mission is never presented as more proven than its evidence — validate.py enforces the field"""),
+Footer, small, centred: a mission is never presented as more proven than its evidence — validate.py enforces the field
+Render ONLY the text listed above — no extra captions, no repeated or paraphrased lines, no link hints under the note"""),
 
 n("verify-gate", """Content: the completion gate and its trust boundary.
 Top row, left to right, joined by arrows: a box: the coordinator sets the gate env (caption: ORCA_MANIFEST · contract source + digest · unit class) → a box: Stop / TaskCompleted hook fires verify-gate.sh → a box: verify.py re-derives (caption: scope from the frozen contract · review from GitHub · negative control read, or replayed in a throwaway worktree when ORCA_EXECUTE_NC is set) → two outcome boxes stacked: a green one: exit 0 — allow, and a red one: exit 2 — BLOCK, with feedback
