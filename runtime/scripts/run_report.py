@@ -99,7 +99,13 @@ from pathlib import Path
 
 # h409 hygiene: one git resolution rule across the toolchain —
 # resolved once, never a bare PATH lookup per call (reaudit-r2 P3).
-GIT = shutil.which("git") or "git"
+GIT = shutil.which("git")
+
+
+def _git_cmd(*args):
+    if GIT is None:
+        raise SystemExit("git is required on PATH — no bare-name fallback (Greptile #498)")
+    return [GIT, *args]
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
@@ -167,7 +173,7 @@ def parse_run_header(text):
 
 def path_exists_at(rev, path_text, root):
     return subprocess.run(
-        [GIT, "cat-file", "-e", f"{rev}:{path_text}"],
+        _git_cmd("cat-file", "-e", f"{rev}:{path_text}"),
         cwd=str(root), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     ).returncode == 0
 
@@ -386,7 +392,7 @@ def blob_at(rev, path_text, root):
     """The bytes of `path_text` as of `rev`, or None. Reading the manifest AT the pinned commit,
     never from the working tree, is the whole point: the tree has moved on since the run."""
     proc = subprocess.run(
-        [GIT, "show", f"{rev}:{path_text}"],
+        _git_cmd("show", f"{rev}:{path_text}"),
         cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
     )
     return proc.stdout if proc.returncode == 0 else None
@@ -395,7 +401,7 @@ def blob_at(rev, path_text, root):
 def tree_of(rev, root):
     """`rev`'s tree sha, or None."""
     proc = subprocess.run(
-        [GIT, "rev-parse", f"{rev}^{{tree}}"],
+        _git_cmd("rev-parse", f"{rev}^{{tree}}"),
         cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
     )
     out = proc.stdout.strip()
@@ -516,7 +522,7 @@ def grading_base(root, base=None):
     GRADING_BASES that resolves. None only in a repository with no commit at all."""
     for candidate in ((base,) if base else GRADING_BASES):
         proc = subprocess.run(
-            [GIT, "rev-parse", "--verify", "-q", f"{candidate}^{{commit}}"],
+            _git_cmd("rev-parse", "--verify", "-q", f"{candidate}^{{commit}}"),
             cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
         )
         if proc.returncode == 0 and proc.stdout.strip():
@@ -527,7 +533,7 @@ def grading_base(root, base=None):
 def is_ancestor(rev, base, root):
     """`rev` reachable from `base` (a commit is its own ancestor)."""
     return subprocess.run(
-        [GIT, "merge-base", "--is-ancestor", rev, base],
+        _git_cmd("merge-base", "--is-ancestor", rev, base),
         cwd=str(root), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     ).returncode == 0
 
@@ -539,7 +545,7 @@ def key_rev(rev, root, base=None):
     if tip is None:
         return None, "no grading base resolves (tried " + ", ".join(GRADING_BASES) + ")"
     if base is None and blob_at(rev, PUBKEY_PIN, root) is not None and not any(
-            subprocess.run([GIT, "rev-parse", "--verify", "-q", f"{c}^{{commit}}"],
+            subprocess.run(_git_cmd("rev-parse", "--verify", "-q", f"{c}^{{commit}}"),
                            cwd=str(root), stdout=subprocess.PIPE,
                            stderr=subprocess.DEVNULL).returncode == 0
             for c in GRADING_BASES[:-1]):
@@ -754,7 +760,7 @@ def _mutation_missions(root, rev=None):
 def _read_at_rev(rev, path_text, root):
     try:
         proc = subprocess.run(
-            [GIT, "cat-file", "blob", f"{rev}:{path_text}"],
+            _git_cmd("cat-file", "blob", f"{rev}:{path_text}"),
             cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     except OSError:
         return None

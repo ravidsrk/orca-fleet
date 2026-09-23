@@ -56,7 +56,13 @@ from pathlib import Path
 
 # h409 hygiene: one git resolution rule across the toolchain —
 # resolved once, never a bare PATH lookup per call (reaudit-r2 P3).
-GIT = shutil.which("git") or "git"
+GIT = shutil.which("git")
+
+
+def _git_cmd(*args):
+    if GIT is None:
+        raise SystemExit("git is required on PATH — no bare-name fallback (Greptile #498)")
+    return [GIT, *args]
 
 _HERE = Path(__file__).resolve().parent
 
@@ -168,7 +174,7 @@ def _in_unignored_worktree(path: Path) -> bool:
         # No .git ancestor — the only remaining way `git add` could stage this path is a repo
         # resolved from the environment (GIT_DIR, core.worktree). Ask git itself.
         try:
-            top = subprocess.run([GIT, "rev-parse", "--show-toplevel"],
+            top = subprocess.run(_git_cmd("rev-parse", "--show-toplevel"),
                                  cwd=probe, capture_output=True, text=True)
         except OSError:
             return False  # no .git ancestor AND no git binary: nothing can stage the file
@@ -179,7 +185,7 @@ def _in_unignored_worktree(path: Path) -> bool:
     if not under_git:
         return False
     try:
-        check = subprocess.run([GIT, "check-ignore", "-q", "--", str(resolved)],
+        check = subprocess.run(_git_cmd("check-ignore", "-q", "--", str(resolved)),
                                cwd=probe, capture_output=True)
     except OSError:
         return True  # in a work tree but git won't run — cannot prove the path is ignored
