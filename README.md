@@ -200,7 +200,7 @@ verified terminal state — see [`runtime/mission-chaining.md`](runtime/mission-
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/proof-ladder.jpg">
     <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/proof-ladder-light.jpg">
-    <img src="assets/diagrams/proof-ladder-light.jpg" alt="The proof ladder: doctrine-only, then self-run, then external-run; advancing needs a run report that binds, with a RUN header, a manifest in the run's own directory and an inventory that re-hashes at the named commit; clean-sweep and prove-it read self-run, every other mission doctrine-only" width="900">
+    <img src="assets/diagrams/proof-ladder-light.jpg" alt="The proof ladder: doctrine-only, then self-run, then external-run; advancing needs a run report that binds, with a RUN header, a manifest in the run's own directory and an inventory that re-hashes at the named commit; the live state is the archive at docs/runs/README.md, which names each mission's tier as its evidence lands" width="900">
   </picture>
 </p>
 

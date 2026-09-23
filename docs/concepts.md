@@ -420,7 +420,7 @@ N+1's enumeration as findings to triage. A chain that stops early is a correct o
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/proof-ladder.jpg">
     <source media="(prefers-color-scheme: light)" srcset="../assets/diagrams/proof-ladder-light.jpg">
-    <img src="../assets/diagrams/proof-ladder-light.jpg" alt="The proof ladder: doctrine-only, then self-run, then external-run; advancing needs a run report that binds, with a RUN header, a manifest in the run's own directory and an inventory that re-hashes at the named commit; clean-sweep and prove-it read self-run, every other mission doctrine-only" width="820">
+    <img src="../assets/diagrams/proof-ladder-light.jpg" alt="The proof ladder: doctrine-only, then self-run, then external-run; advancing needs a run report that binds, with a RUN header, a manifest in the run's own directory and an inventory that re-hashes at the named commit; the live state is the archive at docs/runs/README.md, which names each mission's tier as its evidence lands" width="820">
   </picture>
 </p>
 
@@ -447,8 +447,9 @@ verifier transcript checked against a committed key
 ([#281](https://github.com/ravidsrk/orca-fleet/issues/281)), on top of making the tier cost an
 actual run ([#286](https://github.com/ravidsrk/orca-fleet/issues/286)).
 
-Today `clean-sweep` and `prove-it` read `self-run` and every other mission reads `doctrine-only`: the first
-tiers earned under the binding gate, after the proven count went *down* as the mechanism got
+The live state is the [run archive](runs/): it names each mission's tier as its evidence
+lands, and says per run whether and why it binds. Tiers are earned only through the binding gate,
+even when that makes the proven count go *down* as the mechanism gets
 stronger — which is the mechanism working. The predecessor shipped twelve missions with two proven
 and paid for it, and a tier whose artifacts are gone is the same claim in better packaging. The
 [run archive](runs/) records every run that really happened and says, per run, whether and why it
