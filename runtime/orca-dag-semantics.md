@@ -14,9 +14,10 @@ retired scheduler commands (`orchestration run`, `coordinator-start/stop`) perfo
 return the current-skill recovery action — never call them.
 
 **Fleet rule:** the run scope is the Run id, recorded in the ledger header at start (liveness-resume.md).
-Never converge, WATCH, or RESUME against an unfiltered `task-list` — unscoped lists bury live rows
-under every past run on the machine (nothing prunes automatically). A foreign run's completed tasks
-are not your wins; a foreign pending is not your stall.
+Never converge, WATCH, or RESUME against an unfiltered `task-list` — unscoped lists are every past run on the
+machine (nothing prunes automatically; ≥ v1.4.206 pages are newest-first with a truncation `warnings[]`,
+so rows surface newest rather than burying — but they are still everyone's rows, not yours). A foreign
+run's completed tasks are not your wins; a foreign pending is not your stall.
 
 **Nested depth:** `nested_worker_depth_exceeded` is counted from the ISSUING terminal, not from the
 Run — a dispatched worker creating a fresh Run and calling `worker-start` is still a worker, and

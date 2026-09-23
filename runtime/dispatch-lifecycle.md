@@ -144,7 +144,7 @@ Retire each unit's worktree when its unit MERGES, not at run end — tearing dow
 `WT_CLEAN`. Verify first: the PR is `state=MERGED`, the branch is deleted, and `git status` in the worktree is clean. NEVER remove the coordinator's own
 worktree, a dirty worktree, or one whose branch is unmerged; if removal is refused, archive instead of forcing. Both leak and force-clean classes are
 ledgered: `unit · worktree · retired ts`. Name the verbs: terminals first with `terminal close --worktree <selector> --all`, the canonical teardown that stops
-every process the workspace owns and durably removes its tabs, layouts, and resume records (`cli/specs/terminal-close.ts:8-14`; `terminal stop` is deprecated plumbing)
+every process the workspace owns and durably removes its tabs, layouts, and resume records (`cli/specs/terminal-close.ts:8-14`; `terminal stop` was deprecated plumbing and is REMOVED at v1.4.209)
 — then the tree with `worktree rm --worktree id:<repoId>::<path>` (`orca-cli:91`). A bulk close that cannot confirm every PTY is `unverifiable`, not clean:
 ledger it as a leak, never force it.
 
