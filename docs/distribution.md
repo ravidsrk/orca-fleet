@@ -117,7 +117,7 @@ caveat three paragraphs above it (PR #342 review).
 |---|---|---|
 | Self-hosted marketplace | yes | `/plugin marketplace add ravidsrk/orca-fleet` (already the install path) |
 | [buildwithclaude.com](https://buildwithclaude.com/api/search?q=orca-fleet) | yes (auto-index) | slug `@ravidsrk/orca-fleet`; 0 installs; description still carries a stale hardcoded catalog count |
-| [skills.sh](https://www.skills.sh/api/search?q=ravidsrk) | **no** — indexes the predecessor `ravidsrk/autonomous-fleet` instead | search `ravidsrk/orca-fleet` returns stablyai/orca skills, not this catalog |
+| [skills.sh](https://www.skills.sh/ravidsrk/orca-fleet) | **yes (2026-09-23)** | listing live: all 21 missions (`0 total installs` at registration) — skills.sh has no submission form; the first `npx skills add ravidsrk/orca-fleet` registers the repo, so the agent slice ran it from a scratch HOME. CAUTION for any re-run: the installer's symlink mode rewires the CWD's skills/ tree into `.agents/` symlinks — run it from a throwaway directory, never from the repo root (the 2026-09-23 registration needed a full `git checkout -- skills/` repair). The predecessor `ravidsrk/autonomous-fleet` listing remains as history |
 | [claudemarketplace.net](https://www.claudemarketplace.net/search?q=orca-fleet) | no | search payload `skills: []`, `mcpServers: []` |
 | [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | no **(unverified 2026-09-13)** | `marketplace.json` had neither `orca-fleet` nor `ravidsrk` **at 2026-09-01**; not re-checkable from this session — that path now 404s and the repository API returns 403 |
 | `agentskills validate` | name/description/compatibility/license pass | extras `proof`/`autonomy`/`proof_evidence` are intentional (issue #211) |
@@ -130,13 +130,58 @@ No indexer currently publishes a does-it-load score for this catalog (buildwithc
 These still need an account with rights to submit. Do not flip them from a clone:
 
 - [ ] Submit to **anthropics/claude-plugins-official** (their plugin-directory form) and to
-      community aggregators that are not GitHub-scraping this repo (claudemarketplace.net;
-      get `ravidsrk/orca-fleet` onto skills.sh so the predecessor listing is not the hit).
+      **claudemarketplace.net** (email/message submission) — the paste-ready kit is the
+      section below.
+- [x] Get `ravidsrk/orca-fleet` onto **skills.sh** so the predecessor listing is not the
+      hit — DONE 2026-09-23: [skills.sh/ravidsrk/orca-fleet](https://www.skills.sh/ravidsrk/orca-fleet)
+      lists all 21 missions (registration is first-install telemetry, run from a scratch HOME).
 - [ ] Confirm a green **"does-it-load"** score once an indexer actually scores the pack.
 - [ ] On every listing a human files, lead with the **`proof:` trust badge** framing + a
       link to the [run archive](runs/). The buildwithclaude auto-index currently leads with
       a stale catalog-count blurb — replace that copy when a submit form exists.
 - [x] `agentskills.io` required fields pass locally; extras documented (issue #211).
+
+## Submission kit (paste-ready, maintainer's round)
+
+Shared lead for every listing (the `proof:` framing):
+
+> Orca-fleet is 21 outcome-named autonomous fleets for the Orca runtime. Each mission is one
+> outcome with its own state machine and an evidence-backed definition of done: every unit of
+> work closes with a SHA-bound evidence manifest an independent verifier re-derives, never a
+> worker's narration. Its own catalog holds three binding self-run proof reports (clean-sweep,
+> prove-it, harden-it) — the same standard it asks of your repo. One router per worker; MIT.
+> Install: `/plugin marketplace add ravidsrk/orca-fleet`
+> Proof: https://github.com/ravidsrk/orca-fleet/tree/main/docs/runs
+
+**anthropics/claude-plugins-official** — use the plugin-directory submission form linked from
+their README's Contributing section. The catalog is already a conforming marketplace repo
+(`.claude-plugin/marketplace.json` + `plugin.json` at the root); the entry to offer:
+
+```json
+{
+  "name": "orca-fleet",
+  "description": "Outcome-named autonomous fleets for the Orca runtime — each mission is one outcome with a SHA-bound, independently re-derived definition of done. Three missions carry binding self-run proof reports.",
+  "author": { "name": "Ravindra Kumar", "email": "ravidsrk@gmail.com", "url": "https://github.com/ravidsrk" },
+  "category": "development",
+  "source": { "source": "github", "url": "https://github.com/ravidsrk/orca-fleet" },
+  "homepage": "https://github.com/ravidsrk/orca-fleet"
+}
+```
+
+**claudemarketplace.net** — email chekkutech@gmail.com (or their message button) with their
+requested fields, filled:
+
+- Name: orca-fleet
+- One-line summary: Outcome-named autonomous fleets for Orca — evidence-backed done, never narration.
+- Longer description: the shared lead above + the README link.
+- Install: `/plugin marketplace add ravidsrk/orca-fleet` (Claude Code plugin system).
+- Repository: https://github.com/ravidsrk/orca-fleet · Docs: same, `docs/`.
+- Logo: `assets/social-preview.jpg` (1200px; crop to 128px+ as needed).
+- Suggested category: Developer Tools / Agent Skills.
+
+**buildwithclaude** — auto-indexed; the stale blurb is from an old scrape (the repo
+description was refreshed since). Ask for a re-index through their contact channel with the
+shared lead as the replacement copy.
 
 ## Optional: a proof-status badge
 
