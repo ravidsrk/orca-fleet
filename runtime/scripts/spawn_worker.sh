@@ -66,7 +66,7 @@
 #
 # Usage:
 #   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]
-#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi (default claude)
+#   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi|antigravity (default claude)
 # Prints:  SCRATCH=<per-attempt receipt directory>, then
 #          supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the
 #          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>
@@ -75,9 +75,12 @@
 # `tui-agent-permissions.ts:6-33`, so workers never block on a prompt; anything else fails closed
 # and needs WORKER_CMD):
 #   claude/codex/gemini → ro + rw + danger
-#   cursor              → rw + danger (`tui-agent-permissions.ts:25` maps cursor to `--yolo`; Orca
-#                         has no read-only mode for it) — also one of the three agents that
-#                         `--model`/`--effort` can target
+#   cursor              → rw + danger (`tui-agent-permissions.ts` maps cursor to `--yolo`;
+#                         ro → WORKER_CMD). `--model`/`--effort` are accepted for claude, codex,
+#                         cursor, and antigravity only when the user named a model; this script
+#                         omits both so the worker inherits the configured default.
+#   antigravity         → rw + danger (`--dangerously-skip-permissions`, same flag as claude);
+#                         ro → WORKER_CMD
 #   grok                → rw + danger (Orca has no read-only mode for grok)
 #   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD
 #   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of
@@ -162,7 +165,7 @@ case "$effort" in
     ;;
 esac
 # Known Orca roster. claude/codex/gemini have Orca-verified flags for all three profiles;
-# cursor and grok have a verified WRITE flag (rw/danger) but no read-only mode in Orca's map;
+# cursor, grok, droid, and antigravity have a verified WRITE flag (rw/danger) but no read-only mode in Orca's map;
 # opencode/omp/pi have no Orca autonomous launch flag at all (droid's `--auto high`
 # covers rw/danger — coverage table above; droid ro still needs WORKER_CMD). Any
 # (agent, profile) without a verified flag fails CLOSED and must be supplied via
@@ -170,9 +173,9 @@ esac
 # `kilo` is deliberately ABSENT for the same reason opencode fails closed: Orca STRIPS
 # `--dangerously-skip-permissions` from both (`tui-agent-launch-defaults.ts:5-8` at v1.4.203).
 case "$agent" in
-  claude|codex|cursor|gemini|grok|droid|opencode|omp|pi) : ;;
+  claude|codex|cursor|gemini|grok|droid|opencode|omp|pi|antigravity) : ;;
   *)
-    echo "SPAWN=REFUSED task=${task} unknown agent '${agent}' (want claude|codex|cursor|gemini|grok|droid|opencode|omp|pi)" >&2
+    echo "SPAWN=REFUSED task=${task} unknown agent '${agent}' (want claude|codex|cursor|gemini|grok|droid|opencode|omp|pi|antigravity)" >&2
     exit 2
     ;;
 esac
@@ -356,10 +359,11 @@ case "$agent:$PROFILE" in
   gemini:ro)                 cmd_default="gemini --approval-mode plan" ;;
   gemini:rw|gemini:danger)   cmd_default="gemini --yolo" ;;
   cursor:rw|cursor:danger)   cmd_default="cursor --yolo" ;;
+  antigravity:rw|antigravity:danger) cmd_default="antigravity --dangerously-skip-permissions" ;;
   grok:rw|grok:danger)       cmd_default="grok --permission-mode bypassPermissions" ;;
   droid:rw|droid:danger)     cmd_default="droid --auto high" ;;
   # No Orca-verified non-blocking flag → WORKER_CMD required:
-  #   cursor:ro, grok:ro, droid:ro (no read-only modes in Orca's map)
+  #   cursor:ro, grok:ro, droid:ro, antigravity:ro (no read-only modes in Orca's map)
   #   opencode:*, kilo:* (Orca STRIPS --dangerously-skip-permissions from both;
   #                       opencode autonomy is config-driven)
   #   omp:*, pi:* (not in Orca's autonomous-arg map)
@@ -499,7 +503,7 @@ if [ -z "$override" ] && [ "$PROFILE" != "ro" ]; then
   # drift: worker-start takes its args from the HOST, so this is what the host must have used.
   profile_flag=""
   case "$agent" in
-    claude) profile_flag="--dangerously-skip-permissions" ;;
+    claude|antigravity) profile_flag="--dangerously-skip-permissions" ;;
     codex)  profile_flag="--dangerously-bypass-approvals-and-sandbox" ;;
     gemini|cursor) profile_flag="--yolo" ;;
     grok)   profile_flag="--permission-mode bypassPermissions" ;;

@@ -805,7 +805,8 @@ esac
         """
         for agent, wrong in (("claude", "--permission-mode plan"),
                              ("codex", "--sandbox read-only"),
-                             ("cursor", "--permission-mode plan")):
+                             ("cursor", "--permission-mode plan"),
+                             ("antigravity", "--yolo")):
             with self.subTest(agent=agent):
                 receipt = copy.deepcopy(self.READY_RECEIPT)
                 receipt["result"]["launch"]["effective"] = {"agent": agent, "args": wrong}
@@ -929,6 +930,21 @@ esac
     def test_cursor_ro_has_no_verified_flag(self):
         # Orca has no read-only mode for cursor — fail closed, exactly like grok.
         rc, _, err = run_spawn(self.ARGS + ["cursor"], env_extra={"PROFILE": "ro"})
+        self.assertEqual(rc, 2, err)
+        self.assertIn("no verified PROFILE=ro launch flag", err)
+
+    def test_antigravity_is_on_the_roster_for_write_tiers(self):
+        # Pinned coordinator-loop: worker-start accepts --agent antigravity. Its autonomous
+        # flag is claude's (`tui-agent-permissions.ts`), so the default receipt already
+        # carries it. ro stays fail-closed: Orca's map has no read-only flag for it.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp)
+            p = self._run(tmp, self.ARGS + ["antigravity"], self.RW)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertIn("--agent antigravity", log.read_text())
+
+    def test_antigravity_ro_has_no_verified_flag(self):
+        rc, _, err = run_spawn(self.ARGS + ["antigravity"], env_extra={"PROFILE": "ro"})
         self.assertEqual(rc, 2, err)
         self.assertIn("no verified PROFILE=ro launch flag", err)
 

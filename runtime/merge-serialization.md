@@ -18,10 +18,10 @@ Two corrections against v1.4.199, both of which make this rule the FLEET's, not 
   mailbox, which is the coordinator inbox and the address upstream prefers (`cli/specs/orchestration.ts:78`).
   Naming the conductor handle explicitly stays correct and stays this fleet's convention, because a
   merge queue has exactly one owner and the handle says so.
-- **A `merge_ready` to a group is NOT rejected.** The runtime refuses group addresses for
-  `worker_done` and `heartbeat` only (`message-send-handler.ts:51-58`); a `merge_ready --to @all`
-  would fan out to every worker and put N writers on one BASE. Nothing below the fleet stops that,
-  so the rule stands on our discipline alone: **never address a `merge_ready` to a group.**
+- **A `merge_ready` to a group is delivered, inside the sender's Run.** The runtime refuses group
+  addresses for `worker_done` and `heartbeat` only (`message-send-handler.ts:51-58`); `@all` reaches
+  that Run's live Dispatches, excludes its coordinator, and puts those writers on one BASE. Address
+  a `merge_ready` to the conductor handle or the Run mailbox (`dispatch-lifecycle.md`).
 
 ## Conductor loop (ONE terminal owns all merges to BASE)
 
