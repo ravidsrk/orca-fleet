@@ -1814,5 +1814,40 @@ class TranscriptBindsTheVerifierToolchain(SignedKeyFixture):
         self.assertTrue(any("ed25519.py" in e and "transcript" in e for e in errors), errors)
 
 
+class ASelfPinnedKeyNeverChoosesItsJudge(RunReportBinding):
+    """h409 O-3.3: GRADING_BASES ends in HEAD, so a checkout with no origin and no main/master
+    branch read the enforcement key AT the pin — the pin choosing its own judge. key_rev now
+    refuses that fallback when the pin carries a key; any named base re-opens the lane."""
+
+    def _drop_named_bases(self):
+        for branch in ("main", "master"):
+            subprocess.run(["git", "branch", "-D", branch], cwd=str(self.repo),
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def _pin(self):
+        (self.repo / ".orca").mkdir(exist_ok=True)
+        (self.repo / ".orca" / "dispatch-pubkey").write_text("ab" * 32 + "\n")
+        _git(self.repo, "add", "-A")
+        _git(self.repo, "commit", "-qm", "self-pinned key")
+        return _git(self.repo, "rev-parse", "HEAD")
+
+    def test_head_only_self_pin_refuses(self):
+        _git(self.repo, "checkout", "-q", "-b", "trunk")
+        self._drop_named_bases()
+        rev = self._pin()
+        at, why = run_report.key_rev(rev, self.repo)
+        self.assertIsNone(at)
+        self.assertIn("O-3.3", why)
+
+    def test_a_named_base_reopens_the_lane(self):
+        _git(self.repo, "checkout", "-q", "-b", "trunk")
+        self._drop_named_bases()
+        rev = self._pin()
+        _git(self.repo, "branch", "-f", "main", rev)
+        at, why = run_report.key_rev(rev, self.repo)
+        self.assertEqual(at, rev)
+        self.assertIn("the pin", why)
+
+
 if __name__ == "__main__":
     unittest.main()

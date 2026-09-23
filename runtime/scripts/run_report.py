@@ -91,9 +91,15 @@ import json
 import os
 import re
 import shlex
+import shutil
+
 import subprocess
 import sys
 from pathlib import Path
+
+# h409 hygiene: one git resolution rule across the toolchain —
+# resolved once, never a bare PATH lookup per call (reaudit-r2 P3).
+GIT = shutil.which("git") or "git"
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
@@ -161,7 +167,7 @@ def parse_run_header(text):
 
 def path_exists_at(rev, path_text, root):
     return subprocess.run(
-        ["git", "cat-file", "-e", f"{rev}:{path_text}"],
+        [GIT, "cat-file", "-e", f"{rev}:{path_text}"],
         cwd=str(root), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     ).returncode == 0
 
@@ -380,7 +386,7 @@ def blob_at(rev, path_text, root):
     """The bytes of `path_text` as of `rev`, or None. Reading the manifest AT the pinned commit,
     never from the working tree, is the whole point: the tree has moved on since the run."""
     proc = subprocess.run(
-        ["git", "show", f"{rev}:{path_text}"],
+        [GIT, "show", f"{rev}:{path_text}"],
         cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
     )
     return proc.stdout if proc.returncode == 0 else None
@@ -389,7 +395,7 @@ def blob_at(rev, path_text, root):
 def tree_of(rev, root):
     """`rev`'s tree sha, or None."""
     proc = subprocess.run(
-        ["git", "rev-parse", f"{rev}^{{tree}}"],
+        [GIT, "rev-parse", f"{rev}^{{tree}}"],
         cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
     )
     out = proc.stdout.strip()
@@ -510,7 +516,7 @@ def grading_base(root, base=None):
     GRADING_BASES that resolves. None only in a repository with no commit at all."""
     for candidate in ((base,) if base else GRADING_BASES):
         proc = subprocess.run(
-            ["git", "rev-parse", "--verify", "-q", f"{candidate}^{{commit}}"],
+            [GIT, "rev-parse", "--verify", "-q", f"{candidate}^{{commit}}"],
             cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
         )
         if proc.returncode == 0 and proc.stdout.strip():
@@ -521,7 +527,7 @@ def grading_base(root, base=None):
 def is_ancestor(rev, base, root):
     """`rev` reachable from `base` (a commit is its own ancestor)."""
     return subprocess.run(
-        ["git", "merge-base", "--is-ancestor", rev, base],
+        [GIT, "merge-base", "--is-ancestor", rev, base],
         cwd=str(root), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     ).returncode == 0
 
@@ -532,6 +538,16 @@ def key_rev(rev, root, base=None):
     tip = grading_base(root, base)
     if tip is None:
         return None, "no grading base resolves (tried " + ", ".join(GRADING_BASES) + ")"
+    if base is None and blob_at(rev, PUBKEY_PIN, root) is not None and not any(
+            subprocess.run([GIT, "rev-parse", "--verify", "-q", f"{c}^{{commit}}"],
+                           cwd=str(root), stdout=subprocess.PIPE,
+                           stderr=subprocess.DEVNULL).returncode == 0
+            for c in GRADING_BASES[:-1]):
+        # h409 O-3.3: only HEAD resolves, and the pin carries a key — reading the key at the
+        # grading base would read it where the pin chooses (the pin IS HEAD). Refusing the
+        # self-pinned fallback; an origin/main (or any named base) re-opens the lane.
+        return None, ("only HEAD resolves as a grading base and the pin carries a key — the pin "
+                      "would choose its own judge; refusing the self-pinned fallback (h409 O-3.3)")
     if is_ancestor(rev, tip, root):
         return rev, f"the pin, an ancestor of the grading base {tip[:12]}"
     return tip, (f"the grading base {tip[:12]} — the pin {rev[:12]} is not an ancestor of it, so the "
@@ -738,7 +754,7 @@ def _mutation_missions(root, rev=None):
 def _read_at_rev(rev, path_text, root):
     try:
         proc = subprocess.run(
-            ["git", "cat-file", "blob", f"{rev}:{path_text}"],
+            [GIT, "cat-file", "blob", f"{rev}:{path_text}"],
             cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     except OSError:
         return None

@@ -110,7 +110,7 @@ worker-set; anything else in the environment is ignored):
   the range is linear); `tool: hand` applies the unified diff quoted in the NC artifact — and
   requires `negative_control.command` to exit **non-zero** there, then **zero** in a second clean
   worktree at `head_sha`. Requires `ORCA_NC_COMMAND` — without it the run is RED before any
-  worktree is built, so a command the worker nominated is never executed. The control must bind to
+  worktree is built, so a command the worker nominated is never executed. The control runs under a six-name environment floor (PATH, HOME, TMPDIR/TMP/TEMP, LANG/LC_* — h409 F-6): credentials and `ORCA_*`/`GIT_*` never reach it, and a toolchain that genuinely needs another variable fails CLOSED (a false RED to name, never a silent pass). The control must bind to
   the change (#280): the paths it restores, and the `+++` targets of a `hand` diff, must be
   production paths `base_sha..head_sha` really changes — not a decoy, and not a test file; the
   range-revert fallback is refused when the unit touches a test module; and the RED must carry an
@@ -171,6 +171,7 @@ only as sound as the provenance of the inputs that name them.** The scope denomi
 (`--contract-source`/`--contract-digest`) and the unit class (`--unit-class`) are supplied via env; if
 the worker can set that env, it can choose its own denominator and class.
 
+- **Authority custody is a probe, and a probe can say no.** Every external authority the verifier consults (gh, git, gitleaks) is pinned once at startup and classed by an ownership+mode probe over every path component and symlink hop; a sound lane refuses a worker-writable authority outright. Consequence (h409 O-1): on a host whose ONLY gh lives in a user-owned location (any Homebrew install), a sound lane cannot take an independent review from that box at all — by design; the review must come from a host where the binary is beyond the worker's reach (a root-owned /usr/bin, a fresh CI clone).
 - **Native `Stop`/`TaskCompleted` hook — ADVISORY by default.** The gate runs *inside the graded
   worker's session*, so the worker can set `ORCA_*`. With no signed dispatch record it is
   defense-in-depth (it still catches an honest mistake or a lazy manifest), **not a soundness

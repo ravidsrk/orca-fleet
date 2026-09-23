@@ -3939,6 +3939,13 @@ class DotSlashEvidenceSpelling(RepoCase):
         self.assertIsNone(err)
         self.assertIn(b"KILLED", raw)
 
+    def test_a_tracked_directory_is_not_an_artifact(self):
+        # reaudit-r2 P3: `cat-file -e` succeeds on a TREE too, and `git show` would print the
+        # directory's listing as if it were artifact bytes. The probe is typed: blob or refuse.
+        raw, err = verify._read_artifact(self.m, "docs/reports")
+        self.assertIsNone(raw, "a tracked directory read as artifact bytes")
+        self.assertIsNotNone(err)
+
     def test_dotslash_path_at_ref_source_resolves_against_the_toplevel(self):
         os.chdir(self.repo / "docs")
         raw, err = verify.read_source(f"./docs/reports/u/nc.txt@{self.head}")
@@ -4834,22 +4841,65 @@ class GitLegsRunUnderAScrubbedEnvironment(MutationFixture):
 
     def test_git_and_gitleaks_see_the_allowlist_and_nothing_else(self):
         self._green_executed_run()
+        belt = {"GIT_TERMINAL_PROMPT", "GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM",
+                "GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_KEY_1", "GIT_CONFIG_KEY_2",
+                "GIT_CONFIG_VALUE_0", "GIT_CONFIG_VALUE_1", "GIT_CONFIG_VALUE_2"}
         for log in (self.git_seen, self.gitleaks_seen):
             seen = set(log.read_text().split())
             self.assertTrue(seen, f"{log.name}: the wrapper was never launched")
-            for name in ("GIT_EXTERNAL_DIFF", "GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0",
-                         "GIT_CONFIG_VALUE_0", "GIT_SSH_COMMAND", "GIT_PROXY_COMMAND",
+            for name in ("GIT_EXTERNAL_DIFF", "GIT_SSH_COMMAND", "GIT_PROXY_COMMAND",
                          "GH_TOKEN", "ORCA_PROVENANCE"):
                 self.assertNotIn(name, seen, (log.name, seen))
-            self.assertEqual({n for n in seen if n.startswith("GIT_")}, {"GIT_TERMINAL_PROMPT"}, seen)
+            self.assertEqual({n for n in seen if n.startswith("GIT_")}, belt, seen)
             self.assertIn("PATH", seen)
             self.assertIn("HOME", seen)
 
-    def test_git_env_is_nc_env_plus_the_prompt_guard(self):
+    def test_git_env_is_nc_env_plus_the_belt(self):
         with mock.patch.dict(os.environ, self.planted):
             env = verify._Authority.git_env()
-            self.assertEqual(env, {**verify._Authority.nc_env(), "GIT_TERMINAL_PROMPT": "0"})
-        self.assertFalse({k for k in env if k.startswith(("GIT_CONFIG", "GH_", "ORCA_"))}, env)
+            self.assertEqual(env, {**verify._Authority.nc_env(),
+                                   "GIT_TERMINAL_PROMPT": "0",
+                                   "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1",
+                                   "GIT_CONFIG_COUNT": "3",
+                                   "GIT_CONFIG_KEY_0": "core.fsmonitor",
+                                   "GIT_CONFIG_VALUE_0": "false",
+                                   "GIT_CONFIG_KEY_1": "protocol.ext.allow",
+                                   "GIT_CONFIG_VALUE_1": "never",
+                                   "GIT_CONFIG_KEY_2": "safe.directory",
+                                   "GIT_CONFIG_VALUE_2": "*"})
+        self.assertFalse({k for k in env if k.startswith(("GH_", "ORCA_"))}, env)
+
+    def test_the_belt_closes_the_repo_local_fsmonitor_channel(self):
+        # h409 B5: a `core.fsmonitor` in the graded repo's OWN .git/config is env-independent —
+        # only the GIT_CONFIG_* belt (-c precedence) closes it. Positive control first: bare git
+        # on the same repo DOES run the planted monitor.
+        stub = self.fired.parent / "stub.sh"
+        subprocess.run(["git", "config", "core.fsmonitor", str(stub)], cwd=self.repo, check=True)
+        subprocess.run(["git", "status", "--porcelain"], cwd=self.repo, capture_output=True,
+                       env=dict(os.environ), check=False)
+        self.assertTrue(self.fired.exists(), "repo-local core.fsmonitor did not fire on bare git")
+        self.fired.unlink()
+        self._green_executed_run()
+        self.assertFalse(self.fired.exists(),
+                         "repo-local core.fsmonitor fired through a belted verifier git leg")
+
+    def test_the_belt_drops_the_global_config_files(self):
+        # h409 B4: HOME → ~/.gitconfig core.fsmonitor. GIT_CONFIG_GLOBAL=/dev/null +
+        # GIT_CONFIG_NOSYSTEM=1 close it; HOME stays on the floor (git needs it).
+        fakehome = self.fired.parent / "fakehome"
+        fakehome.mkdir()
+        (fakehome / ".gitconfig").write_text(f"[core]\n\tfsmonitor = {self.fired.parent}/stub.sh\n")
+        subprocess.run(["git", "status", "--porcelain"], cwd=self.repo, capture_output=True,
+                       env={**os.environ, "HOME": str(fakehome)}, check=False)
+        self.assertTrue(self.fired.exists(), "~/.gitconfig core.fsmonitor did not fire on bare git")
+        self.fired.unlink()
+        path = self._manifest(nc=self._revert_nc())
+        with mock.patch.dict(os.environ, {**self.planted, "HOME": str(fakehome)}):
+            rc, out, err = self._run_main(path, "--repo", "o/r", "--execute-nc",
+                                          "--nc-command", self.proof_cmd)
+        self.assertEqual(rc, 0, out + err)
+        self.assertFalse(self.fired.exists(),
+                         "~/.gitconfig core.fsmonitor fired through a belted verifier git leg")
 
 
 class MalformedEnvelopeSignaturesRefuseIdentically(RepoCase):
