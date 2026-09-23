@@ -79,8 +79,9 @@
 #                         ro → WORKER_CMD). `--model`/`--effort` are accepted for claude, codex,
 #                         cursor, and antigravity only when the user named a model; this script
 #                         omits both so the worker inherits the configured default.
-#   antigravity         → rw + danger (`--dangerously-skip-permissions`, same flag as claude);
-#                         ro → WORKER_CMD
+#   antigravity         → rw + danger. `--agent antigravity`; the binary is `agy`
+#                         (`tui-agent-config.ts` detectCmd) plus
+#                         `--dangerously-skip-permissions`. ro → WORKER_CMD
 #   grok                → rw + danger (Orca has no read-only mode for grok)
 #   droid               → rw + danger (Orca appends `--auto high`); ro → WORKER_CMD
 #   opencode/omp/pi     → WORKER_CMD. opencode AND kilo are actively STRIPPED of
@@ -359,7 +360,7 @@ case "$agent:$PROFILE" in
   gemini:ro)                 cmd_default="gemini --approval-mode plan" ;;
   gemini:rw|gemini:danger)   cmd_default="gemini --yolo" ;;
   cursor:rw|cursor:danger)   cmd_default="cursor --yolo" ;;
-  antigravity:rw|antigravity:danger) cmd_default="antigravity --dangerously-skip-permissions" ;;
+  antigravity:rw|antigravity:danger) cmd_default="agy --dangerously-skip-permissions" ;;
   grok:rw|grok:danger)       cmd_default="grok --permission-mode bypassPermissions" ;;
   droid:rw|droid:danger)     cmd_default="droid --auto high" ;;
   # No Orca-verified non-blocking flag → WORKER_CMD required:

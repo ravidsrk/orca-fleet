@@ -948,6 +948,17 @@ esac
         self.assertEqual(rc, 2, err)
         self.assertIn("no verified PROFILE=ro launch flag", err)
 
+    def test_antigravity_custom_argv_uses_the_agy_binary(self):
+        # worker-start's agent id is antigravity; the executable Orca detects is agy
+        # (tui-agent-config.ts detectCmd). The custom-argv command must not invent
+        # a binary named antigravity.
+        script = SPAWN.read_text(encoding="utf-8")
+        self.assertIn(
+            'antigravity:rw|antigravity:danger) cmd_default="agy --dangerously-skip-permissions"',
+            script,
+        )
+        self.assertNotIn('cmd_default="antigravity ', script)
+
     def test_kilo_stays_off_the_roster(self):
         # Orca STRIPS --dangerously-skip-permissions from kilo as it does from opencode
         # (tui-agent-launch-defaults.ts:5-8), so kilo must not silently launch a prompting worker.
