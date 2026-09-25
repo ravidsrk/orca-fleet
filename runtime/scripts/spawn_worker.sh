@@ -350,6 +350,9 @@ fi
 # danger= the SAME autonomous flag as rw, but gated (ORCA_COORD_ALLOW_DANGER) and required to run
 #         in an ephemeral per-workspace sandbox (sandbox-policy.md) for destructive / exploit work.
 # An (agent, tier) with no Orca-verified flag stays empty → fail-closed to WORKER_CMD below.
+# Only the ro entries ever become argv (the custom-argv lane below). A write-tier entry is the
+# verified-flag gate: rw without an override launches through worker-start on the host's own
+# args (checked against profile_flag), an override replaces it, and danger is refused above.
 cmd_default=""
 _cx_effort="-c model_reasoning_effort=\"$effort\""
 case "$agent:$PROFILE" in

@@ -948,16 +948,30 @@ esac
         self.assertEqual(rc, 2, err)
         self.assertIn("no verified PROFILE=ro launch flag", err)
 
-    def test_antigravity_custom_argv_uses_the_agy_binary(self):
-        # worker-start's agent id is antigravity; the executable Orca detects is agy
-        # (tui-agent-config.ts detectCmd). The custom-argv command must not invent
-        # a binary named antigravity.
-        script = SPAWN.read_text(encoding="utf-8")
-        self.assertIn(
-            'antigravity:rw|antigravity:danger) cmd_default="agy --dangerously-skip-permissions"',
-            script,
-        )
-        self.assertNotIn('cmd_default="antigravity ', script)
+    def test_antigravity_argv_is_the_hosts_or_the_callers_never_the_map(self):
+        # worker-start's agent id is antigravity; Orca's detectCmd resolves it to `agy`
+        # (tui-agent-config.ts), so on the write tier the HOST names the binary and the launch
+        # map's rw entry is only the verified-flag gate. The one custom-argv launch antigravity
+        # has is WORKER_CMD, which must reach `terminal create` exactly as the caller wrote it.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp)
+            p = self._run(tmp, self.ARGS + ["antigravity"], self.RW)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            calls = log.read_text()
+            self.assertIn("--agent antigravity", calls)
+            self.assertNotIn("terminal create", calls)
+        for profile in (self.RO, self.RW):
+            with self.subTest(profile=profile["PROFILE"]):
+                with tempfile.TemporaryDirectory() as tmp:
+                    log = self._stub(tmp)
+                    env = dict(profile, WORKER_CMD="agy", ORCA_COORD_ALLOW_CMD_OVERRIDE="1")
+                    p = self._run(tmp, self.ARGS + ["antigravity"], env)
+                    self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+                    calls = log.read_text()
+                    self.assertNotIn("worker-start", calls)
+                    create = next(l for l in calls.splitlines() if "terminal create" in l)
+                    self.assertIn("--command agy --json", create)
+                    self.assertIn("--inject", calls)
 
     def test_kilo_stays_off_the_roster(self):
         # Orca STRIPS --dangerously-skip-permissions from kilo as it does from opencode

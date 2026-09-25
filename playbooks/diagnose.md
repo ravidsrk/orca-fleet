@@ -31,15 +31,17 @@ usually names the seam. **Two prior diagnoses on one seam means the third fix is
 hand off to `reshape-it` with the three reports as the shallowness evidence, and say so in the
 verdict rather than shipping fix number three.
 
-Then search indexed agent sessions with `orca search`. Use the binary the current pin records
-(`orca-pin.md`); the app on PATH can lag it. Start with `orca search --index-status --json`.
-Continue from the run reports, and record which, when `enabled` is false or this binary has no
-`search` command — indexing has no CLI switch. When the index is on, search one distinctive phrase
-or identifier: quote a multi-word query, because unquoted words are read as command names. Each
-hit's snippet is transcript data — redact it (above) before it enters the ledger — and
-`resumeCommand` is a pointer to that session. `truncated.candidates: true` means the query was too
-wide: narrow it and search again. Prior art is done when the run reports are read and, where the
-index is on, the hits for that phrase are in the evidence.
+Then search indexed agent sessions with `orca search` (new in v1.4.206). Resolve the binary with
+`orca --version` on PATH (`orca-ide` on Linux outside an Orca terminal): the pin's `witness_binary`
+is a one-off extraction, never a path to call, and an app older than the pin is an owed update
+(`orca-pin.md`) that is the user's to make. Then run `orca search --index-status --json`. Continue
+from the run reports, and record which, when the app predates `search` or `enabled` is false —
+indexing has no CLI switch. When the index is on, search one distinctive phrase or identifier:
+quote a multi-word query, because unquoted words are read as command names. Each hit's snippet is
+transcript data — redact it (above) before it enters the ledger — and `resumeCommand` is a pointer
+to that session. `truncated.candidates: true` means the query was too wide: narrow it and search
+again. Prior art is done when the run reports are read and, where the index is on, the hits for
+that phrase are in the evidence.
 
 ## Localize → reduce → hypothesize
 
