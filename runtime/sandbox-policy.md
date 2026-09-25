@@ -29,6 +29,7 @@ Orca supplied the others (#302).
 | Agent  | `ro` (read-only review) | `rw` = `danger` flag (autonomous, non-blocking) |
 |--------|-------------------------|--------------------------------------------------|
 | claude | `--permission-mode plan` | `--dangerously-skip-permissions`                |
+| antigravity | — none verified → WORKER_CMD | `--dangerously-skip-permissions` (same flag as claude) |
 | codex  | `--sandbox read-only`    | `--dangerously-bypass-approvals-and-sandbox`    |
 | gemini | `--approval-mode plan`   | `--yolo`                                        |
 | cursor | — none verified → WORKER_CMD | `--yolo` (`tui-agent-permissions.ts:25`)     |
@@ -60,6 +61,12 @@ Orca supplied the others (#302).
 - **Effort default:** `spawn_worker.sh` defaults the optional effort arg to **`xhigh`** (max
   reasoning tier the agent exposes — e.g. codex `model_reasoning_effort`). Pass a lower tier only
   for deliberately cheap workers; never leave build/fix workers on a soft default.
+
+## A denied runtime connection
+
+`runtime_access_denied`: the sandbox blocked the connection, and the app is still up. Re-run that
+command with escalated permissions. Leave the desktop app alone — `orca open` and a restart change
+the user's running Orca.
 
 ## Danger belongs in an ephemeral sandbox, never on the host
 

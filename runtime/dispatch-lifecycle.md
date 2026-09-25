@@ -124,10 +124,9 @@ recovery action; the loop is the manual one (task-create → worker-start → `c
   parsers (`runtime/scripts/pm.py <file>` for saved streams) (`check-keepalive.ts:18-26`).
 - Mutations accept `--retry-request <id>` WITHIN one method: re-issue through the same method and the runtime dedupes; across methods it is refused (E2)
   (`request-show --request <id>`; `completed`/`pending`/`absent`). Use it on every non-idempotent orchestration call.
-- Group addresses (`@all`, `@idle`, `@claude`, `@codex`, `@grok`, `@cursor`, `@opencode`, `@gemini`, `@droid`, `@worktree:<id>`, …) are broadcast-only. The
-  RUNTIME rejects a group address for `worker_done` and `heartbeat` only (`message-send-handler.ts:51-58`) — a `merge_ready` to `@all` really would fan out.
-  The rest is FLEET policy and it stands: every lifecycle message goes to a concrete terminal or `dispatch:<id>`. A `worker_done` for the active
-  `taskId`+`dispatchId` auto-completes the task; do NOT follow it with `task-update --status completed` (reserve manual status writes for recovery/override).
+- Group addresses are the sender's own Run (orchestration guide, Addresses): every group except `@worktree:<id>` reaches that Run's live Dispatches and excludes its coordinator — a blocker goes to `run:<id>`, an unbound sender is refused, and `--run` does not grant membership. `@worktree:<id>` also reaches coordinators.
+  The runtime rejects a group for `worker_done` and `heartbeat` only (`message-send-handler.ts:51-58`); a `merge_ready` to `@all` fans out inside that Run. Lifecycle messages go to `dispatch:<id>` or `run:<id>`.
+  A `worker_done` for the active `taskId`+`dispatchId` auto-completes the task; reserve `task-update --status completed` for recovery and override.
 - The runtime writes no `type=dispatch`/`type=handoff` rows on inject, though both are valid `send --type` values a fleet could write and the retired
   coordinator ignores. `merge_ready` is fleet-written only (merge-serialization.md); point at the evidence manifest with the typed `--report-path <path>`
   flag, never a `reportPath` payload key (orca-dag-semantics.md).

@@ -805,7 +805,8 @@ esac
         """
         for agent, wrong in (("claude", "--permission-mode plan"),
                              ("codex", "--sandbox read-only"),
-                             ("cursor", "--permission-mode plan")):
+                             ("cursor", "--permission-mode plan"),
+                             ("antigravity", "--yolo")):
             with self.subTest(agent=agent):
                 receipt = copy.deepcopy(self.READY_RECEIPT)
                 receipt["result"]["launch"]["effective"] = {"agent": agent, "args": wrong}
@@ -931,6 +932,46 @@ esac
         rc, _, err = run_spawn(self.ARGS + ["cursor"], env_extra={"PROFILE": "ro"})
         self.assertEqual(rc, 2, err)
         self.assertIn("no verified PROFILE=ro launch flag", err)
+
+    def test_antigravity_is_on_the_roster_for_write_tiers(self):
+        # Pinned coordinator-loop: worker-start accepts --agent antigravity. Its autonomous
+        # flag is claude's (`tui-agent-permissions.ts`), so the default receipt already
+        # carries it. ro stays fail-closed: Orca's map has no read-only flag for it.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp)
+            p = self._run(tmp, self.ARGS + ["antigravity"], self.RW)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertIn("--agent antigravity", log.read_text())
+
+    def test_antigravity_ro_has_no_verified_flag(self):
+        rc, _, err = run_spawn(self.ARGS + ["antigravity"], env_extra={"PROFILE": "ro"})
+        self.assertEqual(rc, 2, err)
+        self.assertIn("no verified PROFILE=ro launch flag", err)
+
+    def test_antigravity_argv_is_the_hosts_or_the_callers_never_the_map(self):
+        # worker-start's agent id is antigravity; Orca's detectCmd resolves it to `agy`
+        # (tui-agent-config.ts), so on the write tier the HOST names the binary and the launch
+        # map's rw entry is only the verified-flag gate. The one custom-argv launch antigravity
+        # has is WORKER_CMD, which must reach `terminal create` exactly as the caller wrote it.
+        with tempfile.TemporaryDirectory() as tmp:
+            log = self._stub(tmp)
+            p = self._run(tmp, self.ARGS + ["antigravity"], self.RW)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            calls = log.read_text()
+            self.assertIn("--agent antigravity", calls)
+            self.assertNotIn("terminal create", calls)
+        for profile in (self.RO, self.RW):
+            with self.subTest(profile=profile["PROFILE"]):
+                with tempfile.TemporaryDirectory() as tmp:
+                    log = self._stub(tmp)
+                    env = dict(profile, WORKER_CMD="agy", ORCA_COORD_ALLOW_CMD_OVERRIDE="1")
+                    p = self._run(tmp, self.ARGS + ["antigravity"], env)
+                    self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+                    calls = log.read_text()
+                    self.assertNotIn("worker-start", calls)
+                    create = next(l for l in calls.splitlines() if "terminal create" in l)
+                    self.assertIn("--command agy --json", create)
+                    self.assertIn("--inject", calls)
 
     def test_kilo_stays_off_the_roster(self):
         # Orca STRIPS --dangerously-skip-permissions from kilo as it does from opencode

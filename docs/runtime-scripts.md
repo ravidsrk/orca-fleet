@@ -375,7 +375,7 @@ Usage: `SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree
 Flags: `--mark-ready` (only applies when every declared dep is already completed; the
 script never forces ready).
 
-Agents: `claude`, `codex`, `cursor`, `gemini`, `grok`, `droid`, `opencode`, `omp`, `pi`
+Agents: `claude`, `codex`, `cursor`, `gemini`, `grok`, `droid`, `opencode`, `omp`, `pi`, `antigravity`
 (default `claude`; effort default `xhigh`); unknown agents refuse. Profiles: `ro`, `rw`
 (default), `danger` — least privilege; `danger` needs the ephemeral sandbox plus
 `ORCA_SANDBOX_RECIPE`, and the script runs the doctor transcript itself into
