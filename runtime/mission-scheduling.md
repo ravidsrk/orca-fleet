@@ -74,3 +74,8 @@ The automation's run output is the mission's normal completion report plus the r
 state and the human-owed queue (parked one-way gates, the promotion PR). A scheduled run that
 parked at a gate is a correct outcome, not a failure — the next fire re-enumerates from current
 state.
+
+Parked gates have no CLI notification hook: `automations create` carries no notify/mobile flag
+(`automations.ts:41-71` at ee1c5220 and HEAD), and attention notifications render desktop-side
+with mobile fan-out applied in main (`agent-attention-notification-delivery.ts:1-14`). The run
+report plus `automations runs` history is the surface — a parked gate the report buries stays buried.

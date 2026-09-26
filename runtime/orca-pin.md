@@ -81,3 +81,12 @@ issue — it inherits this run's park register (docs/runs/2026-09-23-pin-it-488.
    verdict), fix drift in place, update this file and `pins.json` together.
 5. Refresh the park register, file the next dated re-pin issue, regenerate badges
    (`scripts/gen-badges.py`), and land with `scripts/validate.py` + `tests/` green.
+
+## 2026-09-26 correction — `terminal stop` was never witnessed removed (D1/D10)
+
+The "What moved" line above claims `terminal stop` removed at v1.4.209. That overstates what the
+run witnessed: source at the build commit keeps it as a hidden (`core.ts:241`) deprecated
+(`core.ts:242,246`) spec with its handler still present (`handlers/terminal.ts:137-142`) — same at
+HEAD 4cafa50e. `dispatch-lifecycle.md` now hedges accordingly. Live re-probe parked for the next
+pin-it with a live terminal: `orca terminal stop --worktree <selector> --json` (does it execute
+or refuse?) plus `orca terminal --help` (does `stop` stay unlisted?). History above untouched.

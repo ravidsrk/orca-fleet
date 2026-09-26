@@ -19,10 +19,13 @@ Two corrections against v1.4.199, both of which make this rule the FLEET's, not 
   Naming the conductor handle explicitly is this fleet's rule, because a merge queue has exactly one
   owner and the handle says so.
 - **A `merge_ready` to a group is delivered, inside the sender's Run.** The runtime refuses group
-  addresses for `worker_done` and `heartbeat` only (`message-send-handler.ts:51-58`); `@all` reaches
+  addresses for `worker_done` and `heartbeat` only (`message-send-handler.ts:55-59`); `@all` reaches
   that Run's live Dispatches, excludes its coordinator, and puts those writers on one BASE. Address
   a `merge_ready` to the conductor handle only: from a child Run, the owning Run mailbox is that
-  Run's coordinator inbox, not the conductor's (orchestration guide, Addresses).
+  Run's coordinator inbox, not the conductor's (orchestration guide, Addresses). Two addressing
+  facts bound it: mail to a settled Dispatch is REFUSED (`dispatch_inactive` — send to `run:<id>`
+  instead), and a bare-handle address is a non-durable terminal-only mailbox once that terminal
+  closes (warning `legacy_terminal_recipient`: `recipient-routing.ts:15-24,92-102`).
 
 ## Conductor loop (ONE terminal owns all merges to BASE)
 
@@ -30,7 +33,8 @@ Two corrections against v1.4.199, both of which make this rule the FLEET's, not 
    `--types` is the WAKE condition only: the Delivery that comes back is the whole FIFO batch, every
    type in it (orca-dag-semantics.md). Process the ENTIRE Delivery — settle the `worker_done`s, reply
    to the `question`s, board the `merge_ready`s — and only then `--ack <delivery_id>`. Acking after
-   handling just the filtered type discards the rest unread.
+   handling just the filtered type discards the rest unread. A retried `worker_done` is safe to
+   re-settle: the duplicate short-circuits idempotent (`duplicate: true`, `worker-report-settlement.ts:100-107`).
 2. FRESH? head of queue: `gh pr view <n> --json headRefOid,baseRefName,state` —
    state OPEN · `baseRefName == BASE` (never merge a PR aimed at default) ·
    `headRefOid == reviewed_sha` (reviewed-sha-freshness.md). Pin this accepted head as

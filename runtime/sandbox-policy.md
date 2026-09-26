@@ -10,14 +10,14 @@ block.
 
 **Say "by default" precisely.** What a `worker-start` launch actually appends is the host's
 `agentDefaultArgs` profile setting, not this map directly. Its MIGRATED DEFAULT is this map —
-`tui-agent-launch-defaults.ts:10` re-exports `YOLO_TUI_AGENT_ARGS` as `DEFAULT_TUI_AGENT_ARGS` — but
+`tui-agent-launch-defaults.ts:17` re-exports `YOLO_TUI_AGENT_ARGS` as `DEFAULT_TUI_AGENT_ARGS` — but
 a host whose owner chose manual mode carries `''` instead. Two consequences, opposite in sign: on a
 default host a supervised `PROFILE=ro` launch would be silently upgraded to bypass (which is why ro
 never takes `worker-start`, dispatch-lifecycle.md); on a manual host, `worker-start` launches
 PROMPTING workers while the fleet believes they are autonomous, and the run blocks on invisible
 dialogs. Neither is knowable from source: read `launch.effective` off the start receipt and record
 the host's permission mode in the ledger header. Source-witnessed at v1.4.203 (the 2026-09-16 pin-it run — docs/runs/2026-09-16-pin-it-416/ — re-read the YOLO map and launch defaults at the build commit)
-(`tui-agent-launch-defaults.ts:10`); live probe owed — pin-it.
+(`tui-agent-launch-defaults.ts:17`); live probe owed — pin-it.
 
 `spawn_worker.sh` maps each PROFILE per agent. **Orca has no read-only tier for ANY agent** — its
 maps are `YOLO_TUI_AGENT_ARGS` (`tui-agent-permissions.ts:7-33`) plus a small `YOLO_TUI_AGENT_ENV`
@@ -32,10 +32,10 @@ Orca supplied the others (#302).
 | antigravity | — none verified → WORKER_CMD | `--dangerously-skip-permissions` (same flag as claude) |
 | codex  | `--sandbox read-only`    | `--dangerously-bypass-approvals-and-sandbox`    |
 | gemini | `--approval-mode plan`   | `--yolo`                                        |
-| cursor | — none verified → WORKER_CMD | `--yolo` (`tui-agent-permissions.ts:25`)     |
+| cursor | — none verified → WORKER_CMD | `--yolo` (`tui-agent-permissions.ts:21`)     |
 | grok   | — none verified → WORKER_CMD | `--permission-mode bypassPermissions`        |
 | droid  | WORKER_CMD               | `--auto high`                                   |
-| opencode / kilo | WORKER_CMD      | WORKER_CMD — Orca **strips** `--dangerously-skip-permissions` from both (`tui-agent-launch-defaults.ts:5-8`) |
+| opencode / kilo | WORKER_CMD      | WORKER_CMD — Orca **strips** `--dangerously-skip-permissions` from both (`tui-agent-launch-defaults.ts:12-15`) |
 | omp / pi | WORKER_CMD             | WORKER_CMD (not in Orca's autonomous-arg map)   |
 
 - **`ro`** is non-blocking because it cannot mutate — nothing to approve. It is the permission

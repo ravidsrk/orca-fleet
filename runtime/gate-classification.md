@@ -12,10 +12,16 @@ policy is enforced, not requested.
   `decision_gates` table row — reply by message id.
 - **DAG gate:** coordinator `gate-create --task <id> --question "<text>"` (both flags required)
   → auto-blocks the task; `gate-resolve --id <gate_id> --resolution "<text>"` clears it.
+  Refused while a supervised Dispatch on the task is active (`task_not_startable` — stop or settle
+  its worker first: `decision-gate-store.ts:64-70`); the requester must own that Dispatch.
+- **Not a runtime gate:** `gate-batch.py`'s owed/answered/waived/overtaken records are fleet-side file-JSON run-close bookkeeping (`docs/runs/<run>/gate-batch.json`) — they block no DAG edge and resolve no `decision_gates` row.
 
 **The option lists are spelled differently, and mixing them is a silent refusal:** `ask --options`
 takes a **CSV** (`--options "rollback,patch-forward"`), `gate-create --options` takes a **JSON
 array** (`--options '["rollback","patch-forward"]'`) (`cli/specs/orchestration.ts:205,256` at v1.4.203 — re-witnessed by docs/runs/2026-09-16-pin-it-416/).
+
+**Lifecycle sends refuse with their own codes** (`send-point-to-point.ts:155-207`): `sender_not_assignee` (no
+active Dispatch belongs to the sender), `task_dispatch_mismatch`, `dispatch_capability_invalid` (wrong `--dispatch-capability`). A refused `worker_done` never settles — fix the sender or capability, never resend unchanged.
 
 **`gate-resolve` does NOT inject the resolution into the next dispatch preamble.** That injection
 exists only in the RETIRED scheduler path (`coordinator-task-dispatch.ts:130-139`); the live
@@ -36,7 +42,7 @@ resolution — #427's p32-preamble.json; a real redispatch's delivered preamble 
   that no answer was stored, **not** a reason to stall the fleet.
 - **`gate-create`:** task is `blocked` until resolve — true DAG hold.
 
-Recorded gate lifecycle (pending / resolved / unanswered) is not the same as "the coordinator
+Recorded gate lifecycle (pending / resolved / timeout — `create-graph-tables-sql.ts:190`, `types.ts:39`; there is no `unanswered` state) is not the same as "the coordinator
 must act now." Full DAG context: orca-dag-semantics.md.
 
 ## Classification (before reading the recommended option)
