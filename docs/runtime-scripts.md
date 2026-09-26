@@ -6,6 +6,33 @@ Every section anchors to its source file (read the implementation, not this page
 when they disagree) and to the test that pins its behavior. Claim-checked by
 `docs/runs/campaign-2026-09-16-document-it/extractor/claimcheck.py`.
 
+## `check_reply.py`
+
+Fail-closed invoker for `check` and `reply` — pm.py parses the inbox, this issues
+it. Source `runtime/scripts/check_reply.py:1-21`; behavior pinned by
+`tests/test_check_reply.py`.
+
+Usage: `check_reply.py {check,reply} ...`
+
+Subcommands: `check` (a terminal's messages), `reply` (one message).
+
+Flags: `check` takes `--terminal`, `--run`, `--ack`, one read mode (`--unread`,
+`--peek`, `--all`), `--types` (orchestration message keyset), `--format`, `--wait`,
+`--timeout-ms` (positive int), `--retry-request`; `reply` takes `--id`, `--body`,
+`--run`, `--from`, `--retry-request`. `--from` defaults to `ORCA_TERMINAL_HANDLE`;
+an explicit `--from` that disagrees with it is refused.
+
+A `--wait` that times out (`timedOut`) is exit 0 with `TIMED_OUT=yes`, not a failure.
+
+Exits: 0 checked/replied · 1 runtime/refusal/receipt failure · 2 usage or
+validation refusal (nothing invoked).
+
+> Why: at most one read mode, because the handler refuses more — and on older
+> runtimes an unknown `--peek` strips while `--unread` still marks read, so a
+> combined read would destroy what it meant to preview. Naming the sender is an
+> identity claim: a wrong `--from` speaks as a sibling worker, so disagreement with
+> the ambient handle refuses rather than misattributes.
+
 ## `decisions.py`
 
 Writer, reader, and validator for the DECISIONS log (`docs/DECISIONS.md`). Source
@@ -204,7 +231,9 @@ Exits: 0 clean · 1 un-waived findings · 2 could-not-run (never read as clean).
 
 Run-close human gates as typed records, not prose. Store is
 docs/runs/&lt;run&gt;/gate-batch.json (schema `gate-batch/1`); the sibling `.md` is a
-rendered view re-rendered on every mutation. Source `runtime/scripts/gate-batch.py:1-20`;
+rendered view re-rendered on every mutation. This is the fleet's LOCAL batch — not
+upstream's Run-scoped decision gates (`gate-create` RPC objects); same word, different
+mechanism. Source `runtime/scripts/gate-batch.py:1-20`;
 behavior pinned by `tests/test_gate_batch.py`.
 
 Usage: `gate-batch.py [--run DIR | --file PATH] <subcommand> ...`
@@ -275,9 +304,13 @@ Exits: 0 envelope written · 2 usage error · 3 fetch failed or timed out (no en
 Template for a bounded human-in-the-loop reproduction loop — bugs that only reproduce
 through a human: a login, a device, a click. Copy it beside the diagnosis notes, edit
 only between the EDIT markers, run it from the diagnosis loop. Source
-`runtime/scripts/hitl-loop.template.sh:1-26`; behavior pinned by `tests/test_hitl_loop.py`.
+`runtime/scripts/hitl-loop.template.sh:1-26`; behavior pinned by `tests/test_hitl_loop.py`
+(+ `tests/test_hitl_ask.py` for the durable branch).
 
 Usage: `hitl-loop.template.sh [--rounds N] [--dry-run] [--help]`
+
+Env: `HITL_ASK=1` routes asks through `hitl_ask.py` (durable ask/resume instead of
+shell `read`; `HITL_ASK_HELPER` overrides the helper path). `step()` stays keyboard.
 
 Flags: `--rounds` (default 3; must be a number), `--dry-run` (no reads, placeholder
 answers, so the steps parse before a human sits through them), `--help`.
@@ -297,6 +330,30 @@ Exits: 0 done · 2 usage.
 > that exits 0 after a non-reproducing bug must not read as success. And the loop is
 > bounded (`runtime/scripts/hitl-loop.template.sh:ROUNDS`, default 3) with a human
 > checkpoint per round, so a non-reproducing bug stops instead of asking forever.
+
+## `hitl_ask.py`
+
+Durable `orchestration ask` for the hitl loop: ask once, resume by id, never
+re-ask. Source `runtime/scripts/hitl_ask.py:1-20`; behavior pinned by
+`tests/test_hitl_ask.py`.
+
+Usage: `hitl_ask.py (--question TEXT | --resume MSG_ID) [--to RUN] [--run RUN] [--options CSV] [--timeout-ms MS] [--from SENDER] [--retry-request ID]`
+
+Flags: exactly one of `--question`/`--resume`; `--options` only on a new question;
+`--timeout-ms` clamped to 1..1800000 (default budget 600000). Every knob also reads
+an env fallback (`HITL_RESUME`, `HITL_ASK_TIMEOUT_MS`, `HITL_ASK_OPTIONS`,
+`HITL_ASK_TO`, `HITL_ASK_FROM`, `HITL_ASK_RUN`), flag winning; `--from` defaults to
+`ORCA_TERMINAL_HANDLE` and refuses disagreement.
+
+Answers print verbatim on stdout for the template to capture; a timeout exits 1 with
+`HITL_RESUME=<id>` and the rerun command on stderr.
+
+Exits: 0 answered · 1 timeout/runtime/receipt failure · 2 usage.
+
+> Why: a shell `read` answer evaporates with the pane — a timed-out question asked
+> that way is asked twice or lost. The durable ask/resume protocol keeps the question
+> addressable, and printing the resume id on timeout turns "no answer yet" into a
+> rejoinable state instead of a blind retry.
 
 ## `pm.py`
 
@@ -363,6 +420,49 @@ Exits: 0 clear · 1 not clear (reason on stderr) · 2 usage.
 > transcript for `web-prod-privileged` when asked about `web`. And the caller-named file
 > is gone entirely: spawn_worker.sh runs the doctor itself.
 
+## `search_sessions.py`
+
+`orca search` behind an `--index-status` precheck: never query an index the host
+reports broken. Source `runtime/scripts/search_sessions.py:1-23`; behavior pinned by
+`tests/test_search_sessions.py`.
+
+Usage: `search_sessions.py [--precheck-only] [query] [--query TEXT] [--scope conversation|all] [--fresh] [--limit 1-100] [--cursor CURSOR] [--agent A]... [--path P]... [--since ISO] [--sort relevance|newest] [--debug] [--environment E] [--pairing-code C]`
+
+The precheck runs first: `enabled=false` or phase `degraded`/`closed` refuses with
+exit 2 before the query fires; `current`/`idle`/`indexing` proceed (`--fresh` asks
+the host to reconcile first). The query rides positionally or as `--query`, never
+both; `--limit` caps at 100; `--since` must be ISO 8601 with an offset. Answers print
+`HITS=`/`NEXT_CURSOR=`; stale, malformed, or unavailable are failures, never empty
+results. `--precheck-only` runs just the verdict.
+
+Exits: 0 ok · 1 runtime/refusal/receipt failure · 2 usage or precheck refusal.
+
+> Why: searching a broken index proves nothing but returns something — the failure
+> mode is confident fiction from a degraded corpus. Gating on the host's own verdict
+> first makes "no prior art found" mean the index was healthy and empty, not sick and
+> silent.
+
+## `send_msg.py`
+
+Orchestration `send` with the handler's rules enforced client-side plus sender
+assertion. Source `runtime/scripts/send_msg.py:1-20`; behavior pinned by
+`tests/test_send_msg.py`.
+
+Usage: `send_msg.py --subject S [--to DEST] [--run R] [--from SENDER] [--body B] [--type T] [--priority P] [--thread-id T] [--payload JSON] [--task-id ID] [--dispatch-id ID] [--outcome O] [--files-modified JSON] [--report-path P] [--phase P] [--retry-request ID] [--dispatch-capability C]`
+
+Gates (all exit 2, zero side effects): `--type` from the 9-value keyset;
+`worker_done` requires `--outcome succeeded|failed` and `--outcome` rides nothing
+else; `worker_done`/`heartbeat` never target a group address and never run
+identity-less (needs `--from` or `ORCA_TERMINAL_HANDLE`; disagreement between them
+refuses). `--payload` must be JSON.
+
+Exits: 0 sent · 1 runtime/refusal/receipt failure · 2 usage or validation refusal.
+
+> Why: lifecycle signals addressed wrong are silent — a `worker_done` to a group or
+> from nobody either fans out or speaks as a sibling. The runtime would refuse each
+> of these after the fact; refusing client-side keeps the mistake a usage error with
+> no dispatch touched.
+
 ## `spawn_worker.sh`
 
 Fail-closed Orca worker dispatch for fleet coordinators: supervised lane
@@ -370,13 +470,23 @@ Fail-closed Orca worker dispatch for fleet coordinators: supervised lane
 (`terminal create` + `dispatch --inject`). Source `runtime/scripts/spawn_worker.sh:1-80`;
 behavior pinned by `tests/test_spawn_worker.py`.
 
-Usage: `SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]`
+Usage: `SP=<dir> [PROFILE=rw] spawn_worker.sh [options] (<task_id> <worktree_selector> | --spec TEXT <worktree_selector>) <title> [agent] [effort]`
 
 Flags: `--mark-ready` (only applies when every declared dep is already completed; the
-script never forces ready).
+script never forces ready); `--spec` (+ `--task-title`/`--deps`/`--parent`) creates
+the task first, then runs the normal verified path with its id; `--timeout-ms`
+(supervised lane, positive int); `--run`/`--from` (explicit binding — never implicit
+cwd/pane resolution); `--retry-of` + `--retry-request` (retries link the failed
+dispatch; one id, one mutation); `--on` (remote placement); `--environment`,
+`--pairing-code`, `--cli-cwd` (routing; ambient disagreement refuses);
+`--task-brief` (brief spawn-time read). Documented refusals, not silent drops:
+`--task-status`/`--task-ready` (a filtered view cannot verify deps, so the DAG check
+would be unsound) and `--host` (upstream rejects it as an unknown flag on
+orchestration verbs).
 
 Agents: `claude`, `codex`, `cursor`, `gemini`, `grok`, `droid`, `opencode`, `omp`, `pi`, `antigravity`
-(default `claude`; effort default `xhigh`); unknown agents refuse. Profiles: `ro`, `rw`
+(default `claude`; effort default `xhigh`, keyset `minimal|low|medium|high|xhigh|max|ultra`
+— the codex levels, the only path that interpolates it); unknown agents refuse. Profiles: `ro`, `rw`
 (default), `danger` — least privilege; `danger` needs the ephemeral sandbox plus
 `ORCA_SANDBOX_RECIPE`, and the script runs the doctor transcript itself into
 `ORCA_SANDBOX_DOCTOR` for `runtime/scripts/sandbox_doctor.py`. Note: `danger` is
@@ -389,9 +499,9 @@ default cwd), `PROFILE`, `ORCA_COORD_ALLOW_AUTONOMOUS_WRITE` (must be 1 for rw),
 
 Exits: 0 dispatched · 1 spawn/dispatch step failed · 2 usage or policy refusal (every
 typed refusal code) · 3 custom-argv turn UNPROVEN (inspect, never respawn, never
-re-Enter) · 4 supervised outcome_unknown (inspect via the receipt's nextCommands, never
-respawn) · 5 LAUNCHED_UNUSABLE (worker live but the profile flag unproven — stop it, fix
-the host).
+re-Enter) · 4 supervised outcome_unknown (`request-show` triage: completed/pending/absent
+guidance; inspect via the receipt's nextCommands, never respawn) · 5 LAUNCHED_UNUSABLE
+(worker live but the profile flag unproven — stop it, fix the host).
 
 > Why: every exit exists because a coordinator guessed wrong once. Unproven outcomes get
 > their own exits (never respawn beside a live pane — the dual-writer class), refusals
@@ -401,6 +511,56 @@ the host).
 > deps) because forcing it strands children on deps that will never complete. Profiles
 > are least-privilege with the dangerous ones behind env gates, and read-only never
 > takes the supervised lane — the host default would silently upgrade it.
+
+## `task_ops.py`
+
+Fail-closed `task-create` / `task-update` lifecycle flags. Source
+`runtime/scripts/task_ops.py:1-17`; behavior pinned by `tests/test_task_ops.py`.
+
+Usage: `task_ops.py {create,update} ...`
+
+Subcommands: `create --spec TEXT [--task-title T] [--display-name N] [--deps JSON_ARRAY] [--parent P] [--run R] [--from S] [--retry-request ID]`;
+`update --id ID --status S [--result JSON] [--run R] [--from S] [--retry-request ID]`
+with status in `pending|ready|dispatched|completed|failed|blocked`.
+
+Every flag validates before any orca call: empty ids/specs, unknown statuses, and
+malformed `--deps`/`--result` JSON refuse with exit 2. Receipts parse fail-closed:
+an error envelope or a receipt without `result.task{id, status}` is exit 1, never a
+claimed transition.
+
+Exits: 0 transitioned/created · 1 runtime/refusal/receipt failure · 2 usage.
+
+> Why: a claimed DAG transition that never happened strands every child on a dep
+> that will never complete — and the failure surfaces far from the lie. Parsing the
+> receipt for the task object itself makes "moved" mean the runtime said so, not
+> that the command ran.
+
+## `terminal_ops.py`
+
+`terminal create`/`read` plus read-only `list`/`show` — creation and observation,
+never process or PTY action. Source `runtime/scripts/terminal_ops.py:1-27`;
+behavior pinned by `tests/test_terminal_ops.py`.
+
+Usage: `terminal_ops.py {create,read,list,show} ...`
+
+Subcommands: `create [--worktree W] [--title T] [--command C] [--shell S] [--focus]`
+(`--shell` from the 6-value Windows keyset; a host that cannot apply it refuses
+rather than spawning its default); `read [--terminal T] [--cursor N] [--limit N]
+[--screen]`; `list`/`show` read-only inventory (`ROWS`/`HANDLE` lines).
+
+`--screen` and `--cursor` are mutually exclusive. A `--screen` read whose receipt
+carries no `source` means an older host dropped the unknown param and answered the
+other question — refused like upstream's `incompatible_runtime` instead of
+certifying accumulated output as the rendered screen; `screen-unavailable` is
+degraded output, likewise never certified. Mutating verbs
+(close/rename/split/switch/stop/send/wait) stay out (lifecycle-risk).
+
+Exits: 0 ok · 1 runtime/refusal/receipt/evidence failure · 2 usage.
+
+> Why: "what did the terminal show" has two answers — the accumulated stream and
+> the rendered frame — and an old host silently answers the first when asked the
+> second. Treating a missing source as a refusal keeps screen evidence meaning the
+> screen, not the scrollback.
 
 ## `watchdog.py`
 
@@ -440,6 +600,51 @@ Exits: 0 tick done, nothing needs the coordinator · 1 at least one (WOULD-)reco
 > keys) so coordinators tune without code edits, and every threshold the config does not
 > know fails loud. Rate limits are anti-flap: a worker oscillating HUNG/OK must not cause
 > a nudge storm.
+
+## `worker_ops.py`
+
+Fail-closed worker lifecycle verbs: show, read, stop, abandon, release, retain,
+list. Source `runtime/scripts/worker_ops.py:1-27`; behavior pinned by
+`tests/test_worker_ops.py`.
+
+Usage: `worker_ops.py {show,read,stop,abandon,release,retain,list} ...`
+
+Subcommands: `show --dispatch D` (fleet verdict: `projection.nextAction.argv`,
+liveness, `observation.agentWait` with absent-vs-null semantics); `read --dispatch D
+[--source auto|transcript|terminal]` (`transcript` certifies — a non-transcript
+effective source is exit 1); `stop|abandon --dispatch D` (scripted fencing;
+`stop_unknown` fails, never claims); `release|retain --dispatch D` (reclaim; only
+`release_unknown` fails); `list` (watchdog enumeration: `ROWS`/`SCOPE` lines, newest
+first, opaque cursor).
+
+Validation refuses with exit 2 before any orca call; argv is a list, never a shell
+string.
+
+Exits: 0 ok · 1 runtime/refusal/receipt/evidence failure · 2 usage.
+
+> Why: each verb's dangerous reading is the quiet one — an absent `agentWait` read
+> as "not waiting", auto-fallback terminal output cited as transcript, an unknown
+> dispatch released as settled. Naming the failure for each makes the tool refuse
+> exactly where a coordinator would otherwise infer.
+
+## `worktree_ops.py`
+
+`worktree list`/`show` with selector validation. Source
+`runtime/scripts/worktree_ops.py:1-18`; behavior pinned by
+`tests/test_worktree_ops.py`.
+
+Usage: `worktree_ops.py {list,show} ...`
+
+Subcommands: `list [--repo SELECTOR] [--limit N]`; `show --worktree SELECTOR`. A
+selector is `active`|`current` or a prefixed form (`identity:` `id:` `name:`
+`branch:` `issue:` `path:` `folder:` `worktree:`) with a non-empty remainder;
+anything else refuses with exit 2. A bare path must be spelled `path:<abs>`.
+
+Exits: 0 ok · 1 runtime/refusal/receipt failure · 2 usage.
+
+> Why: a cwd-relative guess resolves against the wrong machine over the SSH relay,
+> and an unknown prefix is a typo the runtime would bill a lookup to explain.
+> Validating the selector shape first keeps both mistakes local.
 
 ## `wtree.sh`
 
