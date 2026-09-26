@@ -37,7 +37,9 @@ transcript persists and stays citable):
 
 1. **Inspect:** read the transcript tail (`worker-read --dispatch <id>`) and
    the run's attention rows (`worker-list --run <id>`). Name what it is stuck
-   in, with the timestamp of last movement.
+   in, with the timestamp of last movement. For remote workers add
+   `--include-remote` — `worker-list` reads local fleet state only, and every
+   remote worker without it renders `unverifiable` (`orchestration-worker-specs.ts:125`).
 2. **Nudge:** one `send` to `dispatch:<id>` — finish-or-report now, no new
    experiments. A nudge the agent cannot process (still inside the hung call)
    is itself the confirmation.

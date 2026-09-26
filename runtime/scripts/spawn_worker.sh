@@ -65,8 +65,32 @@
 #          Run the receipt's nextCommands (worker-show / worker-abandon); inspect, never respawn.
 #
 # Usage:
-#   SP=<dir> [PROFILE=rw] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]
+#   SP=<dir> [PROFILE=rw] spawn_worker.sh [options] (<task_id> <worktree_selector> | --spec <text> <worktree_selector>) <title> [agent] [effort]
 #   agent ∈ claude|codex|cursor|gemini|grok|droid|opencode|omp|pi|antigravity (default claude)
+# Options:
+#   --mark-ready               opt-in: mark a pending task ready when deps are complete
+#   --timeout-ms <n>           worker-start timeout, positive int (supervised lane only)
+#   --run <id> --from <handle> Run/sender binding for task-list, task-update,
+#                              task-create, worker-start, and dispatch --inject
+#   --retry-of <dispatch_id>   retry a failed dispatch (needs --task; refused with --spec)
+#   --retry-request <id>       durable mutation id for worker-start ONLY (one id, one
+#                              mutation), plus request-show triage of an unknown outcome
+#   --on <saved-environment>   worker server for worker-start (refused with current/
+#                              new-child selectors; live use PARKED — needs a paired server)
+#   --environment <e> --pairing-code <c>
+#                              GLOBAL routing: ride every orca call. A flag that disagrees
+#                              with ambient ORCA_ENVIRONMENT/ORCA_PAIRING_CODE is refused.
+#                              --host is REFUSED here: it is an unknown flag on orchestration
+#                              verbs upstream (args.ts), valid only on worktree create et al.
+#   --cli-cwd <abs-dir>        exported as ORCA_CLI_CWD (SSH-relay cwd override); absolute
+#                              directory, refused on ambient disagreement. Live PARKED.
+#   --task-brief               pass --brief on the spawn-time task-list read. --task-status
+#                              / --task-ready are REFUSED: a filtered view cannot verify deps.
+#   --spec <text> [--task-title <t>] [--deps <json_array>] [--parent <id>]
+#                              create the task first (task-create), then run the normal
+#                              verified path with the created id. The fleet DAG check needs
+#                              the id upfront, so --spec is never passed to worker-start.
+#                              --task-title/--deps/--parent without --spec are refused.
 # Prints:  SCRATCH=<per-attempt receipt directory>, then
 #          supervised: HANDLE=<h> READY=<state>, DISPATCH=<id>, and LAUNCH_EFFECTIVE=<json> when the
 #          receipt carries it.  custom-argv lane: HANDLE=<h> STAGES=<csv>
@@ -76,8 +100,14 @@
 # and needs WORKER_CMD):
 #   claude/codex/gemini → ro + rw + danger
 #   cursor              → rw + danger (`tui-agent-permissions.ts` maps cursor to `--yolo`;
-#                         ro → WORKER_CMD). `--model`/`--effort` are accepted for claude, codex,
-#                         cursor, and antigravity only when the user named a model; this script
+#                         ro → WORKER_CMD). `--model` is accepted at the PIN for claude, codex,
+#                         cursor, and antigravity (the catalogs with
+#                         supportsWorkerLaunchPreferences); HEAD adds muse
+#                         (agent-session-option-catalog-muse.ts). gemini/grok/omp carry catalogs
+#                         WITHOUT the flag, and opencode/pi/droid/kilo carry NO catalog at all,
+#                         so all of those reject --model ("does not support launch-time model
+#                         selection", worker-launch-preferences.ts). --effort requires --model,
+#                         and both are passed only when the user named a model; this script
 #                         omits both so the worker inherits the configured default.
 #   antigravity         → rw + danger. `--agent antigravity`; the binary is `agy`
 #                         (`tui-agent-config.ts` detectCmd) plus
@@ -141,27 +171,186 @@ PY
 }
 
 MARK_READY=0
+TASK_BRIEF=0
+TASK_READY_FILTER=0
+TASK_STATUS_FILTER=""
+SPEC_GIVEN=0; SPEC=""
+TITLE_GIVEN=0; TASK_TITLE=""
+DEPS_GIVEN=0; DEPS=""
+PARENT_GIVEN=0; PARENT=""
+TIMEOUT_GIVEN=0; TIMEOUT_MS=""
+RUN_GIVEN=0; RUN_ID=""
+FROM_GIVEN=0; FROM_HANDLE=""
+RETRY_OF_GIVEN=0; RETRY_OF=""
+RETRY_REQ_GIVEN=0; RETRY_REQUEST=""
+ON_GIVEN=0; ON_ENV=""
+ENV_GIVEN=0; ROUTE_ENV=""
+PAIRING_GIVEN=0; ROUTE_PAIRING=""
+CWD_GIVEN=0; CLI_CWD=""
+HOST_GIVEN=0; HOST_FLAG=""
 args=()
-for a in "$@"; do
-  case "$a" in
-    --mark-ready) MARK_READY=1 ;;
-    *) args+=("$a") ;;
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --mark-ready) MARK_READY=1; shift ;;
+    --task-brief) TASK_BRIEF=1; shift ;;
+    --task-ready) TASK_READY_FILTER=1; shift ;;
+    --timeout-ms|--run|--from|--retry-of|--retry-request|--on|--environment|--pairing-code|--cli-cwd|--task-status|--spec|--task-title|--deps|--parent|--host)
+      flag="$1"
+      if [ $# -lt 2 ]; then
+        echo "SPAWN=REFUSED task=? ${flag} needs a value" >&2
+        exit 2
+      fi
+      case "$flag" in
+        --timeout-ms) TIMEOUT_GIVEN=1; TIMEOUT_MS="$2" ;;
+        --run) RUN_GIVEN=1; RUN_ID="$2" ;;
+        --from) FROM_GIVEN=1; FROM_HANDLE="$2" ;;
+        --retry-of) RETRY_OF_GIVEN=1; RETRY_OF="$2" ;;
+        --retry-request) RETRY_REQ_GIVEN=1; RETRY_REQUEST="$2" ;;
+        --on) ON_GIVEN=1; ON_ENV="$2" ;;
+        --environment) ENV_GIVEN=1; ROUTE_ENV="$2" ;;
+        --pairing-code) PAIRING_GIVEN=1; ROUTE_PAIRING="$2" ;;
+        --cli-cwd) CWD_GIVEN=1; CLI_CWD="$2" ;;
+        --task-status) TASK_STATUS_FILTER="$2" ;;
+        --spec) SPEC_GIVEN=1; SPEC="$2" ;;
+        --task-title) TITLE_GIVEN=1; TASK_TITLE="$2" ;;
+        --deps) DEPS_GIVEN=1; DEPS="$2" ;;
+        --parent) PARENT_GIVEN=1; PARENT="$2" ;;
+        --host) HOST_GIVEN=1; HOST_FLAG="$2" ;;
+      esac
+      shift 2 ;;
+    *) args+=("$1"); shift ;;
   esac
 done
-if [ "${#args[@]}" -lt 3 ] || [ "${#args[@]}" -gt 5 ]; then
-  echo "usage: [PROFILE=ro|rw|danger] spawn_worker.sh [--mark-ready] <task_id> <worktree_selector> <title> [agent] [effort]" >&2
+spawn_usage() {
+  echo "usage: [PROFILE=ro|rw|danger] spawn_worker.sh [options] (<task_id> <worktree_selector> | --spec <text> <worktree_selector>) <title> [agent] [effort]" >&2
+  exit 2
+}
+# Tentative positional read so refusals below name the task; the STRICT count check follows
+# validation, so a bad FLAG refuses as a flag error (SPAWN=REFUSED) even when miscounting
+# positionals is what the bad flag caused. Inline creation (--spec) has no positional task id:
+# positionals are <worktree_selector> <title> [agent] [effort], and the created id fills
+# `task` at the task-create step, before any verification reads it.
+if [ "$SPEC_GIVEN" = "1" ]; then
+  task=""; sel="${args[0]:-}"; title="${args[1]:-}"; agent="${args[2]:-claude}"; effort="${args[3]:-xhigh}"
+else
+  task="${args[0]:-}"; sel="${args[1]:-}"; title="${args[2]:-}"; agent="${args[3]:-claude}"; effort="${args[4]:-xhigh}"
+fi
+# Every new flag is validated HERE, before scratch allocation or any orca call: a refusal
+# below must leave zero side effects (the tests assert an empty orca call log).
+tname="${task:-?}"
+if [ "$SPEC_GIVEN" = "1" ] && [ -z "$SPEC" ]; then
+  echo "SPAWN=REFUSED task=${tname} --spec needs a non-empty spec" >&2
   exit 2
 fi
-task="${args[0]}"; sel="${args[1]}"; title="${args[2]}"; agent="${args[3]:-claude}"; effort="${args[4]:-xhigh}"
+if [ "$TITLE_GIVEN" = "1" ] && [ -z "$TASK_TITLE" ]; then
+  echo "SPAWN=REFUSED task=${tname} --task-title needs a non-empty value" >&2
+  exit 2
+fi
+if [ "$PARENT_GIVEN" = "1" ] && [ -z "$PARENT" ]; then
+  echo "SPAWN=REFUSED task=${tname} --parent needs a non-empty task id" >&2
+  exit 2
+fi
+if { [ "$TITLE_GIVEN" = "1" ] || [ "$DEPS_GIVEN" = "1" ] || [ "$PARENT_GIVEN" = "1" ]; } && [ "$SPEC_GIVEN" != "1" ]; then
+  echo "SPAWN=REFUSED task=${tname} --task-title/--deps/--parent need --spec (without it they would be silently dropped)" >&2
+  exit 2
+fi
+if [ "$DEPS_GIVEN" = "1" ]; then
+  if ! printf '%s' "$DEPS" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if isinstance(d,list) and all(isinstance(x,str) for x in d) else 1)' 2>/dev/null; then
+    echo "SPAWN=REFUSED task=${tname} --deps must be a JSON array of task-id strings" >&2
+    exit 2
+  fi
+fi
+if [ "$RETRY_OF_GIVEN" = "1" ] && [ "$SPEC_GIVEN" = "1" ]; then
+  echo "SPAWN=REFUSED task=${tname} --retry-of needs --task naming the failed task (--spec creates a new one)" >&2
+  exit 2
+fi
+if [ "$TIMEOUT_GIVEN" = "1" ]; then
+  # Digits, ≤15 chars (fits int64 with room), and ≥1 — the shell spelling of
+  # upstream getOptionalPositiveIntegerValueFlag.
+  TIMEOUT_OK=""
+  case "$TIMEOUT_MS" in
+    ""|*[!0-9]*) : ;;
+    *)
+      if [ "${#TIMEOUT_MS}" -le 15 ] && [ "$TIMEOUT_MS" -ge 1 ] 2>/dev/null; then
+        TIMEOUT_OK=1
+      fi ;;
+  esac
+  if [ -z "$TIMEOUT_OK" ]; then
+    echo "SPAWN=REFUSED task=${tname} --timeout-ms must be a positive integer, got '${TIMEOUT_MS}'" >&2
+    exit 2
+  fi
+fi
+for pair in "RUN_GIVEN:$RUN_ID:--run" "FROM_GIVEN:$FROM_HANDLE:--from" \
+            "RETRY_OF_GIVEN:$RETRY_OF:--retry-of" "RETRY_REQ_GIVEN:$RETRY_REQUEST:--retry-request" \
+            "ON_GIVEN:$ON_ENV:--on" "ENV_GIVEN:$ROUTE_ENV:--environment" \
+            "PAIRING_GIVEN:$ROUTE_PAIRING:--pairing-code"; do
+  flagvar="${pair%%:*}"; rest="${pair#*:}"; val="${rest%%:*}"; name="${rest##*:}"
+  given="${!flagvar}"
+  if [ "$given" = "1" ] && [ -z "$val" ]; then
+    echo "SPAWN=REFUSED task=${tname} ${name} needs a non-empty value" >&2
+    exit 2
+  fi
+done
+if [ "$ENV_GIVEN" = "1" ] && [ -n "${ORCA_ENVIRONMENT:-}" ] && [ "$ROUTE_ENV" != "$ORCA_ENVIRONMENT" ]; then
+  echo "SPAWN=REFUSED task=${tname} --environment '${ROUTE_ENV}' disagrees with ambient ORCA_ENVIRONMENT='${ORCA_ENVIRONMENT}' — silently retargeting a dispatch to another server is the bug class; unset one" >&2
+  exit 2
+fi
+if [ "$PAIRING_GIVEN" = "1" ] && [ -n "${ORCA_PAIRING_CODE:-}" ] && [ "$ROUTE_PAIRING" != "$ORCA_PAIRING_CODE" ]; then
+  echo "SPAWN=REFUSED task=${tname} --pairing-code disagrees with ambient ORCA_PAIRING_CODE — unset one" >&2
+  exit 2
+fi
+if [ "$FROM_GIVEN" = "1" ] && [ -n "${ORCA_TERMINAL_HANDLE:-}" ] && [ "$FROM_HANDLE" != "$ORCA_TERMINAL_HANDLE" ]; then
+  echo "SPAWN=REFUSED task=${tname} --from '${FROM_HANDLE}' disagrees with ambient ORCA_TERMINAL_HANDLE='${ORCA_TERMINAL_HANDLE}' — naming the sender is an identity claim; a wrong handle binds work to a sibling worker, so unset one" >&2
+  exit 2
+fi
+if [ "$HOST_GIVEN" = "1" ]; then
+  echo "SPAWN=REFUSED task=${tname} --host is not valid on orchestration verbs (upstream rejects it as an unknown flag; it is allowed only on worktree create / project / automations) — route this spawn with --environment/--pairing-code, or place the worker with --on" >&2
+  exit 2
+fi
+if [ "$CWD_GIVEN" = "1" ]; then
+  if [ -n "${ORCA_CLI_CWD:-}" ] && [ "$CLI_CWD" != "$ORCA_CLI_CWD" ]; then
+    echo "SPAWN=REFUSED task=${tname} --cli-cwd '${CLI_CWD}' disagrees with ambient ORCA_CLI_CWD='${ORCA_CLI_CWD}' — unset one" >&2
+    exit 2
+  fi
+  case "$CLI_CWD" in
+    /*) [ -d "$CLI_CWD" ] || {
+      echo "SPAWN=REFUSED task=${tname} --cli-cwd '${CLI_CWD}' is not a directory" >&2
+      exit 2
+    } ;;
+    *)
+      echo "SPAWN=REFUSED task=${tname} --cli-cwd must be absolute, got '${CLI_CWD}'" >&2
+      exit 2 ;;
+  esac
+  ORCA_CLI_CWD="$CLI_CWD"
+  export ORCA_CLI_CWD
+fi
+if [ -n "$TASK_STATUS_FILTER" ] || [ "$TASK_READY_FILTER" = "1" ]; then
+  echo "SPAWN=REFUSED task=${tname} --task-status/--task-ready are refused on the spawn path: the DAG check must see deps in every status, and a filtered task-list cannot prove them" >&2
+  exit 2
+fi
+if [ "$ON_GIVEN" = "1" ]; then
+  case "$sel" in
+    current|new-child)
+      echo "SPAWN=REFUSED task=${tname} --on names a remote worker server, and remote current/new-child are invalid upstream — discover an exact remote selector or use new-top-level" >&2
+      exit 2 ;;
+  esac
+fi
+if [ "$SPEC_GIVEN" = "1" ]; then
+  if [ "${#args[@]}" -lt 2 ] || [ "${#args[@]}" -gt 4 ]; then spawn_usage; fi
+else
+  if [ "${#args[@]}" -lt 3 ] || [ "${#args[@]}" -gt 5 ]; then spawn_usage; fi
+fi
 # `effort` is interpolated into the codex reasoning-effort flag (below), so an unvalidated
 # value would be injected verbatim into the launch command string. Validate it against the
 # known reasoning-effort keyset, fail CLOSED like `agent`/`PROFILE` — never interpolate an
 # arbitrary string. Non-codex agents ignore effort entirely, so a bad value is only a risk
-# on the codex path, but we reject early and uniformly.
+# on the codex path, but we reject early and uniformly. The keyset is the codex one —
+# CODEX_EFFORT_CHOICES (agent-session-option-catalog-claude-codex.ts:183-191): the pinned
+# catalog runs minimal..ultra, and effort feeds ONLY `-c model_reasoning_effort=` there.
 case "$effort" in
-  minimal|low|medium|high|xhigh) : ;;
+  minimal|low|medium|high|xhigh|max|ultra) : ;;
   *)
-    echo "SPAWN=REFUSED task=${task} invalid effort '${effort}' (want minimal|low|medium|high|xhigh)" >&2
+    echo "SPAWN=REFUSED task=${tname} invalid effort '${effort}' (want minimal|low|medium|high|xhigh|max|ultra)" >&2
     exit 2
     ;;
 esac
@@ -180,6 +369,22 @@ case "$agent" in
     exit 2
     ;;
 esac
+# Validated-flag argv. ROUTE_ARGS are GLOBAL (--environment/--pairing-code ride every orca
+# call); SCOPE_ARGS (--run/--from) ride only the orchestration verbs whose specs allow them —
+# request-show, the terminal verbs, and vm doctor would reject them as unknown flags (args.ts).
+# WS_ARGS ride worker-start only: --retry-request is one mutation's durable id, and spreading
+# one id across task-update + worker-start would bind two mutations to one identity.
+ROUTE_ARGS=()
+if [ "$ENV_GIVEN" = "1" ]; then ROUTE_ARGS+=(--environment "$ROUTE_ENV"); fi
+if [ "$PAIRING_GIVEN" = "1" ]; then ROUTE_ARGS+=(--pairing-code "$ROUTE_PAIRING"); fi
+SCOPE_ARGS=()
+if [ "$RUN_GIVEN" = "1" ]; then SCOPE_ARGS+=(--run "$RUN_ID"); fi
+if [ "$FROM_GIVEN" = "1" ]; then SCOPE_ARGS+=(--from "$FROM_HANDLE"); fi
+WS_ARGS=()
+if [ "$TIMEOUT_GIVEN" = "1" ]; then WS_ARGS+=(--timeout-ms "$TIMEOUT_MS"); fi
+if [ "$ON_GIVEN" = "1" ]; then WS_ARGS+=(--on "$ON_ENV"); fi
+if [ "$RETRY_OF_GIVEN" = "1" ]; then WS_ARGS+=(--retry-of "$RETRY_OF"); fi
+if [ "$RETRY_REQ_GIVEN" = "1" ]; then WS_ARGS+=(--retry-request "$RETRY_REQUEST"); fi
 SP="${SP:-$(pwd)}"
 PROFILE="${PROFILE:-rw}"
 SETTLE_SECS="${SETTLE_SECS:-20}"
@@ -293,19 +498,21 @@ if [ "$PROFILE" = "danger" ]; then
   step=sandbox-doctor
   doctor_out="$(mktemp)"
   doctor_rc=0
-  # --json is documented for worker-start / task-list / skills; `src/cli/specs/vm.ts:6-9` lists only
-  # [--repo-path] [--provision|--connect] for doctor. So ask for JSON and fall back to the
-  # documented plain form when the flag is rejected. Source-witnessed, not binary-witnessed — the
-  # same limitation pins.json records for itself; re-witness on the next pin-it wave.
+  # --json rides on every CLI command via GLOBAL_FLAGS (cli-argument-boundary.ts:2), and
+  # `src/cli/specs/vm.ts:10` spreads them into doctor's allowedFlags — the old comment's claim
+  # that vm.ts "lists only [--repo-path] [--provision|--connect]" misread the spec. Ask for JSON
+  # and keep the plain-form fallback for old hosts that predate it. Source-witnessed, not
+  # binary-witnessed — the same limitation pins.json records for itself; re-witness on the next
+  # pin-it wave.
   # NOT --provision. The refusal below is unconditional: no doctor verdict, clear or not, can
   # authorize this lane, so bringing a VM up buys nothing and bills for it (#335 review). The
   # health check itself is cheap and stays, because what it proves — and what it does NOT prove
   # about placement — is the whole point of the refusal. `--provision` goes back when placement
   # binding exists for it to gate; `vm.ts:6-9` documents the bare form as valid.
-  orca vm recipe doctor "$recipe" --json > "$doctor_out" 2>&1 || doctor_rc=$?
+  orca vm recipe doctor "$recipe" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} --json > "$doctor_out" 2>&1 || doctor_rc=$?
   if [ "$doctor_rc" -ne 0 ] && grep -qiE "unknown (option|flag|argument)|unrecognized|invalid option" "$doctor_out"; then
     doctor_rc=0
-    orca vm recipe doctor "$recipe" > "$doctor_out" 2>&1 || doctor_rc=$?
+    orca vm recipe doctor "$recipe" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} > "$doctor_out" 2>&1 || doctor_rc=$?
   fi
   if [ "$doctor_rc" -ne 0 ]; then
     echo "SPAWN=REFUSED task=${task} \`orca vm recipe doctor ${recipe}\` exited ${doctor_rc} — the sandbox did not come up clean: $(head -c 300 "$doctor_out" | tr '\n' ' ')" >&2
@@ -391,8 +598,30 @@ if [ -n "$override" ]; then
 elif [ -n "$cmd_default" ]; then
   cmd="$cmd_default"
 else
-  echo "SPAWN=REFUSED task=${task} agent '${agent}' has no verified PROFILE=$PROFILE launch flag — supply WORKER_CMD='<cmd>' with ORCA_COORD_ALLOW_CMD_OVERRIDE=1 (its read-only/write semantics are then your assertion)" >&2
+  echo "SPAWN=REFUSED task=${tname} agent '${agent}' has no verified PROFILE=$PROFILE launch flag — supply WORKER_CMD='<cmd>' with ORCA_COORD_ALLOW_CMD_OVERRIDE=1 (its read-only/write semantics are then your assertion)" >&2
   exit 2
+fi
+
+# worker-start-only flags on the custom-argv lane (overrides + PROFILE=ro) would be silently
+# dropped — no worker-start runs there. Refuse rather than mislead. (--run/--from/--spec
+# stay: dispatch --inject and task-create accept them.)
+if [ -n "$override" ] || [ "$PROFILE" = "ro" ]; then
+  if [ "$TIMEOUT_GIVEN" = "1" ]; then
+    echo "SPAWN=REFUSED task=${tname} --timeout-ms is a worker-start flag, and this spawn takes the custom-argv lane (override or PROFILE=ro) where no worker-start runs" >&2
+    exit 2
+  fi
+  if [ "$ON_GIVEN" = "1" ]; then
+    echo "SPAWN=REFUSED task=${tname} --on is a worker-start flag, and this spawn takes the custom-argv lane (override or PROFILE=ro) where no worker-start runs" >&2
+    exit 2
+  fi
+  if [ "$RETRY_OF_GIVEN" = "1" ]; then
+    echo "SPAWN=REFUSED task=${tname} --retry-of is a worker-start flag, and this spawn takes the custom-argv lane (override or PROFILE=ro) where no worker-start runs" >&2
+    exit 2
+  fi
+  if [ "$RETRY_REQ_GIVEN" = "1" ]; then
+    echo "SPAWN=REFUSED task=${tname} --retry-request is a worker-start flag, and this spawn takes the custom-argv lane (override or PROFILE=ro) where no worker-start runs" >&2
+    exit 2
+  fi
 fi
 
 # Allocate atomically for every attempt, including identical task/title retries (R13).
@@ -402,10 +631,38 @@ step=allocate-scratch
 SP="$(mktemp -d "$SP/spawn-XXXXXX")"
 printf 'SCRATCH=%s\n' "$SP"
 
+# --- inline creation: --spec creates the task, then the normal verified path runs ---
+if [ "$SPEC_GIVEN" = "1" ]; then
+  step=task-create
+  tc="$SP/tc-$safe_title.json"
+  create_args=(--spec "$SPEC")
+  if [ "$TITLE_GIVEN" = "1" ]; then create_args+=(--task-title "$TASK_TITLE"); fi
+  if [ "$DEPS_GIVEN" = "1" ]; then create_args+=(--deps "$DEPS"); fi
+  if [ "$PARENT_GIVEN" = "1" ]; then create_args+=(--parent "$PARENT"); fi
+  orca_json "$tc" orchestration task-create ${create_args[@]+"${create_args[@]}"} ${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"} ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"}
+  task=$(python3 - "$tc" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    d = {}
+r = d.get("result") if isinstance(d, dict) else None
+tid = (r.get("task") or {}).get("id") if isinstance(r, dict) else None
+if not tid or not isinstance(tid, str):
+    print("task-create returned no task id", file=sys.stderr)
+    raise SystemExit(1)
+print(tid)
+PY
+)
+  tname="$task"
+fi
+
 # --- verify task readiness against the DAG (never force ready) ---------------
 step=verify-task-ready
 tl="$SP/tl-$safe_title.json"
-orca_json "$tl" orchestration task-list
+brief_args=()
+if [ "$TASK_BRIEF" = "1" ]; then brief_args=(--brief); fi
+orca_json "$tl" orchestration task-list ${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"} ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} ${brief_args[@]+"${brief_args[@]}"}
 tl_out=$(python3 - "$tl" "$task" <<'PY'
 import json, sys
 
@@ -465,7 +722,7 @@ case "$status" in
       exit 2
     fi
     step=mark-ready
-    orca_json "$SP/tu-$safe_title.json" orchestration task-update --id "$task" --status ready
+    orca_json "$SP/tu-$safe_title.json" orchestration task-update --id "$task" --status ready ${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"} ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"}
     ;;
   not-found)
     echo "SPAWN=REFUSED task=${task} not found in task-list" >&2
@@ -501,7 +758,7 @@ if [ -z "$override" ] && [ "$PROFILE" != "ro" ]; then
   # The call's own exit status is NOT the verdict: a typed refusal, a hard failure, and an
   # UNPROVEN outcome (state: outcome_unknown) all exit nonzero. The receipt is the verdict.
   ws_rc=0
-  orca orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" --json > "$ws" 2>&1 || ws_rc=$?
+  orca orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" ${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"} ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} ${WS_ARGS[@]+"${WS_ARGS[@]}"} --json > "$ws" 2>&1 || ws_rc=$?
 
   # The flag the requested PROFILE implies, read back out of the map above so the two cannot
   # drift: worker-start takes its args from the HOST, so this is what the host must have used.
@@ -680,6 +937,58 @@ PY
     esac
   fi
 
+  # --- request-show triage: an UNKNOWN mutation result with --retry-request is asked about,
+  # read-only, before any verdict is reported. completed = the mutation landed (replay the same
+  # id for the recorded outcome, never start a second worker); pending = still running or Orca
+  # restarted mid-mutation (wait, else replay); absent = no receipt under this caller identity
+  # (not proof nothing happened). A failed-but-UNPARSEABLE receipt that triages completed or
+  # pending is promoted to unknown — a worker may be live, and "failed" would invite a respawn.
+  # No --retry-request, no triage: there is no id to ask about.
+  if [ "$RETRY_REQ_GIVEN" = "1" ]; then
+    triage=no
+    case "$verdict" in
+      unknown) triage=yes ;;
+      failed)
+        case "$verdict_line" in *UNPARSEABLE_RECEIPT*) triage=yes ;; esac ;;
+    esac
+    if [ "$triage" = "yes" ]; then
+      step=triage-request
+      rq="$SP/rq-$safe_title.json"
+      rq_rc=0
+      orca orchestration request-show --request "$RETRY_REQUEST" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} --json > "$rq" 2>&1 || rq_rc=$?
+      rq_state=$(python3 - "$rq" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    print("unreadable")
+    raise SystemExit(0)
+if not isinstance(d, dict):
+    print("unreadable")
+    raise SystemExit(0)
+r = d.get("result") if isinstance(d.get("result"), dict) else {}
+state = r.get("state")
+print(state if state in ("completed", "pending", "absent") else "unreadable")
+PY
+)
+      case "$rq_state" in
+        completed)
+          echo "SPAWN=TRIAGE task=${task} request=${RETRY_REQUEST} state=completed — the mutation LANDED: replay with the same --retry-request for the recorded outcome instead of starting a second worker. INSPECT (worker-show), NEVER RESPAWN." >&2 ;;
+        pending)
+          echo "SPAWN=TRIAGE task=${task} request=${RETRY_REQUEST} state=pending — the mutation is still running, or Orca restarted before recording its outcome. Wait for a live original; otherwise replay with --retry-request. NEVER start a second worker beside it." >&2 ;;
+        absent)
+          echo "SPAWN=TRIAGE task=${task} request=${RETRY_REQUEST} state=absent — this runtime holds no receipt for that request under your caller identity (it never arrived, failed before recording, or was pruned). Absent is NOT proof nothing happened: inspect before any retry." >&2 ;;
+        *)
+          echo "SPAWN=TRIAGE task=${task} request=${RETRY_REQUEST} triage unavailable (rc=${rq_rc}; old servers answer incompatible_runtime) — inspect the dispatch directly, never respawn." >&2 ;;
+      esac
+      case "$verdict:$rq_state" in
+        failed:completed|failed:pending)
+          verdict=unknown
+          verdict_line="VERDICT=unknown STATE=triaged-${rq_state}" ;;
+      esac
+    fi
+  fi
+
   step=verify-ready
   case "$verdict" in
     ready)
@@ -723,7 +1032,7 @@ else
   # ledger (dispatch-lifecycle.md).
   step=create-terminal
   tj="$SP/sw-$safe_title.json"
-  orca_json "$tj" terminal create --worktree "$sel" --title "$title" --command "$cmd"
+  orca_json "$tj" terminal create --worktree "$sel" --title "$title" --command "$cmd" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"}
   h=$(python3 - "$tj" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
@@ -745,7 +1054,7 @@ PY
   # field is an older host, not a false — do not invent a verdict from absence.
   tw="$SP/tw-$safe_title.json"
   wait_rc=0
-  orca terminal wait --terminal "$h" --for tui-idle --timeout-ms 90000 --json > "$tw" 2>&1 || wait_rc=$?
+  orca terminal wait --terminal "$h" --for tui-idle --timeout-ms 90000 ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} --json > "$tw" 2>&1 || wait_rc=$?
   satisfied=$(python3 - "$tw" <<'PY'
 import json, sys
 try:
@@ -771,7 +1080,7 @@ PY
   # --inject SUBMITS the preamble; it does not merely paste it. The --json receipt carries
   # result.prompt{requestId, stages}. There is no Enter to send after this.
   dj="$SP/dispatch-$safe_title.json"
-  orca_json "$dj" orchestration dispatch --task "$task" --to "$h" --inject
+  orca_json "$dj" orchestration dispatch --task "$task" --to "$h" --inject ${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"} ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"}
 
   step=read-inject-receipt
   read_stages() {

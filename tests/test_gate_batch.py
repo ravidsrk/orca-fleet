@@ -647,5 +647,32 @@ class AtomicSaves(unittest.TestCase):
             self.assertEqual(gb.load_batch(path)["gates"], data["gates"])
 
 
+class Disambiguation(unittest.TestCase):
+    """S13: gate-batch.py is a LOCAL run-close tracker, not upstream's
+    decision-gates (orchestration gate-create/gate-resolve/gate-list). The
+    same word names two mechanisms; the header, the docstring, and --help
+    must all say which one this is, in place."""
+
+    def test_docstring_disambiguates(self):
+        doc = gb.__doc__ or ""
+        self.assertIn("NOT", doc)
+        self.assertIn("gate-create", doc)
+        self.assertIn("local", doc.lower())
+
+    def test_help_disambiguates(self):
+        import subprocess
+        script = ROOT / "runtime" / "scripts" / "gate-batch.py"
+        r = subprocess.run(["python3", str(script), "--help"],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("NOT", r.stdout)
+        self.assertIn("gate-create", r.stdout)
+
+    def test_parser_description_disambiguates(self):
+        parser = gb.build_parser()
+        blob = (parser.description or "") + (parser.epilog or "")
+        self.assertIn("NOT", blob)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -20,6 +20,10 @@ navigate, or close another tab, and never echo a tab listing into a report — i
 private state, not evidence. Stay on the origin the mission froze plus same-origin links; a
 third-party origin is a separate authorization, not a follow-on click. Prefer an isolated profile;
 attaching to a live logged-in profile is itself a finding to surface, not a convenience.
+The mechanism is storage-partition isolation: each profile carries its own cookies, local
+storage, and cache, and profiles do not leak into each other. Agent-driven browser commands
+inherit the active profile, so the run names it once per run (`PROFILE=`) beside `ENGINE=` and
+never switches mid-phase — a mid-phase profile swap invalidates the baseline like an engine swap.
 
 ## Consent: LOOK is granted, ACT is gated
 

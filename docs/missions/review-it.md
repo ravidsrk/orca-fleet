@@ -1,7 +1,7 @@
 # 🔍 review-it — a trusted, read-only, SHA-bound GO/NO-GO verdict
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel axis reviewers on the same pinned SHA; the GO/NO-GO verdict is yours to act on — a gate class, not a lower rung.
-> **Activation load:** ~21,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~23,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — it ran ([external-run report](../runs/2026-07-13-review-it-external-run.md)), but that run's
 > artifacts were retained outside this repository, so the tier is not re-derivable here
 > (`runtime/scripts/run_report.py`, issue #259)
@@ -192,7 +192,8 @@ exactly such a run: the NO-GO on a live gstack PR linked from the frontmatter.)
 Playbooks:
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`risk-review`](../../playbooks/risk-review.md) ·
-[`triage-findings`](../../playbooks/triage-findings.md)
+[`triage-findings`](../../playbooks/triage-findings.md) ·
+[`publish-evidence`](../../playbooks/publish-evidence.md)
 
 Runtime policies:
 [`sandbox-policy`](../../runtime/sandbox-policy.md) ·

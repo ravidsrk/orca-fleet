@@ -68,6 +68,37 @@ have, want = parts(sys.argv[1]), parts(sys.argv[2])
 sys.exit(0 if (have and want and have >= want) else 1)
 PY
   fi
+  # Live readiness (S23): `orca status --json` reports app/ + runtime/ + graph/.
+  # Ready means the app runs AND the runtime is reachable AND its state is
+  # ready (graph folds into runtime.state upstream: status.ts). SOFT like the
+  # version floor above — a hard gate here would refuse headless/CI installs
+  # where the app simply is not launched yet. That hardening is PARKED
+  # (needs-human policy), not silently added.
+  ORCA_STATUS="$("$ORCA_BIN" status --json 2>/dev/null || true)"
+  if [ -z "$ORCA_STATUS" ]; then
+    warn "orca CLI at $ORCA_BIN answered no \`status --json\`, so readiness could not be determined — start Orca before running missions"
+  else
+    _status_rc=0
+    python3 - "$ORCA_STATUS" 2>/dev/null <<'PY' || _status_rc=$?
+import json, sys
+try:
+    doc = json.loads(sys.argv[1])
+except Exception:
+    sys.exit(2)
+r = doc.get("result") if isinstance(doc, dict) else None
+if not isinstance(r, dict):
+    sys.exit(2)
+app = r.get("app") or {}
+rt = r.get("runtime") or {}
+ready = app.get("running") is True and rt.get("reachable") is True and rt.get("state") == "ready"
+sys.exit(0 if ready else 1)
+PY
+    if [ "$_status_rc" -eq 2 ]; then
+      warn "orca CLI at $ORCA_BIN answered an unreadable \`status --json\`, so readiness could not be determined — start Orca before running missions"
+    elif [ "$_status_rc" -ne 0 ]; then
+      warn "orca CLI at $ORCA_BIN is present but its app/runtime is not ready (\`orca status\` disagrees) — start Orca before running missions"
+    fi
+  fi
 else
   warn "no orca CLI in PATH (missions dispatch through it; install Orca >= ${ORCA_MIN:-unknown} to run them)"
 fi

@@ -31,7 +31,7 @@ class BundleClosureTests(unittest.TestCase):
         # Audit witnesses: remediate-finding calls build-change; release calls observe.
         with tempfile.TemporaryDirectory() as tmp:
             built, problems = bundle.build(tmp)
-            self.assertEqual((built, problems), (21, []))
+            self.assertEqual((built, problems), (22, []))
             for mission, dependency in (("pin-it", "build-change"),
                                         ("migrate-it", "observe"),
                                         ("review-it", "build-change")):
@@ -267,7 +267,7 @@ class BundleClosureTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(bundle.shutil, "copy2", omit):
             built, problems = bundle.build(tmp)
-            self.assertEqual(built, 21)
+            self.assertEqual(built, 22)
             for name in missing:
                 self.assertTrue(any(name in p for p in problems), (name, problems))
 
@@ -295,7 +295,7 @@ class BundleClosureTests(unittest.TestCase):
                     mock.patch.object(bundle, "SKILLS_DIR", source / "skills"), \
                     mock.patch.object(bundle.validate, "PLAYBOOKS_DIR", source / "playbooks"), \
                     mock.patch.object(bundle.validate, "RUNTIME_DIR", source / "runtime"):
-                self.assertEqual(bundle.build(Path(tmp) / "out"), (21, []))
+                self.assertEqual(bundle.build(Path(tmp) / "out"), (22, []))
                 for relative in ("runtime/scripts/ed25519.py", "runtime/scripts/diff_scope.py",
                                  "runtime/scripts/wtree.sh", "runtime/scripts/verify.py",
                                  "runtime/one-way-doors.json", "playbooks/build-change.md",
@@ -340,7 +340,7 @@ class BundleClosureTests(unittest.TestCase):
 
     def test_transitive_run_report_template_has_an_installed_path(self):
         with tempfile.TemporaryDirectory() as tmp:
-            self.assertEqual(bundle.build(tmp), (21, []))
+            self.assertEqual(bundle.build(tmp), (22, []))
             root = Path(tmp) / "skills/pin-it"
             protocol_path = root / "references/build-change.md"
             self.assertTrue(protocol_path.is_file(), "missing mandatory build-change protocol")
@@ -504,7 +504,7 @@ class BundleClosureTests(unittest.TestCase):
     def test_all_missions_preserve_installed_interfaces(self):
         with tempfile.TemporaryDirectory() as tmp:
             built, problems = bundle.build(tmp)
-            self.assertEqual((built, problems), (21, []))
+            self.assertEqual((built, problems), (22, []))
             for source in sorted((ROOT / "skills").glob("*/SKILL.md")):
                 installed = Path(tmp) / "skills" / source.parent.name
                 with self.subTest(mission=source.parent.name):

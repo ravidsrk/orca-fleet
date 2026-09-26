@@ -46,6 +46,15 @@ Rules:
 - Taste-class merges of approved lines may proceed after the human says yes; one-way if the
   repo treats agent-context as protected.
 
+## Search the session index before proposing
+
+Before writing the proposal, search indexed agent sessions for prior runs on the same seams
+(`orca search`, guarded exactly as in `diagnose`: resolve the binary, run the index-status
+precheck, skip silently when the app predates search or indexing is off, quote multi-word
+queries, redact every snippet before it lands anywhere). A gotcha the index shows recurring
+across runs is evidence for the proposal; a gotcha it shows already proposed-and-rejected stays
+rejected. The search itself is one line in REFLECTION.md: the phrase searched and the hit count.
+
 ## Completion
 
 REFLECTION.md exists beside the run report; every proposed line is either human-approved and

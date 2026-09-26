@@ -45,6 +45,7 @@ Only `skills/` may contain a `SKILL.md`. `scripts/validate.py` fails the build i
 | "make this operable" / "we were blind during the incident" / "add observability" / "alerts and runbooks" | [`oncall-it`](skills/oncall-it/SKILL.md) |
 | "drain the PR queue" / "absorb these community contributions" / "review and merge the open PRs" / "contributor backlog" | [`absorb-it`](skills/absorb-it/SKILL.md) |
 | "document this project" / "the API is undocumented" / "docs coverage" / "write the reference docs" | [`document-it`](skills/document-it/SKILL.md) |
+| "run this in the cloud" / "set up a sandbox recipe" / "per-workspace environment" / "provision ephemeral dev environments" | [`offload-it`](skills/offload-it/SKILL.md) |
 
 Prefer the most specific mission. When two seem to fit, apply the mission-identity test
 (ARCHITECTURE.md): different unit of work, state machine, convergence proof, or an oracle that

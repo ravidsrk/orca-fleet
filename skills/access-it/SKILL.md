@@ -71,6 +71,14 @@ FREEZE the surface: the page/flow/component set × the WCAG 2.2 AA criteria — 
   → VERDICT: CONFORMANT, or CONFORMANT-WITH-MANUAL-PARKED with the human-AT park register.
 ```
 
+## Design Mode captures are requestable evidence
+
+A violation instance whose rendered context matters (contrast, target size, focus order) may cite
+a Design Mode capture as evidence: the human clicks the element in Orca's browser and it lands in
+chat with its DOM, computed styles, cropped screenshot, and source file/line (when a dev-mode
+source map is available). A capture is requested through `human-handoff`, arrives as DATA, and
+never substitutes for the oracle's re-scan or the revert control.
+
 ## Convergence proof (definition of done)
 
 Every success criterion in the frozen (surface × WCAG 2.2 AA) denominator is accounted for: the

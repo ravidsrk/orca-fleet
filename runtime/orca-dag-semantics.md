@@ -3,7 +3,7 @@
 Ground truth about how Orca's orchestration DAG behaves for fleets that drive it with CLI verbs
 (`run-create` / `task-create` / `worker-start` / `check` / `send`). Sourced from live-DB research
 plus the version-matched guide the binary serves (`orca skills get orchestration`); treat as
-operational contract, not product marketing. Current schema line: v40.
+operational contract, not product marketing. Current schema line: v41 at the pin (`contract-constants.ts:21`, ee1c5220); HEAD is v42 (orca-session-id columns, `migrate-v42.ts`).
 
 ## A Run is the durable scope primitive
 
@@ -21,7 +21,9 @@ not `task-list`'s — `task-list` has no cursor or limit; liveness-resume.md car
 
 **Nested depth:** `nested_worker_depth_exceeded` is counted from the ISSUING terminal, not from the
 Run — a dispatched worker creating a fresh Run and calling `worker-start` is still a worker, and
-still blocked at the default depth of 1 (dispatch-lifecycle.md).
+still blocked at the default depth of 1 (dispatch-lifecycle.md). Exception: a self-dispatch
+(creator == assignee, context recorded against the coordinator's own terminal) is not a nesting
+parent and consumes no depth (`dispatch-depth.ts:41-51`).
 
 ## DAG edges are `deps`, not `parent_id`
 
@@ -68,7 +70,9 @@ A coordinator `check` returns the Run's oldest FIFO **Delivery** (up to 50 messa
 that exact batch until `--ack <delivery_id>` — the mailbox commits the delivery before waking the
 coordinator, so a crash between receive and process never loses mail. Process the whole batch,
 then ack. Every mutation accepts `--retry-request <id>` (`request-show` inspects): re-issuing with
-the same id is deduped, so a lost response never double-dispatches.
+the same id is deduped, so a lost response never double-dispatches. Edge (v41+, at the pin):
+eligibility is unread-membership — a fully-read-but-unacked batch does not block the next insert
+(`migrate-v41.ts:3-4`) — so ack still advances the mailbox, but a missing ack can no longer wedge it.
 
 ## Task status is current-state, not a timeline
 

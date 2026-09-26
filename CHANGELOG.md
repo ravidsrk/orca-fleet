@@ -114,6 +114,20 @@ to `main` in #387.
 
 ### Added
 
+- Upstream CLI adoption: eight fail-closed operator tools (`task_ops.py`,
+  `check_reply.py`, `hitl_ask.py`, `worker_ops.py`, `terminal_ops.py`,
+  `worktree_ops.py`, `send_msg.py`, `search_sessions.py`) plus `spawn_worker.sh`
+  extensions (inline `--spec` creation, `--retry-of`/`--retry-request` linkage
+  with `request-show` triage, `--timeout-ms`, explicit `--run`/`--from` binding,
+  routing passthrough) — every behavior change with failing-first hermetic tests.
+- `offload-it` mission (22nd): stand up a per-workspace environment recipe end to
+  end, proven by a clear recipe doctor plus an enacted provision loop; with the
+  `computer-drive`, `clean-env-drive`, and `publish-evidence` playbooks and the
+  review-it/access-it/field-test-it/document-it/attest-it touchpoints that ride them.
+- Runtime doctrine re-witnessed against the pin and HEAD: three false claims
+  corrected (`terminal stop` is hidden/deprecated, not removed; no `unanswered`
+  gate state; schema v42), stale anchors refreshed, and seventeen upstream guard
+  notes folded into the policies.
 - External-run intake (#415): `docs/run-submission-guide.md` (the envelope +
   bindable-core bundle format, binding in one paragraph + one verify command,
   runner-credit convention), `docs/call-for-runs.md` (every doctrine-only

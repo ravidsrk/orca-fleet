@@ -46,6 +46,7 @@ How the missions hand work to one another:
 | 📟 [oncall-it](oncall-it.md)       | A frozen path set made operable — alerts test-fired, and an induced failure named by a source-blind worker |
 | 📥 [absorb-it](absorb-it.md)       | An inbound PR queue drained — landed with authorship and a receipt, refuted, or parked with a named ask |
 | 📚 [document-it](document-it.md)   | A public surface covered by quadrant with zero critical gaps — every claim anchored and rename-controlled |
+| ☁️ [offload-it](offload-it.md)     | A per-workspace environment recipe stood up and proven by a live provision — doctor-clear plus an enacted lifecycle |
 
 Not sure which one? The [decision flowchart in the README](../../README.md#which-mission-do-i-want)
 routes by what you have in hand: a goal, a set of known problems, or a question. For a real run

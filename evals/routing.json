@@ -774,6 +774,13 @@
       "owner": "clean-sweep",
       "expected_mission": "oss-contribute",
       "reason": "#383: was oss-contribute/evals id 3 (unexecuted prose). A backlog we OWN and can merge is clean-sweep; oss-contribute is for repos we do not control."
+    },
+    {
+      "id": 157,
+      "prompt": "Set up a per-workspace environment recipe; the vm recipe doctor fails.",
+      "type": "positive",
+      "expected_mission": "offload-it",
+      "reason": "Recipe stand-up proven by the doctor plus an enacted provision loop maps to offload-it."
     }
   ]
 }

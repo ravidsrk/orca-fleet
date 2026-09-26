@@ -22,9 +22,7 @@ new handles.
 prompt (`orchestration/recovery-and-cleanup:25-31` at v1.4.203). The fleet taught this inverted for two runs; the projection half is re-witnessed live at v1.4.203 (docs/runs/2026-09-16-pin-it-416/receipts/worker-list-unscoped.json).
 it is the reason pane-reading felt authoritative.
 
-Always scope it: `worker-list --run <run_id>`. Unscoped it reports every Dispatch this runtime ever
-recorded — ≥ v1.4.206 pages newest-first with a truncation `warnings[]`, so live rows no longer bury,
-but an unscoped page is still everyone's rows, not your run's: scope or the convergence math is fiction.
+Always scope it: `worker-list --run <run_id>`. Unscoped it reports every Dispatch this runtime ever recorded — ≥ v1.4.206 pages newest-first with a truncation `warnings[]`, but an unscoped page is still everyone's rows, not your run's: scope or the convergence math is fiction.
 
 Two states the old vocabulary lacked, and neither is a failure:
 
@@ -45,9 +43,8 @@ process exit, or a transcript whose final agent turn sent no `worker_done`.
   every message before `--ack` (orca-dag-semantics.md). Keepalives (`{"_keepalive":true,…}`) go to **stderr**,
   never stdout — pipe stdout only into parsers (`runtime/scripts/pm.py <file>` for saved stdout streams).
 - **After 3 empty waits, ask the runtime instead of guessing:** `worker-list --run <id> --json`, then act on
-  every row whose `attention.requiresAction` is true by executing its literal `nextAction.argv` (`inspect` /
-  `release` / `recover`). That argv is the runtime's own answer; running it beats any heuristic the fleet
-  could write. A `nextAction` naming an INSPECTING command is asking for evidence, not authorizing cleanup.
+  every row whose `attention.requiresAction` is true by executing its literal `nextAction.argv` (`inspect` / `release` / `recover`). That argv is the runtime's own answer — running it beats any fleet heuristic, and an INSPECTING argv asks for evidence, not cleanup.
+- Inspect without side effects: `check --format` renders rows as local text only (`orchestration.ts:115`); `gate-list --run <id>` lists a Run's gates without binding to it (`orchestration.ts:267-272`).
 - End-of-run gate: `worker-list --run <id> --terminal-state reclaimable` — while any row is reclaimable,
   something still owes a decision. That, not a clean inbox, is "nothing outstanding".
 - Respawn a dead worker: log the evidence + a doctor-owned attempt count (NOT the runtime failure budget) →
@@ -61,7 +58,8 @@ process exit, or a transcript whose final agent turn sent no `worker_done`.
   4 (`outcome_unknown`) is INSPECT, never respawn; exit 1 is an outright failed start — nothing live, retry per
   the reflection above. Exit 3 (custom-argv: input accepted, turn unproven) is a POSSIBLE false negative — READ
   THE PANE first (`orca terminal read --terminal <h> --screen` or `worker-read --dispatch <id>`), not by eye: a
-  live TUI is a working worker and respawning beside it is a dual-writer (dispatch-lifecycle.md).
+  live TUI is a working worker and respawning beside it is a dual-writer (dispatch-lifecycle.md). A coordinator-side
+  probe that cannot double-send: `terminal send --wait-submit <s>` observes the accepted prompt for the duration — a timeout returns the queued receipt and never resends (`terminal-send.ts:19-20`).
 - BREAK at 3 doctor attempts OR the dispatch-context circuit break (3 consecutive failures marks the task
   failed) → escalate honestly (gate-classification.md).
 - **Identical-error kill:** if the last ≥2 doctor attempts failed on the same error signature (same failing
@@ -76,8 +74,8 @@ process exit, or a transcript whose final agent turn sent no `worker_done`.
   acceptance, not a started turn, and the rule is never resend on silence.
 - A worker blocked on a human prompt shows `observation.agentWait` — a gate-classification problem, not a
   respawn (null and absent differ: absent means the host never reported).
-- NEVER run `orca orchestration reset` mid-run — it wipes the task/dispatch state every recovery path below
-  depends on. There is no mid-run situation it fixes that WATCH/RESUME doesn't.
+- NEVER run `orchestration reset --all|--tasks` mid-run — it wipes the task/dispatch state every recovery path
+  below depends on. `--messages` spares tasks/dispatches but deletes inbox + question threads (`orchestration-reset.ts:80-90`); still no mid-run use — WATCH/RESUME fix everything it could.
 
 ## Reflection-before-retry (mandatory on doctor respawn)
 
@@ -140,12 +138,7 @@ counted-but-untouched; no scope → resume ABORTS.
    <run> --takeover-legacy` **from the live coordinator terminal** (upstream's adoption protocol preserves
    live workers' dispatches, processes, and filesystems and routes their later questions to the current
    coordinator — an Orca upgrade mid-run is no longer a hand-recovery). A dispatch re-attaching under a new
-   coordinator shows `consumer_fenced`; the fenced old coordinator's mutations are rejected. Caveats that make
-   the takeover safe: never take over while the ORIGINAL coordinator is still active (that is the dual-writer
-   class with extra steps); `--from` cannot nominate the taker, so it must be run from the terminal that will
-   hold the run; `run_legacy_local` is an empty tombstone, so find the Run whose objective reads `Recovered
-   orchestration work from a contract update`; and when authority is unproven, degrade to read-only inspection
-   rather than adopting (`orchestration/legacy-contract-migration:19-23,69-83` at v1.4.203).
+   coordinator shows `consumer_fenced`; the fenced old coordinator's mutations are rejected. Caveats: never take over while the ORIGINAL coordinator is still active (dual-writer with extra steps); `--from` cannot nominate the taker, so run it from the terminal that will hold the run; `run_legacy_local` is an empty tombstone — find the Run whose objective reads `Recovered orchestration work from a contract update`; when authority is unproven, degrade to read-only inspection rather than adopting (`orchestration/legacy-contract-migration:19-23,69-83` at v1.4.203).
 3. REBUILD from provenance; CROSS-VERIFY every "completed" against git (evidence-manifest.md) —
    provenance-says-done + git-disagrees = SUSPECT (treat as failed).
 4. RECONCILE the ledger (git is truth, the ledger is its cache).

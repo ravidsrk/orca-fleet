@@ -18,6 +18,11 @@ cd orca-fleet
 sh scripts/install.sh
 ```
 
+The installer also warns (never fails) when `orca status` shows the app down,
+unreachable, or unready — start Orca before running missions. The warn stays soft
+because headless installs have no app to be ready; hardening it into a gate is a
+parked policy decision, not a missing check.
+
 To link only the missions you want by hand instead — link, don't copy. A mission
 names its playbooks and runtime policies by bare name and finds them in
 playbooks/ and runtime/ two levels above its own directory (and links

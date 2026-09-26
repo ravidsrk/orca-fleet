@@ -187,6 +187,7 @@ evidence-based definition of done. Click through for the full guide to each.
 | 📟 **[oncall-it](docs/missions/oncall-it.md)** | A frozen path set made operable: every on-call question answered by a quoted signal, symptom alerts test-fired with runbooks, and an induced staging failure named by a source-blind worker: `OPERABLE` or `OPERABLE-WITH-PARKED` | "make this operable", "we were blind during the incident", "add observability" |
 | 📥 **[absorb-it](docs/missions/absorb-it.md)** | An inbound PR queue drained: each contribution absorbed with authorship preserved and a RED-on-base / GREEN-on-head receipt, refuted with a reproduction, or parked with a named ask: `ABSORBED` or `ABSORBED-WITH-PARKED` | "drain the PR queue", "absorb these community contributions", "close out the contributor backlog" |
 | 📚 **[document-it](docs/missions/document-it.md)** | A public surface covered by quadrant with zero critical gaps, every claim bound to a `file:symbol` or a run and proven by a rename-to-RED control: `DOCUMENTED` or `DOCUMENTED-WITH-PARKED` | "document this project", "the API is undocumented", "docs coverage" |
+| ☁️ **[offload-it](docs/missions/offload-it.md)** | A per-workspace environment recipe stood up end to end — doctor-clear (no fail, no warn) plus a live provision enacting create→validate→destroy: `OFFLOADED` or `OFFLOADED-WITH-PARKED` | "run this in the cloud", "sandbox recipe", "per-workspace environment" |
 
 Every mission is a coordinator plus parallel isolated workers, which is level L4 on Addy Osmani's
 autonomy ladder; a scheduled unattended run is the L5 shape. The derivation is in
@@ -225,7 +226,7 @@ mechanism got stronger is explained in [docs/concepts.md](docs/concepts.md#proof
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/mission-map.jpg">
     <source media="(prefers-color-scheme: light)" srcset="assets/diagrams/mission-map-light.jpg">
-    <img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, absorb-it, harden-it, speed-it, modernize-it, migrate-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, oncall-it, document-it, or field-test-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="900">
+    <img src="assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, absorb-it, harden-it, speed-it, modernize-it, migrate-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, oncall-it, document-it, field-test-it, or offload-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="900">
   </picture>
 </p>
 
@@ -255,6 +256,7 @@ flowchart TD
     B -->|blind in production| ONCALL[📟 oncall-it<br/>telemetry, alerts, runbooks]
     B -->|an inbound PR queue| ABSORB[📥 absorb-it<br/>land with credit or refute]
     B -->|an undocumented public surface| DOC[📚 document-it<br/>coverage map, claims anchored]
+    B -->|no cloud workspace recipe| OFFLOAD[☁️ offload-it<br/>recipe, proven by provisioning]
     S --> C{A question, not a change?}
     C -->|is this diff ready to merge| REV[🔍 review-it<br/>read-only verdict]
     C -->|why is this happening| RC[🔬 root-cause<br/>diagnosis only]

@@ -763,6 +763,28 @@
       "write": {
         "bench/search_bench.py": "import statistics\nimport time\n\nQUERIES = 500  # the declared sample size\n\n\ndef p95_ms(search, corpus, queries):\n    samples = []\n    for q in queries[:QUERIES]:\n        start = time.perf_counter()\n        search(corpus, q)\n        samples.append((time.perf_counter() - start) * 1000)\n    return statistics.quantiles(samples, n=100)[94]\n"
       }
+    },
+    {
+      "mission": "offload-it",
+      "id": 1,
+      "violation": "records provider choices but never settles connection mode",
+      "fails": [
+        "INTERVIEW.md: matches"
+      ],
+      "write": {
+        "INTERVIEW.md": "# interview\nprovider: sandbox-cloud\nscope: team\nplan: dev-4gb\nagent: claude\n(connection mode still open)\n"
+      }
+    },
+    {
+      "mission": "offload-it",
+      "id": 2,
+      "violation": "declares CLEAR despite the standing suspend/resume warn",
+      "fails": [
+        "DOCTOR-VERDICT.md: matches"
+      ],
+      "write": {
+        "DOCTOR-VERDICT.md": "CLEAR: yes\nreason: ok:true, the suspend/resume warn is cosmetic\n"
+      }
     }
   ],
   "passing": [
