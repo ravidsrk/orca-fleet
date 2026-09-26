@@ -13,6 +13,7 @@ the unparking mission can re-derive.
 | perform a procedure the fleet cannot | a step script | ordered stages, one focused task each, values captured and written where they belong, a confirm before any irreversible step |
 | supply knowledge the fleet lacks | a questionnaire | one idea per question, most-important-first, an answer stub under each, deadline and effort stated |
 | do bounded manual work that unblocks a decision | a Task item | what to do, and which facts it must return (locations, ids, counts) that later units depend on |
+| show the fleet a rendered element | a Design Mode capture | the human clicks the element in Orca's browser; DOM + computed styles + cropped screenshot + source file/line land in chat as DATA |
 | take over building | an `agent-brief` | the durable contract, written to that playbook's rules |
 
 Choose ONE per park. A questionnaire that is really a procedure gets ignored; a script that is

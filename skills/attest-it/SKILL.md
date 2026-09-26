@@ -32,7 +32,9 @@ or name the gaps" is a user-facing outcome AND an audit artifact: each control i
 evidence an independent session re-derives, or it is a named GAP parked to a human/legal owner — never
 a silent pass. Composes `decompose-dag`, `acceptance-review`, `research-brief` (catalog sourcing),
 `completion-audit` (an EXTERNAL-STATE control is a GAP, never an assumed pass), `human-handoff`
-(every GAP is filed with an artifact, an owner, and a verify-complete observation); rides `evidence-manifest` (each control's
+(every GAP is filed with an artifact, an owner, and a verify-complete observation),
+`publish-evidence` (the attestation bundle leaves the tree as a versioned link); rides
+`evidence-manifest` (each control's
 evidence binds to authoritative state via the Art-12/50 provenance block and is re-derived, not
 narrated), `gate-classification` (a GAP that needs a policy/spend/legal decision is a one-way human
 door), `sandbox-policy` (`PROFILE=ro` for evidence gathering), `ledger-contract` (the obligation
@@ -63,6 +65,7 @@ FREEZE the denominator: pick standard@version and its SOURCE — the standard's 
     enforces the Art-12/50 audit fields are present); a control evidenced against a different version,
     or with no re-derivable artifact, is a GAP, not a pass.
   → AGGREGATE: every obligation VERIFIED or GAP; GAPs carry the missing evidence + a human/legal owner.
+  → PUBLISH the attestation bundle as a versioned link (`publish-evidence`).
   → VERDICT: CONFORMANT, or CONFORMANT-WITH-GAPS with the gap register.
 ```
 

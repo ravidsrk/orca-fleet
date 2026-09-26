@@ -120,6 +120,7 @@ make each run concrete, self-run candidates first:
 | document-it | this catalog's own zero-coverage doc cells — `runtime/scripts/` has modules with no guide entry | self-run | `DOCUMENTED` | Orca; a frozen public surface to document against |
 | migrate-it | needs a stateful schema — this catalog has no database; an external repo with a live migration | external-run | `MIGRATED` | a target with real data + Orca |
 | oncall-it | a bounded external staging-service path set, with 2–4 frozen on-call questions per path; establish operability using the proof below | external-run | `OPERABLE` / `OPERABLE-WITH-PARKED` | Orca; staging failures that can be induced safely; an observable alert destination; human path/question and cost/ownership gates |
+| offload-it | this catalog's own Run-on recipe — interview → snapshots → doctor → provision loop against a real provider | self-run | `OFFLOADED` (or `-WITH-PARKED`) | Orca; a funded provider account + agent login (human) |
 
 For **oncall-it**, retain the question→signal queries and outputs, symptom alerts with two
 severities and justified thresholds, linked runbooks, and test-fire receipts from the destination.

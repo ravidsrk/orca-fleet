@@ -38,7 +38,8 @@ and keep the ledger FILE. You never write the docs yourself.
 Read [ARCHITECTURE.md](../../ARCHITECTURE.md) once. Composes `doc-coverage` (extraction, the
 quadrant map, claim verification), `remediate-finding` (each cell lands as one unit with its own
 review), `acceptance-review` (build-blind review: voice, accuracy, reachability),
-`compound-learn`; rides `evidence-manifest` (per cell: base → head SHA, the anchors for every
+`compound-learn`, `publish-evidence` (the map + pages leave the tree as versioned links);
+rides `evidence-manifest` (per cell: base → head SHA, the anchors for every
 claim, the rename negative control, the re-derived map), `merge-serialization` (cells touching one
 doc file are a chain), `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
 `ledger-contract`, `attention-budget`, `gate-classification` (which entities merit a tutorial or an
@@ -71,6 +72,7 @@ SELF-ORIENT → EXTRACT the public surface at BASE head with a SCRIPT, not a rea
   Reference cells for an entity land BEFORE its how-to and tutorial cells — reference sets the
   vocabulary and is the quadrant derivable from code alone.
 → RE-MAP at the final head: the extractor re-runs, the map is re-derived, gaps are re-counted.
+→ PUBLISH the map + landed pages as versioned links (`publish-evidence`).
 → VERDICT + `compound-learn`: DOCUMENTED / DOCUMENTED-WITH-PARKED.
 ```
 

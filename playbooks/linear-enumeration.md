@@ -64,6 +64,16 @@ move the state. No running commentary unless the mission asked for in-progress u
 creates a link attachment; it does not read inline media, and it is not a substitute for the merge
 SHA in the manifest (evidence-manifest.md) — the ticket reflects closure, it never proves it.
 
+## Jira is a drawer, not a denominator source
+
+Orca links Jira issues (Cloud or self-hosted) to worktrees from the task drawer — browse, edit
+status/priority/assignee inline, comment, create a worktree from an issue — with credentials in
+the OS keychain over HTTPS. But there is no Jira CLI behind this playbook: no paged query, no
+truncation flag, no twin-query denominator. A Jira-sourced run therefore enumerates by hand in
+the drawer and pastes the frozen set (issue keys + titles + the timestamp) into the ledger, or
+it is PARKED until a scriptable source exists. Never present a drawer eyeball-count as an
+enumerated denominator.
+
 ## Completion
 
 The denominator was paged to `truncated:false` and re-derived by a second worker at T0 with the

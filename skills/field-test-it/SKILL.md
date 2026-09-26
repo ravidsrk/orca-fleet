@@ -9,7 +9,7 @@ description: >-
   when "test on a real device", "works on desktop, breaks on mobile", "emulator QA", "on-device
   bug", "verify on hardware", "a regression no desktop run reproduces", "physical device testing".
   Not for web perf budgets (speed-it), WCAG conformance (access-it), test-coverage gaps (prove-
-  it), or a PR verdict (review-it).
+  it), framework/dependency upgrades (modernize-it), or a PR verdict (review-it).
 license: MIT
 compatibility: >-
   HARD dependency: Orca runtime + orchestration skill (Orca CLI) plus the Orca emulator skills
@@ -34,11 +34,11 @@ and what broke there is fixed and re-proven there" is a user-facing outcome whos
 the ledgered device session itself: behaviour observed through it, typed by tier (PHYSICAL or EMULATOR). Simulators and desktops lie by omission —
 rendering, input, permissions, lifecycle, and performance differ — so the device session is the
 authority, and every fix is re-verified against it. Composes `diagnose` (on-device repro is a
-diagnosis with a hardware oracle), `browser-drive` (the BROWSER oracle tier), `human-handoff` (device
-and permission grants), `remediate-finding` (fix each defect), `acceptance-review`
-(build-blind review of each fix), `compound-learn` (which defects only hardware catches feeds the
-retro); rides `evidence-manifest` (each fix carries the on-device repro artifact + the re-verify
-artifact at `head_sha`; negative control = revert reintroduces the on-device failure),
+diagnosis with a hardware oracle), `browser-drive` (the BROWSER tier), `computer-drive` (the
+DESKTOP tier), `clean-env-drive` (the CLEAN-ENV tier), `human-handoff` (device and permission
+grants), `remediate-finding` (fix each defect), `acceptance-review` (build-blind review),
+`compound-learn` (hardware-only defects feed the retro); rides `evidence-manifest` (each fix carries the
+on-device repro + re-verify artifacts at `head_sha`; negative control = revert reintroduces the on-device failure),
 `merge-serialization`, `reviewed-sha-freshness`, `dispatch-lifecycle`, `liveness-resume`,
 `ledger-contract`, `sandbox-policy` (`PROFILE=rw` fix workers; device installs are host-side
 rw work on the coordinator's machine — there is no device "danger lane": an ephemeral VM cannot
@@ -68,13 +68,13 @@ PAIR: load the version-matched guides from the binary (`orca skills get orca-emu
   CLEAN-ENV`: DEVICE (== PHYSICAL — hardware radios, thermal, real sensors) → EMULATOR
   (rendering/input/lifecycle, simulated sensors) → BROWSER (a web surface driven through
   `browser-drive`, its engine named and its evidence lines labelled) → DESKTOP (an OS/window-level
-  surface driven through the runtime's computer-use verbs, where every action carries a
+  surface driven through `computer-drive`, where every action carries a
   VERIFIED/UNVERIFIED result and an UNVERIFIED action is NEVER reported as success — if it could
   have sent, submitted, bought, or deleted something, the effect is unproven) → CLEAN-ENV (a
-  disposable sandbox proving first-run, install, and permission-prompt behaviour on a machine with
-  no prior state). A defect class that only exists a tier up can never be proven a tier down;
-  those are parked or paired, never "verified" on the weaker tier, and a tier is never upgraded
-  silently.
+  disposable sandbox (`clean-env-drive`) proving first-run, install, and permission-prompt
+  behaviour on a machine with no prior state). A defect class that only exists a tier up can
+  never be proven a tier down; those are parked or paired, never "verified" on the weaker tier,
+  and a tier is never upgraded silently.
 → BOOTSTRAP integration BASE (runtime/scripts/preflight.py --base <BASE> --fork-point <sha>;
   BASE ≠ default — dispatch-lifecycle.md). Fixes land on BASE, never the default branch.
 → BASELINE: capture the pre-change regression snapshot — the target flows driven on-device at the

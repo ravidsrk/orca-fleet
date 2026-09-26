@@ -1,7 +1,7 @@
 # 📋 attest-it — evidence-bound conformance to a frozen standard
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel evidence workers, one obligation each, re-derived independently; the human/legal owner's disposition of gaps and the conformance verdict are one-way gates, not a lower rung.
-> **Activation load:** ~21,900 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~23,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
 
 > Point it at a standard (EU AI Act Art-12/50, SOC 2, NIST SSDF) and a codebase. Come back to an
@@ -128,7 +128,8 @@ Playbooks:
 [`acceptance-review`](../../playbooks/acceptance-review.md) ·
 [`research-brief`](../../playbooks/research-brief.md) ·
 [`completion-audit`](../../playbooks/completion-audit.md) ·
-[`human-handoff`](../../playbooks/human-handoff.md)
+[`human-handoff`](../../playbooks/human-handoff.md) ·
+[`publish-evidence`](../../playbooks/publish-evidence.md)
 
 Runtime policies:
 [`evidence-manifest`](../../runtime/evidence-manifest.md) ·
