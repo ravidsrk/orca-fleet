@@ -18,8 +18,12 @@ Exit: 0 ok · 1 runtime/refusal/receipt failure · 2 usage.
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pm import _visible
 
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -99,8 +103,8 @@ def format_list(result):
     for row in rows:
         if not isinstance(row, dict):
             continue
-        lines.append(f"{row.get('id') or '?'} "
-                     f"{row.get('displayName') or '?'}")
+        lines.append(f"{_visible(row.get('id') or '?')} "
+                     f"{_visible(row.get('displayName') or '?')}")
     return lines
 
 
@@ -110,8 +114,8 @@ def format_show(result):
     row = result.get("worktree")
     if not isinstance(row, dict) or not row.get("id"):
         raise Failed("worktree show receipt names no worktree")
-    return [f"ID={row.get('id')}",
-            f"NAME={row.get('displayName') or 'none'}"]
+    return [f"ID={_visible(row.get('id'))}",
+            f"NAME={_visible(row.get('displayName') or 'none')}"]
 
 
 def run_orca(argv):

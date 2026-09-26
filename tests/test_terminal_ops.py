@@ -146,6 +146,14 @@ class TestRead(unittest.TestCase):
         self.assertIn("$ deploy", lines)
         self.assertIn("done", lines)
 
+    def test_tail_prints_inert(self):
+        lines = self.m.format_read(
+            {"handle": "t", "source": "stream", "truncated": False,
+             "tail": ["$ ok", "\x1b[2Kcls"]}, want_screen=False)
+        joined = "\n".join(lines)
+        self.assertIn("\\x1b", joined)
+        self.assertNotIn("\x1b", joined)
+
     def test_read_without_tail_fails_closed(self):
         with self.assertRaises(self.m.Failed) as ctx:
             self.m.format_read({"handle": "t", "source": "stream",
@@ -197,6 +205,14 @@ class TestInventory(unittest.TestCase):
         lines = self.m.format_show({"terminal": SUMMARY})
         self.assertIn("HANDLE=term_1", lines)
         self.assertIn("TITLE=RUNNER", lines)
+
+    def test_title_prints_inert(self):
+        lines = self.m.format_list(
+            {"terminals": [{"handle": "t", "title": "\x1b[2Kx"}],
+             "truncated": False})
+        joined = "\n".join(lines)
+        self.assertIn("\\x1b", joined)
+        self.assertNotIn("\x1b", joined)
 
     def test_cli_list(self):
         rc, out, err, calls = run_cli(["list"],

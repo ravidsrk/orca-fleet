@@ -26,6 +26,9 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pm import _visible
+
 EXIT_OK = 0
 EXIT_FAILED = 1
 EXIT_REFUSED = 2
@@ -185,10 +188,11 @@ def format_messages(messages):
         if not isinstance(m, dict):
             skipped += 1
             continue
-        lines.append(f"--- {m.get('id', '?')} ({m.get('type', '?')}) "
-                     f"from {m.get('from_handle', '?')}")
-        lines.append(f"SUBJ: {m.get('subject', '?')}")
-        lines.append(_bounded(m.get("body", "")))
+        lines.append(f"--- {_visible(m.get('id', '?'))} "
+                     f"({_visible(m.get('type', '?'))}) "
+                     f"from {_visible(m.get('from_handle', '?'))}")
+        lines.append(f"SUBJ: {_visible(m.get('subject', '?'))}")
+        lines.append(_bounded(_visible(m.get("body", ""))))
     return lines, skipped
 
 

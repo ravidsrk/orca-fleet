@@ -26,8 +26,12 @@ Exit: 0 ok · 1 runtime/refusal/receipt failure · 2 usage/precheck refusal.
 import argparse
 import datetime
 import json
+import os
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pm import _visible
 
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -182,12 +186,12 @@ def format_results(result):
                                                dict) else {}
         snippet = ev.get("snippet") if isinstance(ev.get("snippet"),
                                                   str) else ""
-        lines.append(f"HIT {hit.get('sessionId') or '?'} "
-                     f"score={hit.get('score', '?')} "
-                     f"{hit.get('title') or '(untitled)'}")
+        lines.append(f"HIT {_visible(hit.get('sessionId') or '?')} "
+                     f"score={_visible(hit.get('score', '?'))} "
+                     f"{_visible(hit.get('title') or '(untitled)')}")
         if snippet:
-            lines.append(f"SNIPPET [{ev.get('role', '?')}]: "
-                         f"{_bounded(snippet, SNIPPET_LIMIT)}")
+            lines.append(f"SNIPPET [{_visible(ev.get('role', '?'))}]: "
+                         f"{_bounded(_visible(snippet), SNIPPET_LIMIT)}")
         else:
             lines.append("SNIPPET: (none)")
     return lines

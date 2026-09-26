@@ -28,8 +28,12 @@ Exit: 0 ok · 1 runtime/refusal/receipt/evidence failure · 2 usage.
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pm import _visible
 
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -211,19 +215,20 @@ def format_read(result, want="auto"):
                 lines.append("--- ? (?)")
                 lines.append("(unreadable message skipped)")
                 continue
-            lines.append(f"--- {m.get('id', '?')} ({m.get('role', '?')})")
+            lines.append(f"--- {_visible(m.get('id', '?'))} "
+                         f"({_visible(m.get('role', '?'))})")
             text = "\n".join(
                 b.get("text", "") for b in m.get("blocks", [])
                 if isinstance(b, dict) and b.get("type") == "text"
                 and isinstance(b.get("text"), str))
-            lines.append(_bounded(text if text else "(no text blocks)"))
+            lines.append(_bounded(_visible(text if text else "(no text blocks)")))
     else:
         term = result.get("terminal")
         tail = term.get("tail") if isinstance(term, dict) else None
         if not isinstance(tail, list):
             raise Failed("worker-read receipt names no terminal tail")
         lines.append("--- tail")
-        lines.extend(str(line) for line in tail)
+        lines.extend(_visible(line) for line in tail)
     return lines
 
 

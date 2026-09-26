@@ -173,6 +173,18 @@ class TestCli(unittest.TestCase):
         self.assertIn("HIT s1 score=? (untitled)", out)
         self.assertIn("SNIPPET: (none)", out)
 
+    def test_snippet_prints_inert(self):
+        rc, out, err, _c = run_cli(["flaky test"], results={
+            "kind": "results",
+            "hits": [{"sessionId": "s1", "title": "t",
+                      "score": 1.0,
+                      "evidence": {"snippet": "\x1b[2Kx",
+                                  "role": "assistant"}}],
+            "page": {"cursor": "none", "hasMore": False}})
+        self.assertEqual(rc, 0, err)
+        self.assertIn("\\x1b", out)
+        self.assertNotIn("\x1b", out)
+
     def test_precheck_only_runs_no_query(self):
         rc, out, err, calls = run_cli(["--precheck-only"])
         self.assertEqual(rc, 0, err)

@@ -109,6 +109,14 @@ class TestFormat(unittest.TestCase):
         self.assertIn("ID=repo1::/w/a", lines)
         self.assertIn("NAME=alpha", lines)
 
+    def test_display_name_prints_inert(self):
+        lines = self.m.format_list(
+            {"worktrees": [dict(ROW, displayName="\x1b[2Kx")],
+             "totalCount": 1, "truncated": False})
+        joined = "\n".join(lines)
+        self.assertIn("\\x1b", joined)
+        self.assertNotIn("\x1b", joined)
+
     def test_show_without_worktree_is_a_failure(self):
         with self.assertRaises(self.m.Failed):
             self.m.format_show({"worktree": {}})

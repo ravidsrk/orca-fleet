@@ -173,6 +173,17 @@ class TestCli(unittest.TestCase):
         self.assertIn("--- m1 (?) from ?", out)
         self.assertIn("WARN: skipped 1 malformed message", err)
 
+    def test_control_characters_print_inert(self):
+        rc, out, err, _c = run_cli(
+            ["check", "--peek"],
+            payload={"result": {"messages": [
+                {"id": "m1", "subject": "a\x1bb",
+                 "body": "\x1b[2K hidden yes"}], "count": 1,
+                "deliveryId": "d9"}})
+        self.assertEqual(rc, 0, err)
+        self.assertIn("\\x1b", out)
+        self.assertNotIn("\x1b", out)
+
     def test_check_timeout_is_a_receipt_not_a_failure(self):
         rc, out, err, _c = run_cli(
             ["check", "--wait", "--timeout-ms", "100"],

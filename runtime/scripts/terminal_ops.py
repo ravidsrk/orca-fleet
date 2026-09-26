@@ -25,8 +25,12 @@ Exit: 0 ok · 1 runtime/refusal/receipt/evidence failure · 2 usage.
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pm import _visible
 
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -181,7 +185,7 @@ def format_read(result, want_screen=False):
     lines = [f"SOURCE={source}",
              f"TRUNCATED={'yes' if term.get('truncated') else 'no'}",
              "--- tail"]
-    lines.extend(str(line) for line in tail)
+    lines.extend(_visible(line) for line in tail)
     return lines
 
 
@@ -196,7 +200,8 @@ def format_list(result):
     for row in terminals:
         if not isinstance(row, dict):
             continue
-        lines.append(f"{row.get('handle') or '?'} {row.get('title') or '?'}")
+        lines.append(f"{_visible(row.get('handle') or '?')} "
+                         f"{_visible(row.get('title') or '?')}")
     return lines
 
 
@@ -206,8 +211,8 @@ def format_show(result):
     term = result.get("terminal")
     if not isinstance(term, dict) or not term.get("handle"):
         raise Failed("terminal show receipt names no terminal")
-    return [f"HANDLE={term.get('handle')}",
-            f"TITLE={term.get('title') or 'none'}"]
+    return [f"HANDLE={_visible(term.get('handle'))}",
+            f"TITLE={_visible(term.get('title') or 'none')}"]
 
 
 def run_orca(argv):

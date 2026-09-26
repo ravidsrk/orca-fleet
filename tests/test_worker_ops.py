@@ -162,6 +162,17 @@ class TestRead(unittest.TestCase):
         self.assertIn("$ run", lines)
         self.assertIn("ok", lines)
 
+    def test_transcript_text_prints_inert(self):
+        receipt = dict(self.TRANSCRIPT, transcript={
+            "messages": [{"id": "m1", "role": "assistant",
+                          "blocks": [{"type": "text",
+                                      "text": "\x1b]0;pwned\x07hi"}]}],
+            "nextCursor": "c10", "limited": False})
+        lines = self.m.format_read(receipt, want="transcript")
+        joined = "\n".join(lines)
+        self.assertIn("\\x1b", joined)
+        self.assertNotIn("\x1b", joined)
+
     def test_read_without_payload_fails_closed(self):
         bare_t = {k: v for k, v in self.TRANSCRIPT.items()
                   if k != "transcript"}

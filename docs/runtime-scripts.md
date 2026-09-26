@@ -27,7 +27,8 @@ A `--wait` that times out (`timedOut`) is exit 0 with `TIMED_OUT=yes`, not a fai
 Each message prints as a `--- <id> (<type>) from <handle>` block with `SUBJ:` and
 the body (capped at 2000 chars with a truncation marker); malformed entries skip
 with a stderr WARN. Consuming reads show what they consumed — a later check may
-never see these messages again.
+never see these messages again. Every printed field passes through pm.py's
+`_visible`, so control and invisible characters render inertly, never actively.
 
 Exits: 0 checked/replied · 1 runtime/refusal/receipt failure · 2 usage or
 validation refusal (nothing invoked).
@@ -442,6 +443,7 @@ the host to reconcile first). The query rides positionally or as `--query`, neve
 both; `--limit` caps at 100; `--since` must be ISO 8601 with an offset. Answers print
 `HITS=`/`NEXT_CURSOR=`, then each hit as `HIT <session> score=<s> <title>` plus its
 `SNIPPET [role]:` (capped at 500 chars; `(none)` when the host sent no evidence).
+Titles and snippets render through pm.py's `_visible`, inertly.
 Stale, malformed, or unavailable are failures, never empty results.
 `--precheck-only` runs just the verdict.
 
@@ -565,7 +567,8 @@ other question — refused like upstream's `incompatible_runtime` instead of
 certifying accumulated output as the rendered screen; `screen-unavailable` is
 degraded output, likewise never certified. Successful reads print the `tail` lines
 under `--- tail` (a receipt without `tail` fails closed — the payload is the point
-of the read). Mutating verbs
+of the read); tail lines and titles render through pm.py's `_visible`, inertly.
+Mutating verbs
 (close/rename/split/switch/stop/send/wait) stay out (lifecycle-risk).
 
 Exits: 0 ok · 1 runtime/refusal/receipt/evidence failure · 2 usage.
@@ -627,7 +630,8 @@ liveness, `observation.agentWait` with absent-vs-null semantics); `read --dispat
 [--source auto|transcript|terminal]` (`transcript` certifies — a non-transcript
 effective source is exit 1; transcript reads print each message as
 `--- <id> (<role>)` with joined text blocks capped at 2000 chars, terminal reads
-print `--- tail` plus the lines, and a missing payload fails closed); `stop|abandon --dispatch D` (scripted fencing;
+print `--- tail` plus the lines, and a missing payload fails closed; all of it
+through pm.py's `_visible`, inertly); `stop|abandon --dispatch D` (scripted fencing;
 `stop_unknown` fails, never claims); `release|retain --dispatch D` (reclaim; only
 `release_unknown` fails); `list` (watchdog enumeration: `ROWS`/`SCOPE` lines, newest
 first, opaque cursor).
@@ -654,6 +658,7 @@ Subcommands: `list [--repo SELECTOR] [--limit N]`; `show --worktree SELECTOR`. A
 selector is `active`|`current` or a prefixed form (`identity:` `id:` `name:`
 `branch:` `issue:` `path:` `folder:` `worktree:`) with a non-empty remainder;
 anything else refuses with exit 2. A bare path must be spelled `path:<abs>`.
+Listed ids and display names render through pm.py's `_visible`, inertly.
 
 Exits: 0 ok · 1 runtime/refusal/receipt failure · 2 usage.
 
