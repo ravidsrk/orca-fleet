@@ -131,7 +131,7 @@ Title, centred at the top: WHICH MISSION DO I WANT?
 Root box centred beneath the title: WHAT DO YOU HAVE?
 Four branches fan out from the root into four columns, each headed by a category box.
 Column 1 head: A GOAL TO BUILD. Beneath it two boxes joined by a down arrow:  map-it (caption: chart it into a frozen map)  then  ship-it (caption: build → review → release).
-Column 2 head: KNOWN PROBLEMS. Beneath it a grid of sixteen boxes, two columns of eight, in this order:
+Column 2 head: KNOWN PROBLEMS. Beneath it a grid of seventeen boxes, two columns of nine and eight, in this order:
 clean-sweep (caption: drain the backlog)
 oss-contribute (caption: PRs upstream, fork-only)
 absorb-it (caption: drain the inbound PR queue)
@@ -148,6 +148,7 @@ access-it (caption: WCAG conformance)
 oncall-it (caption: telemetry, alerts, runbooks)
 document-it (caption: coverage map, claims anchored)
 field-test-it (caption: proof on hardware)
+offload-it (caption: recipe, proven by provisioning)
 Column 3 head: A QUESTION, NOT A CHANGE. Beneath it two boxes:  review-it (caption: read-only verdict)  and  root-cause (caption: diagnosis only).
 Column 4 head: OUR TOOLING DRIFTED. Beneath it one box:  pin-it (caption: re-pin the doctrine).
 Footer, small, centred: missions are named for outcomes, never for packs"""},

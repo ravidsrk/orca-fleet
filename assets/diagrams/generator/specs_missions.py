@@ -199,4 +199,12 @@ m("document-it", "every public-surface cell filled, every claim anchored",
   "a page per cell with every claim anchored · rename-control transcripts · the coverage map re-derived at the final head",
   "never inventing a why, never rewriting a diagram",
   "EXTRACT → MAP → FREEZE → WRITE → CLAIM-VERIFY → REVIEW → LAND → RE-MAP"),
+
+m("offload-it", "a recipe that provisions, proven by provisioning",
+  "a repo, plus provider and agent accounts",
+  "each paid checkpoint · the interactive agent login",
+  [("OFFLOADED", G), ("OFFLOADED-WITH-PARKED", A)],
+  "a wired recipe · a clear doctor transcript · an enacted provision transcript",
+  "money and login stay human — no paid step without an explicit OK",
+  "INSPECT → INTERVIEW → SCAFFOLD → SNAPSHOT → WIRE → DOCTOR → PROVISION"),
 ]
