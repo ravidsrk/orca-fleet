@@ -111,9 +111,11 @@ class TestRead(unittest.TestCase):
             self.m.build_argv(self.m.parse_args(["read", "--cursor", "-1"]))
 
     def test_screen_source_certified(self):
-        lines = self.m.format_read({"handle": "t", "source": "screen"},
+        lines = self.m.format_read({"handle": "t", "source": "screen",
+                                    "tail": ["frame"], "truncated": False},
                                    want_screen=True)
         self.assertIn("SOURCE=screen", lines)
+        self.assertIn("frame", lines)
 
     def test_screen_with_absent_source_is_an_older_host_failure(self):
         # Upstream refuses with incompatible_runtime; the wrapper fails closed
@@ -130,15 +132,33 @@ class TestRead(unittest.TestCase):
         self.assertIn("screen-unavailable", str(ctx.exception))
 
     def test_stream_read_without_screen_passes(self):
-        lines = self.m.format_read({"handle": "t", "source": "stream"},
+        lines = self.m.format_read({"handle": "t", "source": "stream",
+                                    "tail": ["$ ok"], "truncated": False},
                                    want_screen=False)
         self.assertIn("SOURCE=stream", lines)
+
+    def test_read_prints_bounded_tail(self):
+        lines = self.m.format_read(
+            {"handle": "t", "source": "stream", "truncated": True,
+             "tail": ["$ deploy", "done"]}, want_screen=False)
+        self.assertIn("SOURCE=stream", lines)
+        self.assertIn("TRUNCATED=yes", lines)
+        self.assertIn("$ deploy", lines)
+        self.assertIn("done", lines)
+
+    def test_read_without_tail_fails_closed(self):
+        with self.assertRaises(self.m.Failed) as ctx:
+            self.m.format_read({"handle": "t", "source": "stream",
+                                "truncated": False}, want_screen=False)
+        self.assertIn("names no tail", str(ctx.exception))
 
     def test_cli_read_screen(self):
         rc, out, err, calls = run_cli(
             ["read", "--terminal", "term_1", "--screen"],
             payload={"result": {"terminal": {"handle": "term_1",
-                                             "source": "screen"}}})
+                                             "source": "screen",
+                                             "tail": ["frame"],
+                                             "truncated": False}}})
         self.assertEqual(rc, 0, err)
         self.assertIn("SOURCE=screen", out)
         self.assertIn("--screen", calls)

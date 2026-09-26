@@ -175,7 +175,14 @@ def format_read(result, want_screen=False):
             raise Failed(f"--screen asked but the receipt source is {source!r}")
     if source is None:
         source = "unknown"
-    return [f"SOURCE={source}"]
+    tail = term.get("tail") if isinstance(term, dict) else None
+    if not isinstance(tail, list):
+        raise Failed("terminal read receipt names no tail")
+    lines = [f"SOURCE={source}",
+             f"TRUNCATED={'yes' if term.get('truncated') else 'no'}",
+             "--- tail"]
+    lines.extend(str(line) for line in tail)
+    return lines
 
 
 def format_list(result):

@@ -175,6 +175,15 @@ def format_show(result):
     return lines
 
 
+BODY_LIMIT = 2000
+
+
+def _bounded(text, limit=BODY_LIMIT):
+    if len(text) <= limit:
+        return text
+    return text[:limit] + f"\n[truncated {len(text) - limit} chars]"
+
+
 def format_read(result, want="auto"):
     """worker-read receipt; want=transcript certifies transcript evidence."""
     if not isinstance(result, dict):
@@ -192,6 +201,29 @@ def format_read(result, want="auto"):
     fallback = result.get("fallbackReason")
     if fallback:
         lines.append(f"FALLBACK={fallback}")
+    if source == "transcript":
+        page = result.get("transcript")
+        messages = page.get("messages") if isinstance(page, dict) else None
+        if not isinstance(messages, list):
+            raise Failed("worker-read receipt names no transcript messages")
+        for m in messages:
+            if not isinstance(m, dict):
+                lines.append("--- ? (?)")
+                lines.append("(unreadable message skipped)")
+                continue
+            lines.append(f"--- {m.get('id', '?')} ({m.get('role', '?')})")
+            text = "\n".join(
+                b.get("text", "") for b in m.get("blocks", [])
+                if isinstance(b, dict) and b.get("type") == "text"
+                and isinstance(b.get("text"), str))
+            lines.append(_bounded(text if text else "(no text blocks)"))
+    else:
+        term = result.get("terminal")
+        tail = term.get("tail") if isinstance(term, dict) else None
+        if not isinstance(tail, list):
+            raise Failed("worker-read receipt names no terminal tail")
+        lines.append("--- tail")
+        lines.extend(str(line) for line in tail)
     return lines
 
 

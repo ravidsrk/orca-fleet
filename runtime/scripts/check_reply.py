@@ -168,6 +168,30 @@ def run_orca(argv):
     return result
 
 
+BODY_LIMIT = 2000
+
+
+def _bounded(text, limit=BODY_LIMIT):
+    text = text if isinstance(text, str) else ""
+    if len(text) <= limit:
+        return text
+    return text[:limit] + f"\n[truncated {len(text) - limit} chars]"
+
+
+def format_messages(messages):
+    """One block per message; returns (lines, skipped_non_dicts)."""
+    lines, skipped = [], 0
+    for m in messages:
+        if not isinstance(m, dict):
+            skipped += 1
+            continue
+        lines.append(f"--- {m.get('id', '?')} ({m.get('type', '?')}) "
+                     f"from {m.get('from_handle', '?')}")
+        lines.append(f"SUBJ: {m.get('subject', '?')}")
+        lines.append(_bounded(m.get("body", "")))
+    return lines, skipped
+
+
 def main(argv=None, env=None):
     try:
         ns = parse_args(sys.argv[1:] if argv is None else argv)
@@ -183,6 +207,12 @@ def main(argv=None, env=None):
             delivery = result.get("deliveryId") or "none"
             timed_out = "yes" if result.get("timedOut") is True else "no"
             print(f"COUNT={count} DELIVERY={delivery} TIMED_OUT={timed_out}")
+            body, skipped = format_messages(messages)
+            for line in body:
+                print(line)
+            if skipped:
+                print(f"check_reply: WARN: skipped {skipped} malformed "
+                      f"message(s)", file=sys.stderr)
         else:
             result = run_orca(build_reply_argv(ns, env))
             reported = result.get("messageId") or result.get("id") or "unknown"

@@ -353,6 +353,20 @@ class TestGlobalRouting(unittest.TestCase):
             env_extra=dict(RW, ORCA_ENVIRONMENT="env_a"))
         self.assertEqual(rc, 0, err)
 
+    def test_from_disagreement_with_ambient_handle_refused(self):
+        rc, _, err, calls, _ = run_spawn(
+            ["--from", "term_a"] + ARGS,
+            env_extra=dict(RW, ORCA_TERMINAL_HANDLE="term_b"))
+        self.assertEqual(rc, 2, err)
+        self.assertIn("SPAWN=REFUSED", err)
+        self.assertEqual(calls, "")
+
+    def test_from_matching_ambient_handle_allowed(self):
+        rc, _o, err, _c, _e = run_spawn(
+            ["--from", "term_a"] + ARGS,
+            env_extra=dict(RW, ORCA_TERMINAL_HANDLE="term_a"))
+        self.assertEqual(rc, 0, err)
+
     def test_host_refused_on_the_spawn_path(self):
         rc, _, err, calls, _ = run_spawn(
             ["--host", "runtime:abc"] + ARGS, env_extra=RW)

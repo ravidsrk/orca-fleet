@@ -138,6 +138,41 @@ class TestCli(unittest.TestCase):
         self.assertIn("DELIVERY=d9", out)
         self.assertIn("orchestration check --peek --json", calls)
 
+    def test_check_prints_bounded_bodies(self):
+        rc, out, err, _c = run_cli(
+            ["check", "--peek"],
+            payload={"result": {"messages": [
+                {"id": "m1", "type": "question", "from_handle": "term_a",
+                 "subject": "need input", "body": "which region?"},
+                {"id": "m2", "type": "worker_done", "from_handle": "term_b",
+                 "subject": "done", "body": "shipped"}], "count": 2,
+                "deliveryId": "d9"}})
+        self.assertEqual(rc, 0, err)
+        self.assertIn("--- m1 (question) from term_a", out)
+        self.assertIn("SUBJ: need input", out)
+        self.assertIn("which region?", out)
+        self.assertIn("--- m2 (worker_done) from term_b", out)
+
+    def test_long_body_truncated_with_marker(self):
+        rc, out, err, _c = run_cli(
+            ["check", "--peek"],
+            payload={"result": {"messages": [
+                {"id": "m1", "body": "x" * 2500}], "count": 1,
+                "deliveryId": "d9"}})
+        self.assertEqual(rc, 0, err)
+        self.assertIn("[truncated 500 chars]", out)
+        self.assertNotIn("x" * 2500, out)
+
+    def test_malformed_message_skipped_with_warn(self):
+        rc, out, err, _c = run_cli(
+            ["check", "--peek"],
+            payload={"result": {"messages": [
+                {"id": "m1", "body": "ok"}, "junk"], "count": 2,
+                "deliveryId": "d9"}})
+        self.assertEqual(rc, 0, err)
+        self.assertIn("--- m1 (?) from ?", out)
+        self.assertIn("WARN: skipped 1 malformed message", err)
+
     def test_check_timeout_is_a_receipt_not_a_failure(self):
         rc, out, err, _c = run_cli(
             ["check", "--wait", "--timeout-ms", "100"],

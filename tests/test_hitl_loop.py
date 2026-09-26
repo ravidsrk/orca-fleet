@@ -196,6 +196,35 @@ class TestDurableAsk(unittest.TestCase):
         self.assertNotIn("--resume", lines[1])
         self.assertIn("--question", lines[1])
 
+    def test_resume_at_targets_the_timed_out_capture(self):
+        # A timeout after the first capture resumes THAT capture; earlier
+        # captures re-ask fresh instead of receiving the wrong answer.
+        r, calls = self.run_ask(
+            "--rounds", "1",
+            env_extra={"HITL_RESUME": "msg_9", "HITL_RESUME_AT": "2"})
+        self.assertEqual(r.returncode, 0, r.stderr)
+        lines = [l for l in calls.splitlines() if "orchestration ask" in l]
+        self.assertEqual(len(lines), 2, calls)
+        self.assertIn("--question", lines[0])
+        self.assertNotIn("--resume", lines[0])
+        self.assertIn("--resume msg_9", lines[1])
+
+    def test_timeout_names_its_capture_number(self):
+        r, _ = self.run_ask(
+            "--rounds", "1",
+            payload={"result": {"answer": None, "messageId": "msg_9",
+                                "threadId": "t1", "timedOut": True}})
+        self.assertEqual(r.returncode, 1, r.stderr)
+        self.assertIn("HITL_RESUME=msg_9", r.stderr)
+        self.assertIn("capture 1", r.stderr)
+        self.assertIn("HITL_RESUME_AT=1", r.stderr)
+
+    def test_non_numeric_resume_at_is_a_usage_error(self):
+        r, _ = self.run_ask("--rounds", "1",
+                            env_extra={"HITL_RESUME_AT": "second"})
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("HITL_RESUME_AT must be a number", r.stderr)
+
     def test_bad_timeout_is_a_usage_error(self):
         r, calls = self.run_ask("--rounds", "1",
                                 env_extra={"HITL_ASK_TIMEOUT_MS": "huge"})

@@ -299,6 +299,10 @@ if [ "$PAIRING_GIVEN" = "1" ] && [ -n "${ORCA_PAIRING_CODE:-}" ] && [ "$ROUTE_PA
   echo "SPAWN=REFUSED task=${tname} --pairing-code disagrees with ambient ORCA_PAIRING_CODE — unset one" >&2
   exit 2
 fi
+if [ "$FROM_GIVEN" = "1" ] && [ -n "${ORCA_TERMINAL_HANDLE:-}" ] && [ "$FROM_HANDLE" != "$ORCA_TERMINAL_HANDLE" ]; then
+  echo "SPAWN=REFUSED task=${tname} --from '${FROM_HANDLE}' disagrees with ambient ORCA_TERMINAL_HANDLE='${ORCA_TERMINAL_HANDLE}' — naming the sender is an identity claim; a wrong handle binds work to a sibling worker, so unset one" >&2
+  exit 2
+fi
 if [ "$HOST_GIVEN" = "1" ]; then
   echo "SPAWN=REFUSED task=${tname} --host is not valid on orchestration verbs (upstream rejects it as an unknown flag; it is allowed only on worktree create / project / automations) — route this spawn with --environment/--pairing-code, or place the worker with --on" >&2
   exit 2

@@ -104,10 +104,16 @@ class TestRead(unittest.TestCase):
     TRANSCRIPT = {"dispatchId": "ctx_1", "source": "transcript",
                   "sourceIdentity": "hook:abc", "cursor": "c9",
                   "status": {"worker": "running", "terminal": "live"},
+                  "transcript": {"messages": [
+                      {"id": "m1", "role": "assistant",
+                       "blocks": [{"type": "text", "text": "hi"}]}],
+                      "nextCursor": "c10", "limited": False},
                   "fallbackReason": None}
     TERMINAL = {"dispatchId": "ctx_1", "source": "terminal",
                 "sourceIdentity": "pty:1", "cursor": None,
                 "status": {"worker": "running", "terminal": "live"},
+                "terminal": {"handle": "t", "tail": ["$ ok"],
+                             "truncated": False},
                 "fallbackReason": "transcript_missing"}
 
     def test_argv(self):
@@ -133,6 +139,39 @@ class TestRead(unittest.TestCase):
         lines = self.m.format_read(self.TRANSCRIPT, want="transcript")
         self.assertIn("SOURCE=transcript", lines)
         self.assertIn("CURSOR=c9", lines)
+
+    def test_transcript_prints_bounded_messages(self):
+        receipt = dict(self.TRANSCRIPT, transcript={
+            "messages": [
+                {"id": "m1", "role": "assistant",
+                 "blocks": [{"type": "text", "text": "working on it"}]},
+                {"id": "m2", "role": "user",
+                 "blocks": [{"type": "text", "text": "z" * 2500}]}],
+            "nextCursor": "c10", "limited": False})
+        lines = self.m.format_read(receipt, want="transcript")
+        self.assertIn("--- m1 (assistant)", lines)
+        self.assertIn("working on it", lines)
+        self.assertTrue(any("truncated 500 chars" in ln for ln in lines))
+        self.assertFalse(any("z" * 2500 in ln for ln in lines))
+
+    def test_terminal_variant_prints_tail(self):
+        receipt = dict(self.TERMINAL, terminal={
+            "handle": "t", "tail": ["$ run", "ok"], "truncated": False})
+        lines = self.m.format_read(receipt, want="auto")
+        self.assertIn("SOURCE=terminal", lines)
+        self.assertIn("$ run", lines)
+        self.assertIn("ok", lines)
+
+    def test_read_without_payload_fails_closed(self):
+        bare_t = {k: v for k, v in self.TRANSCRIPT.items()
+                  if k != "transcript"}
+        with self.assertRaises(self.m.Failed) as ctx:
+            self.m.format_read(bare_t, want="transcript")
+        self.assertIn("names no transcript messages", str(ctx.exception))
+        bare_m = {k: v for k, v in self.TERMINAL.items() if k != "terminal"}
+        with self.assertRaises(self.m.Failed) as ctx:
+            self.m.format_read(bare_m, want="auto")
+        self.assertIn("names no terminal tail", str(ctx.exception))
 
     def test_terminal_when_transcript_asked_is_an_evidence_failure(self):
         with self.assertRaises(self.m.Failed):

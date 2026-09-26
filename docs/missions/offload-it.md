@@ -97,7 +97,8 @@ Phase by phase:
 5. **Agent auth [human login].** Boot from the base snapshot; you run the device-auth flow in
    your terminal (plain login hangs on a headless box — the loopback callback is unreachable).
    The fleet verifies by the status command's exit code, refuses to snapshot unauthenticated,
-   then re-snapshots and overwrites the state id.
+   then — on your explicit OK, because the re-snapshot is paid and your login words do not
+   cover it — re-snapshots and overwrites the state id.
 6. **Wire.** `orca.yaml` points create/suspend/resume/destroy at the scripts. The composer
    reads recipes from the primary checkout, so a recipe that lives only on a branch never
    appears as a Run-on option — the doctor works anywhere, the picker does not.

@@ -68,8 +68,10 @@ INSPECT the repo for an existing entry, scripts, state, or setup notes — a wor
   runtime already ran — shared pairing identity; delete the verified user-data dir first.
 → AGENT-AUTH [CHECKPOINT: the human runs the device-auth login, then says so]: headless means
   device-auth flow only (plain login hangs on an unreachable loopback callback); verify by the
-  status command's EXIT CODE, never grep-for-logged-in; refuse to snapshot unauthenticated;
-  re-snapshot, overwrite snapshotId, record authSourceSnapshotId, remove the auth environment.
+  status command's EXIT CODE, never grep-for-logged-in; refuse to snapshot unauthenticated.
+  [CHECKPOINT: explicit OK — the re-snapshot is paid, and the login words above do not cover
+  it]: re-snapshot, overwrite snapshotId, record authSourceSnapshotId, remove the auth
+  environment.
 → WIRE orca.yaml create/suspend/resume/destroy at the scripts. The composer reads recipes from
   the PRIMARY checkout — a recipe that lives only on a branch never appears as Run-on.
 → DOCTOR dry-run: free and static. Clear means NO fail AND NO warn (`ok` alone proves nothing);

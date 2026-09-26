@@ -149,6 +149,30 @@ class TestCli(unittest.TestCase):
         self.assertIn("index-status", lines[0])
         self.assertIn("search flaky test", lines[1])
 
+    def test_results_print_bounded_snippets(self):
+        rc, out, err, _c = run_cli(["flaky test"], results={
+            "kind": "results",
+            "hits": [
+                {"sessionId": "s1", "title": "Resize race", "score": 12.5,
+                 "evidence": {"snippet": "the resize handler drops it",
+                             "role": "assistant"}},
+                {"sessionId": "s2", "title": "Other", "score": 3.0,
+                 "evidence": {"snippet": "y" * 600, "role": "user"}}],
+            "page": {"cursor": "none", "hasMore": False}})
+        self.assertEqual(rc, 0, err)
+        self.assertIn("HIT s1 score=12.5 Resize race", out)
+        self.assertIn("SNIPPET [assistant]: the resize handler drops it", out)
+        self.assertIn("[truncated 100 chars]", out)
+        self.assertNotIn("y" * 600, out)
+
+    def test_hit_without_evidence_prints_none(self):
+        rc, out, err, _c = run_cli(["flaky test"], results={
+            "kind": "results", "hits": [{"sessionId": "s1"}],
+            "page": {"cursor": "none", "hasMore": False}})
+        self.assertEqual(rc, 0, err)
+        self.assertIn("HIT s1 score=? (untitled)", out)
+        self.assertIn("SNIPPET: (none)", out)
+
     def test_precheck_only_runs_no_query(self):
         rc, out, err, calls = run_cli(["--precheck-only"])
         self.assertEqual(rc, 0, err)

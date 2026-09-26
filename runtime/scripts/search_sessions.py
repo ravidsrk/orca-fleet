@@ -152,6 +152,15 @@ def check_index(status):
     return phase
 
 
+SNIPPET_LIMIT = 500
+
+
+def _bounded(text, limit):
+    if len(text) <= limit:
+        return text
+    return text[:limit] + f"\n[truncated {len(text) - limit} chars]"
+
+
 def format_results(result):
     if not isinstance(result, dict):
         raise Failed("search receipt is not an object")
@@ -164,8 +173,24 @@ def format_results(result):
     if not isinstance(hits, list):
         raise Failed("search results answer names no hits")
     page = result.get("page") if isinstance(result.get("page"), dict) else {}
-    return [f"HITS={len(hits)}",
-            f"NEXT_CURSOR={page.get('cursor') or 'none'}"]
+    lines = [f"HITS={len(hits)}",
+             f"NEXT_CURSOR={page.get('cursor') or 'none'}"]
+    for hit in hits:
+        if not isinstance(hit, dict):
+            continue
+        ev = hit.get("evidence") if isinstance(hit.get("evidence"),
+                                               dict) else {}
+        snippet = ev.get("snippet") if isinstance(ev.get("snippet"),
+                                                  str) else ""
+        lines.append(f"HIT {hit.get('sessionId') or '?'} "
+                     f"score={hit.get('score', '?')} "
+                     f"{hit.get('title') or '(untitled)'}")
+        if snippet:
+            lines.append(f"SNIPPET [{ev.get('role', '?')}]: "
+                         f"{_bounded(snippet, SNIPPET_LIMIT)}")
+        else:
+            lines.append("SNIPPET: (none)")
+    return lines
 
 
 def run_orca(argv):

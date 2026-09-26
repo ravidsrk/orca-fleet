@@ -24,6 +24,11 @@ an explicit `--from` that disagrees with it is refused.
 
 A `--wait` that times out (`timedOut`) is exit 0 with `TIMED_OUT=yes`, not a failure.
 
+Each message prints as a `--- <id> (<type>) from <handle>` block with `SUBJ:` and
+the body (capped at 2000 chars with a truncation marker); malformed entries skip
+with a stderr WARN. Consuming reads show what they consumed — a later check may
+never see these messages again.
+
 Exits: 0 checked/replied · 1 runtime/refusal/receipt failure · 2 usage or
 validation refusal (nothing invoked).
 
@@ -310,7 +315,10 @@ only between the EDIT markers, run it from the diagnosis loop. Source
 Usage: `hitl-loop.template.sh [--rounds N] [--dry-run] [--help]`
 
 Env: `HITL_ASK=1` routes asks through `hitl_ask.py` (durable ask/resume instead of
-shell `read`; `HITL_ASK_HELPER` overrides the helper path). `step()` stays keyboard.
+shell `read`; `HITL_ASK_HELPER` overrides the helper path). Timeouts print the timed-out
+capture number: rerun with `HITL_RESUME_AT=N` (default 1) to resume capture N while
+earlier captures re-ask fresh — without it a later-capture answer lands on the wrong
+question. `step()` stays keyboard.
 
 Flags: `--rounds` (default 3; must be a number), `--dry-run` (no reads, placeholder
 answers, so the steps parse before a human sits through them), `--help`.
@@ -432,8 +440,10 @@ The precheck runs first: `enabled=false` or phase `degraded`/`closed` refuses wi
 exit 2 before the query fires; `current`/`idle`/`indexing` proceed (`--fresh` asks
 the host to reconcile first). The query rides positionally or as `--query`, never
 both; `--limit` caps at 100; `--since` must be ISO 8601 with an offset. Answers print
-`HITS=`/`NEXT_CURSOR=`; stale, malformed, or unavailable are failures, never empty
-results. `--precheck-only` runs just the verdict.
+`HITS=`/`NEXT_CURSOR=`, then each hit as `HIT <session> score=<s> <title>` plus its
+`SNIPPET [role]:` (capped at 500 chars; `(none)` when the host sent no evidence).
+Stale, malformed, or unavailable are failures, never empty results.
+`--precheck-only` runs just the verdict.
 
 Exits: 0 ok · 1 runtime/refusal/receipt failure · 2 usage or precheck refusal.
 
@@ -478,7 +488,8 @@ the task first, then runs the normal verified path with its id; `--timeout-ms`
 (supervised lane, positive int); `--run`/`--from` (explicit binding — never implicit
 cwd/pane resolution); `--retry-of` + `--retry-request` (retries link the failed
 dispatch; one id, one mutation); `--on` (remote placement); `--environment`,
-`--pairing-code`, `--cli-cwd` (routing; ambient disagreement refuses);
+`--pairing-code`, `--cli-cwd` (routing; ambient disagreement refuses, `--from`
+against `ORCA_TERMINAL_HANDLE`);
 `--task-brief` (brief spawn-time read). Documented refusals, not silent drops:
 `--task-status`/`--task-ready` (a filtered view cannot verify deps, so the DAG check
 would be unsound) and `--host` (upstream rejects it as an unknown flag on
@@ -552,7 +563,9 @@ rather than spawning its default); `read [--terminal T] [--cursor N] [--limit N]
 carries no `source` means an older host dropped the unknown param and answered the
 other question — refused like upstream's `incompatible_runtime` instead of
 certifying accumulated output as the rendered screen; `screen-unavailable` is
-degraded output, likewise never certified. Mutating verbs
+degraded output, likewise never certified. Successful reads print the `tail` lines
+under `--- tail` (a receipt without `tail` fails closed — the payload is the point
+of the read). Mutating verbs
 (close/rename/split/switch/stop/send/wait) stay out (lifecycle-risk).
 
 Exits: 0 ok · 1 runtime/refusal/receipt/evidence failure · 2 usage.
@@ -612,7 +625,9 @@ Usage: `worker_ops.py {show,read,stop,abandon,release,retain,list} ...`
 Subcommands: `show --dispatch D` (fleet verdict: `projection.nextAction.argv`,
 liveness, `observation.agentWait` with absent-vs-null semantics); `read --dispatch D
 [--source auto|transcript|terminal]` (`transcript` certifies — a non-transcript
-effective source is exit 1); `stop|abandon --dispatch D` (scripted fencing;
+effective source is exit 1; transcript reads print each message as
+`--- <id> (<role>)` with joined text blocks capped at 2000 chars, terminal reads
+print `--- tail` plus the lines, and a missing payload fails closed); `stop|abandon --dispatch D` (scripted fencing;
 `stop_unknown` fails, never claims); `release|retain --dispatch D` (reclaim; only
 `release_unknown` fails); `list` (watchdog enumeration: `ROWS`/`SCOPE` lines, newest
 first, opaque cursor).
