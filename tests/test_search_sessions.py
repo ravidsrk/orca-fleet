@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""Contract tests for runtime/scripts/search_sessions.py (S19).
+
+`orca search` with an --index-status precheck: a disabled or
+degraded/closed index refuses before the query runs (exit 2, the query
+never fires); a healthy index proceeds with validated flags. Non-results
+answers (stale/malformed cursor, unavailable) are failures, never empty
+results.
+"""
+import importlib.util
+import json
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SCRIPT = ROOT / "runtime" / "scripts" / "search_sessions.py"
+
+HEALTHY = {"enabled": True, "phase": "current", "filesIndexed": 10,
+           "filesDue": 0, "filesFailed": 0, "degradedRoots": [],
+           "lastReconcileAt": 1, "lastSweepCompletedAt": 1, "generation": 3}
+
+RESULTS = {"kind": "results", "hits": [{"sessionId": "s1"}, {"sessionId": "s2"}],
+           "page": {"cursor": "c9", "hasMore": True}, "generation": 3,
+           "truncated": {"candidates": False, "snippets": 0, "query": False,
+                         "freshness": False}, "durationMs": 12}
+
+
+def load():
+    spec = importlib.util.spec_from_file_location("search_sessions", SCRIPT)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def run_cli(args, status=None, results=None):
+    with tempfile.TemporaryDirectory() as tmp:
+        st = Path(tmp) / "status.json"
+        st.write_text(json.dumps({"result": status if status is not None
+                                  else HEALTHY}))
+        rs = Path(tmp) / "results.json"
+        rs.write_text(json.dumps({"result": results if results is not None
+                                  else RESULTS}))
+        log = Path(tmp) / "calls.log"
+        stub = Path(tmp) / "orca"
+        stub.write_text(
+            "#!/bin/sh\n"
+            f"printf '%s\\n' \"$*\" >> \"{log}\"\n"
+            'case "$*" in\n'
+            f'  *index-status*) cat "{st}" ;;\n'
+            f'  *) cat "{rs}" ;;\n'
+            "esac\n")
+        stub.chmod(0o755)
+        env = {"PATH": f"{tmp}:/usr/bin:/bin"}
+        p = subprocess.run(["python3", str(SCRIPT), *args], env=env,
+                           capture_output=True, text=True)
+        calls = log.read_text() if log.exists() else ""
+        return p.returncode, p.stdout, p.stderr, calls
+
+
+class TestPrecheck(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.m = load()
+
+    def test_healthy_phases_pass(self):
+        for phase in ("current", "idle", "indexing"):
+            status = dict(HEALTHY, phase=phase)
+            self.assertEqual(self.m.check_index(status), phase)
+
+    def test_disabled_refused(self):
+        with self.assertRaises(self.m.Refused):
+            self.m.check_index(dict(HEALTHY, enabled=False))
+
+    def test_bad_phases_refused(self):
+        for phase in ("degraded", "closed", "bogus"):
+            with self.subTest(phase=phase), self.assertRaises(self.m.Refused):
+                self.m.check_index(dict(HEALTHY, phase=phase))
+
+    def test_absent_fields_refused(self):
+        with self.assertRaises(self.m.Refused):
+            self.m.check_index({"phase": "current"})
+        with self.assertRaises(self.m.Refused):
+            self.m.check_index("not-an-object")
+
+
+class TestArgv(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.m = load()
+
+    def test_argv_full(self):
+        argv = self.m.build_search_argv(self.m.parse_args(
+            ["my query", "--scope", "conversation", "--fresh", "--limit", "50",
+             "--cursor", "c", "--agent", "claude", "--agent", "codex",
+             "--path", "/a", "--since", "2026-08-01T00:00:00Z",
+             "--sort", "newest", "--debug", "--environment", "env",
+             "--pairing-code", "pc"]))
+        self.assertEqual(argv, ["search", "my query", "--scope", "conversation",
+                                "--fresh", "--limit", "50", "--cursor", "c",
+                                "--agent", "claude", "--agent", "codex",
+                                "--path", "/a",
+                                "--since", "2026-08-01T00:00:00Z",
+                                "--sort", "newest", "--debug",
+                                "--environment", "env", "--pairing-code", "pc"])
+
+    def test_query_flag_form(self):
+        argv = self.m.build_search_argv(
+            self.m.parse_args(["--query", "q words"]))
+        self.assertEqual(argv, ["search", "--query", "q words"])
+
+    def test_missing_query_refused(self):
+        with self.assertRaises(self.m.Refused):
+            self.m.build_search_argv(self.m.parse_args([]))
+
+    def test_query_and_flag_together_refused(self):
+        with self.assertRaises(self.m.Refused):
+            self.m.build_search_argv(
+                self.m.parse_args(["q", "--query", "q2"]))
+
+    def test_bad_scope_sort_refused(self):
+        with self.assertRaises(self.m.Refused):
+            self.m.build_search_argv(self.m.parse_args(["q", "--scope", "x"]))
+        with self.assertRaises(self.m.Refused):
+            self.m.build_search_argv(self.m.parse_args(["q", "--sort", "x"]))
+
+    def test_limit_range_is_1_to_100(self):
+        for bad in ("0", "101", "abc"):
+            with self.subTest(bad=bad), self.assertRaises(self.m.Refused):
+                self.m.build_search_argv(self.m.parse_args(
+                    ["q", "--limit", bad]))
+
+    def test_bad_since_refused(self):
+        with self.assertRaises(self.m.Refused):
+            self.m.build_search_argv(
+                self.m.parse_args(["q", "--since", "yesterday"]))
+
+
+class TestCli(unittest.TestCase):
+    def test_search_runs_precheck_then_query(self):
+        rc, out, err, calls = run_cli(["flaky test"])
+        self.assertEqual(rc, 0, err)
+        self.assertIn("PRECHECK=ok phase=current", out)
+        self.assertIn("HITS=2", out)
+        self.assertIn("NEXT_CURSOR=c9", out)
+        lines = calls.splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertIn("index-status", lines[0])
+        self.assertIn("search flaky test", lines[1])
+
+    def test_precheck_only_runs_no_query(self):
+        rc, out, err, calls = run_cli(["--precheck-only"])
+        self.assertEqual(rc, 0, err)
+        self.assertIn("PRECHECK=ok", out)
+        self.assertNotIn("HITS=", out)
+        self.assertEqual(len(calls.splitlines()), 1)
+
+    def test_degraded_index_refuses_before_query(self):
+        status = dict(HEALTHY, phase="degraded")
+        rc, _o, err, calls = run_cli(["q"], status=status)
+        self.assertEqual(rc, 2, err)
+        self.assertIn("REFUSED", err)
+        self.assertIn("degraded", err)
+        self.assertEqual(len(calls.splitlines()), 1)
+
+    def test_stale_cursor_is_a_failure(self):
+        rc, _o, err, _c = run_cli(
+            ["q"], results={"kind": "stale-cursor", "generation": 3})
+        self.assertEqual(rc, 1, err)
+        self.assertIn("stale-cursor", err)
+
+    def test_unavailable_is_a_failure(self):
+        rc, _o, err, _c = run_cli(
+            ["q"], results={"kind": "unavailable", "reason": "disabled"})
+        self.assertEqual(rc, 1, err)
+        self.assertIn("unavailable", err)
+
+    def test_refusal_exits_2(self):
+        rc, _o, err, calls = run_cli(["q", "--limit", "500"])
+        self.assertEqual(rc, 2, err)
+        self.assertIn("REFUSED", err)
+        self.assertEqual(calls, "")
+
+
+if __name__ == "__main__":
+    unittest.main()

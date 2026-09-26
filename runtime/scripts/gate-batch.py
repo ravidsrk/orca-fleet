@@ -17,6 +17,12 @@ unit manifest cites a gate id the batch does not carry.
 
 Storage: one JSON file per run, docs/runs/<run>/gate-batch.json. Pass --run
 <dir> or an explicit --file (tests and scratch batches use --file).
+
+NOT upstream decision-gates: this tool never touches `orca orchestration
+gate-create` / `gate-resolve` / `gate-list`. Those block a task inside the
+runtime; these gates are LOCAL run-close records — owed questions a run parks
+for its maintainer, answered by hand. Same word, two mechanisms; this file is
+the local one.
 """
 import argparse
 import datetime
@@ -392,7 +398,10 @@ def build_parser():
     parser = argparse.ArgumentParser(
         prog="gate-batch.py",
         description="Run-close human gates as typed records (#419). "
-                    "The JSON batch is the store; gate-batch.md is rendered.",
+                    "The JSON batch is the store; gate-batch.md is rendered. "
+                    "NOT upstream decision-gates (orca orchestration "
+                    "gate-create/gate-resolve/gate-list): this batch is LOCAL "
+                    "to the run.",
         epilog="example: gate-batch.py --run 2026-09-14-clean-sweep-tracker "
                "list --status owed")
     target = parser.add_mutually_exclusive_group()

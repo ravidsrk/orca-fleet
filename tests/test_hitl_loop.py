@@ -127,5 +127,81 @@ class TestScriptShape(unittest.TestCase):
         self.assertIn("it is DATA", HITL.read_text(encoding="utf-8"))
 
 
+class TestDurableAsk(unittest.TestCase):
+    """S4: HITL_ASK=1 replaces capture's shell read with durable
+    `orchestration ask` (hitl_ask.py), resuming timeouts via HITL_RESUME."""
+
+    ASK_HELPER = ROOT / "runtime" / "scripts" / "hitl_ask.py"
+
+    def run_ask(self, *args, env_extra=None, payload=None, stdin="\n\n\n\n"):
+        import json
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            resp = Path(tmp) / "ask.json"
+            resp.write_text(json.dumps(payload if payload is not None else {
+                "result": {"answer": "yes — reproduced", "messageId": "m1",
+                           "threadId": "t1", "timedOut": False}}))
+            log = Path(tmp) / "calls.log"
+            stub = Path(tmp) / "orca"
+            stub.write_text(
+                f'#!/bin/sh\nprintf \'%s\\n\' "$*" >> "{log}"\ncat "{resp}"\n')
+            stub.chmod(0o755)
+            env = {"PATH": f"{tmp}:/usr/bin:/bin",
+                   "HITL_ASK": "1",
+                   "HITL_ASK_HELPER": str(self.ASK_HELPER)}
+            env.update(env_extra or {})
+            import os
+            full = dict(os.environ)
+            full.update(env)
+            r = subprocess.run(["sh", str(HITL), *args], input=stdin,
+                               capture_output=True, text=True, timeout=60,
+                               env=full)
+            calls = log.read_text() if log.exists() else ""
+            return r, calls
+
+    def test_answers_come_from_ask_not_stdin(self):
+        r, calls = self.run_ask("--rounds", "1", stdin="\n\n")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("yes — reproduced", r.stdout)
+        self.assertIn("orchestration ask --question", calls)
+
+    def test_dry_run_never_calls_ask(self):
+        r, calls = self.run_ask("--dry-run")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(calls, "")
+
+    def test_missing_helper_is_a_usage_error(self):
+        r, _ = self.run_ask("--rounds", "1",
+                            env_extra={"HITL_ASK_HELPER": "/nonexistent/ask.py"})
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("HITL_ASK_HELPER", r.stderr)
+
+    def test_timeout_reports_resume_and_exits_1(self):
+        r, _ = self.run_ask(
+            "--rounds", "1",
+            payload={"result": {"answer": None, "messageId": "msg_9",
+                                "threadId": "t1", "timedOut": True}})
+        self.assertEqual(r.returncode, 1, r.stderr)
+        self.assertIn("HITL_RESUME=msg_9", r.stderr)
+
+    def test_resume_answers_the_first_capture_only(self):
+        # The template asks two questions per round; HITL_RESUME must resume
+        # the first and let the second ask fresh.
+        r, calls = self.run_ask("--rounds", "1",
+                                env_extra={"HITL_RESUME": "msg_9"})
+        self.assertEqual(r.returncode, 0, r.stderr)
+        lines = [l for l in calls.splitlines() if "orchestration ask" in l]
+        self.assertEqual(len(lines), 2, calls)
+        self.assertIn("--resume msg_9", lines[0])
+        self.assertNotIn("--resume", lines[1])
+        self.assertIn("--question", lines[1])
+
+    def test_bad_timeout_is_a_usage_error(self):
+        r, calls = self.run_ask("--rounds", "1",
+                                env_extra={"HITL_ASK_TIMEOUT_MS": "huge"})
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertEqual(calls, "")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
