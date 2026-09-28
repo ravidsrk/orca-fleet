@@ -1,0 +1,17 @@
+orca terminal
+
+Usage: orca terminal <command> [options]
+
+Commands:
+  list               List live Orca-managed terminals
+  show               Show terminal metadata and preview
+  read               Read bounded terminal output
+  send               Send input to a live terminal
+  wait               Wait for a terminal condition
+  create             Create a terminal session in the current worktree
+  switch             Switch to a terminal tab in the UI
+  close              Close one terminal, its whole tab, or every terminal in a workspace
+  rename             Set or clear the title of a terminal tab
+  split              Split an existing terminal pane
+
+Run `orca terminal <command> --help` for command-specific usage.
