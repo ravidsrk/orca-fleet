@@ -12,18 +12,23 @@ evidence does not yet carry.
 
 Each row is a witnessed act, not a code change. The issue holds the evidence.
 
-- [ ] `v0.7.0` is tagged on `fda5e4e`, the provenance commit is recorded, and the GitHub Release
-      exists ([#511](https://github.com/ravidsrk/orca-fleet/issues/511); the ops.md tag and
-      record blocks, then the "Publishing Releases" block for the historical tags).
+- [ ] The release being announced is tagged, its provenance commit is recorded, and its GitHub
+      Release exists ([#511](https://github.com/ravidsrk/orca-fleet/issues/511); the ops.md tag
+      and record blocks, then the "Publishing Releases" block for the historical tags). The
+      candidate is `v0.7.0` on `fda5e4e`; the size row below can move it to a later tag, and
+      then every version and SHA in this file changes with it before posting.
 - [ ] The `dist` branch holds the 0.7.0 bundle (`publish-dist.yml` ran on the tag push) and the
       plugin install has been witnessed on a clean machine, transcript under
       `docs/completion/evidence/` per [the witness procedure](../completion/PLUGIN-INSTALL-WITNESS.md)
       ([#518](https://github.com/ravidsrk/orca-fleet/issues/518)).
 - [ ] The receipt trees under `docs/runs/` and `docs/reports/` are shrunk or relocated out of
-      the plugin copy (review P1-5, the third part of #518), and a witness transcript's
-      `du -sh` of the plugin root shows the reduced size. Disclosing the full size is not a
-      substitute: the review requires the copy to shrink before a public beta, and this box
-      stays unchecked until it has.
+      the plugin copy (review P1-5, the third part of #518), and the tree of the announced
+      tag is the shrunk one. The plugin path copies the marketplace's default-branch tip, and
+      the `dist` branch and any tag-based install copy the tag, so both must carry the shrink:
+      if it lands after `v0.7.0`, the announced release is the first tag cut after it, not
+      0.7.0. The witness transcript's `du -sh`, re-run at that tag's commit, shows the reduced
+      size. Disclosing the full size is not a substitute: the review requires the copy to
+      shrink before a public beta, and this box stays unchecked until it has.
 - [ ] One recorded `review-it` or `ship-it` run on an Ubuntu host driven by `orca-ide`, so the
       Linux sentence below can drop the word "untested" (review §8, item 6). Until then the
       sentence stays as written.
@@ -103,8 +108,8 @@ beta to that release is a tracked epic on the issue tracker.
 
 ### Closing line
 
-Cut from `fda5e4e`; every frozen gate green in CI at that commit. Release notes are the
-CHANGELOG section the tag carries.
+Cut from `fda5e4e` (or the announced tag's cut, per the gate list); every frozen gate green in
+CI at that commit. Release notes are the CHANGELOG section the tag carries.
 
 ## Where it goes, in order
 

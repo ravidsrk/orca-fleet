@@ -163,8 +163,11 @@ One pull request, from anyone:
    status), the way H-07 records the CF-05 re-witness.
 4. Reference #518 in the PR body. The transcript is one part of #518; the others, the first
    `v*` tag populating the `dist` branch and the receipt trees under `docs/runs/` and
-   `docs/reports/` shrunk or relocated out of the plugin copy (review P1-5; the `du -sh` in
-   step 2 is the before-and-after measure), are the maintainer's and are checked separately.
+   `docs/reports/` shrunk or relocated out of the plugin copy (review P1-5), are the
+   maintainer's and are checked separately. The `du -sh` in step 2 measures the copy at the
+   one commit the transcript names; a shrink is shown by running step 2 again on a clean
+   machine at the shrunk commit, so the two transcripts carry the before and after sizes,
+   each tied to its commit. One measurement is a size, not a reduction.
 
 If any step fails, the transcript still lands, as a failure transcript with the failing step's
 output, and the PR says so in its title. A failed witness is evidence; a skipped one is not.
