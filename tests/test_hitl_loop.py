@@ -147,6 +147,7 @@ class TestDurableAsk(unittest.TestCase):
                 f'#!/bin/sh\nprintf \'%s\\n\' "$*" >> "{log}"\ncat "{resp}"\n')
             stub.chmod(0o755)
             env = {"PATH": f"{tmp}:/usr/bin:/bin",
+                   "ORCA_CLI_COMMAND": "orca",  # the stub above; hitl_ask.py resolves the name (#510)
                    "HITL_ASK": "1",
                    "HITL_ASK_HELPER": str(self.ASK_HELPER)}
             env.update(env_extra or {})

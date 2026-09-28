@@ -145,6 +145,10 @@
 #   SETTLE_SECS               TUI settle delay (default 20 seconds) — custom-argv lane.
 set -Eeuo pipefail  # -E: ERR trap fires inside functions (orca_json) too
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"  # sibling scripts (sandbox_doctor.py)
+# The CLI command name, resolved the way upstream documents it (#510): ORCA_CLI_COMMAND when set,
+# else orca-dev in a dev checkout, else orca-ide on Linux (bare `orca` there is the GNOME screen
+# reader), else orca. One resolver for every fleet script: runtime/scripts/orca_cli.py.
+ORCA_BIN="$(python3 "$HERE/orca_cli.py")"
 
 step=parse-args
 task="?"
@@ -154,7 +158,7 @@ trap 'rc=$?; echo "SPAWN=FAILED task=${task} step=${step} rc=${rc}" >&2; exit "$
 # OR on an exit-0 error envelope ({"error": ...}); fail-closed for every step.
 orca_json() {
   local out="$1"; shift
-  orca "$@" --json > "$out"
+  "$ORCA_BIN" "$@" --json > "$out"
   python3 - "$out" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
@@ -448,14 +452,14 @@ except Exception:
     print("")
 PIN
 )
-if [ -n "$pin_version" ] && command -v orca >/dev/null 2>&1; then
+if [ -n "$pin_version" ] && command -v "$ORCA_BIN" >/dev/null 2>&1; then
   # `orca --version` is not source-witnessed as to its exact wording, so take the
   # first version-shaped token anywhere in its output rather than the whole line.
-  installed=$(orca --version 2>/dev/null | grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)
+  installed=$("$ORCA_BIN" --version 2>/dev/null | grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)
   if [ -z "$installed" ]; then
     # Not silence. "Nothing noticed the drift" is the defect this check exists to
     # fix, and a check that quietly stops working is that defect wearing a fix.
-    echo "SPAWN=NOTE task=${task} could not read a version from \`orca --version\`, so drift from runtime/pins.json (${pin_version}) could not be checked at all. If the output format changed, the check needs re-witnessing — pin-it (#301)." >&2
+    echo "SPAWN=NOTE task=${task} could not read a version from \`${ORCA_BIN} --version\`, so drift from runtime/pins.json (${pin_version}) could not be checked at all. If the output format changed, the check needs re-witnessing — pin-it (#301)." >&2
   elif [ "${installed#v}" != "${pin_version#v}" ]; then
     if [ -n "$witness_binary" ] && ver_lt "$installed" "$pin_version"; then
       # PATH lags a completed pin (the witness host's version or any older release,
@@ -508,8 +512,8 @@ if [ "$PROFILE" = "danger" ]; then
       echo "SPAWN=REFUSED task=${task} ORCA_SANDBOX_RECIPE='${recipe}' is not a recipe id (want 3+ chars of [A-Za-z0-9._-])" >&2
       exit 2 ;;
   esac
-  if ! command -v orca >/dev/null 2>&1; then
-    echo "SPAWN=REFUSED task=${task} PROFILE=danger needs \`orca\` on PATH to run \`vm recipe doctor ${recipe}\` — a sandbox cannot be certified without the runtime that provides it (#283)" >&2
+  if ! command -v "$ORCA_BIN" >/dev/null 2>&1; then
+    echo "SPAWN=REFUSED task=${task} PROFILE=danger needs \`${ORCA_BIN}\` on PATH to run \`vm recipe doctor ${recipe}\` — a sandbox cannot be certified without the runtime that provides it (#283)" >&2
     exit 2
   fi
   step=sandbox-doctor
@@ -526,13 +530,13 @@ if [ "$PROFILE" = "danger" ]; then
   # health check itself is cheap and stays, because what it proves — and what it does NOT prove
   # about placement — is the whole point of the refusal. `--provision` goes back when placement
   # binding exists for it to gate; `vm.ts:6-9` documents the bare form as valid.
-  orca vm recipe doctor "$recipe" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} --json > "$doctor_out" 2>&1 || doctor_rc=$?
+  "$ORCA_BIN" vm recipe doctor "$recipe" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} --json > "$doctor_out" 2>&1 || doctor_rc=$?
   if [ "$doctor_rc" -ne 0 ] && grep -qiE "unknown (option|flag|argument)|unrecognized|invalid option" "$doctor_out"; then
     doctor_rc=0
-    orca vm recipe doctor "$recipe" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} > "$doctor_out" 2>&1 || doctor_rc=$?
+    "$ORCA_BIN" vm recipe doctor "$recipe" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} > "$doctor_out" 2>&1 || doctor_rc=$?
   fi
   if [ "$doctor_rc" -ne 0 ]; then
-    echo "SPAWN=REFUSED task=${task} \`orca vm recipe doctor ${recipe}\` exited ${doctor_rc} — the sandbox did not come up clean: $(head -c 300 "$doctor_out" | tr '\n' ' ')" >&2
+    echo "SPAWN=REFUSED task=${task} \`${ORCA_BIN} vm recipe doctor ${recipe}\` exited ${doctor_rc} — the sandbox did not come up clean: $(head -c 300 "$doctor_out" | tr '\n' ' ')" >&2
     rm -f "$doctor_out"
     exit 2
   fi
@@ -775,7 +779,7 @@ if [ -z "$override" ] && [ "$PROFILE" != "ro" ]; then
   # The call's own exit status is NOT the verdict: a typed refusal, a hard failure, and an
   # UNPROVEN outcome (state: outcome_unknown) all exit nonzero. The receipt is the verdict.
   ws_rc=0
-  orca orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" ${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"} ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} ${WS_ARGS[@]+"${WS_ARGS[@]}"} --json > "$ws" 2>&1 || ws_rc=$?
+  "$ORCA_BIN" orchestration worker-start --task "$task" --worktree "$sel" ${name_args[@]+"${name_args[@]}"} --agent "$agent" ${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"} ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} ${WS_ARGS[@]+"${WS_ARGS[@]}"} --json > "$ws" 2>&1 || ws_rc=$?
 
   # The flag the requested PROFILE implies, read back out of the map above so the two cannot
   # drift: worker-start takes its args from the HOST, so this is what the host must have used.
@@ -972,7 +976,7 @@ PY
       step=triage-request
       rq="$SP/rq-$safe_title.json"
       rq_rc=0
-      orca orchestration request-show --request "$RETRY_REQUEST" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} --json > "$rq" 2>&1 || rq_rc=$?
+      "$ORCA_BIN" orchestration request-show --request "$RETRY_REQUEST" ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} --json > "$rq" 2>&1 || rq_rc=$?
       rq_state=$(python3 - "$rq" <<'PY'
 import json, sys
 try:
@@ -1071,7 +1075,7 @@ PY
   # field is an older host, not a false — do not invent a verdict from absence.
   tw="$SP/tw-$safe_title.json"
   wait_rc=0
-  orca terminal wait --terminal "$h" --for tui-idle --timeout-ms 90000 ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} --json > "$tw" 2>&1 || wait_rc=$?
+  "$ORCA_BIN" terminal wait --terminal "$h" --for tui-idle --timeout-ms 90000 ${ROUTE_ARGS[@]+"${ROUTE_ARGS[@]}"} --json > "$tw" 2>&1 || wait_rc=$?
   satisfied=$(python3 - "$tw" <<'PY'
 import json, sys
 try:
@@ -1088,7 +1092,7 @@ print("true" if s is True else "false" if s is False else "absent")
 PY
 )
   if [ "$satisfied" = "false" ] || [ "$wait_rc" != "0" ]; then
-    echo "SPAWN=FAILED task=${task} step=${step} rc=1 — terminal wait unsatisfied (wait.satisfied=${satisfied}, cli_rc=${wait_rc}); the TUI never went idle, so an injected preamble would land in a booting pane. Inspect: orca terminal read --terminal ${h} --screen" >&2
+    echo "SPAWN=FAILED task=${task} step=${step} rc=1 — terminal wait unsatisfied (wait.satisfied=${satisfied}, cli_rc=${wait_rc}); the TUI never went idle, so an injected preamble would land in a booting pane. Inspect: ${ORCA_BIN} terminal read --terminal ${h} --screen" >&2
     exit 1
   fi
   sleep "$SETTLE_SECS"  # let the TUI settle so it can receive the paste
@@ -1137,7 +1141,7 @@ PY
   case ",$stages," in
     *,turn_started,*) : ;;
     *)
-      echo "SPAWN=UNPROVEN task=${task} handle=${h} stages=${stages:-none} request=${request:-absent} — the original dispatch receipt does not prove a turn start. A regenerated preamble is not the original payload, and terminal send cannot replay this dispatch request. No replay attempted; retained receipt: $dj. Inspect with: orca terminal read --terminal ${h} --screen — never resend on silence, and never respawn beside this pane (dispatch-lifecycle.md)" >&2
+      echo "SPAWN=UNPROVEN task=${task} handle=${h} stages=${stages:-none} request=${request:-absent} — the original dispatch receipt does not prove a turn start. A regenerated preamble is not the original payload, and terminal send cannot replay this dispatch request. No replay attempted; retained receipt: $dj. Inspect with: ${ORCA_BIN} terminal read --terminal ${h} --screen — never resend on silence, and never respawn beside this pane (dispatch-lifecycle.md)" >&2
       exit 3
       ;;
   esac

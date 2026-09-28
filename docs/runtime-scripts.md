@@ -364,6 +364,29 @@ Exits: 0 answered · 1 timeout/runtime/receipt failure · 2 usage.
 > addressable, and printing the resume id on timeout turns "no answer yet" into a
 > rejoinable state instead of a blind retry.
 
+## `orca_cli.py`
+
+Resolves the Orca CLI command name once, for every script that talks to Orca. Source
+`runtime/scripts/orca_cli.py:1-30`; behavior pinned by `tests/test_orca_cli.py`, which also
+fails on any script under `runtime/scripts/` that spells the executable itself.
+
+Usage: `orca_cli.py [--path]`; library `from orca_cli import resolve`.
+
+Order (upstream's own, `skill-stubs/_shared/cli-resolution.md` in stablyai/orca):
+`ORCA_CLI_COMMAND` when set (Orca exports it inside the sessions it manages; the test
+suite points it at a stub) → `orca-dev` when `ORCA_DEV_REPO_ROOT` is set → `orca-ide` on
+Linux and WSL → `orca` elsewhere. Resolution never consults PATH; `--path` additionally
+looks the resolved name up and fails when it is absent.
+
+Exits: 0 printed · 1 (`--path`) the resolved command is not on PATH · 2 usage.
+
+> Why: Orca's Linux executable, `.deb` and `.rpm` are all `orca-ide` by construction
+> (`src/main/cli/bundled-cli-launcher-path.ts` LINUX_CLI_COMMAND_NAME), and bare `orca` on a
+> Linux host outside an Orca terminal is the GNOME screen reader — it starts speech. Before
+> #510 eight operator tools and `spawn_worker.sh` spelled `orca` verbatim, so no fleet script
+> could run on the platform most servers use; a name resolved in one place cannot drift in
+> nine.
+
 ## `pm.py`
 
 Tolerant parser for saved `orca orchestration inbox/check` JSON output. Decodes
@@ -577,6 +600,68 @@ Exits: 0 ok · 1 runtime/refusal/receipt/evidence failure · 2 usage.
 > the rendered frame — and an old host silently answers the first when asked the
 > second. Treating a missing source as a refusal keeps screen evidence meaning the
 > screen, not the scrollback.
+
+## `upstream_probe.py`
+
+Drift probe against the Orca pin: has upstream moved past `runtime/pins.json`, and —
+when a binary is at hand — how do its surfaces differ from the last re-pin's receipts?
+Source `runtime/scripts/upstream_probe.py:1-50`; behavior pinned by
+`tests/test_upstream_probe.py`. The weekly `upstream-drift` workflow
+(`.github/workflows/upstream-drift.yml`) runs `latest` and opens — or comments on — an
+issue labeled `upstream-drift` when a re-pin is due.
+
+Usage: `upstream_probe.py {latest,capture,diff} ...`
+
+Subcommands: `latest` (network only: list upstream's tags, keep the stable `vX.Y.Z` ones,
+compare the highest to the pin), `capture` (binary needed: dump the receipt surfaces into
+a directory), `diff` (compare a capture against a receipts directory).
+
+Flags: `latest` takes `--max-patches` (re-pin threshold, default 10), `--pins` (default
+`runtime/pins.json`), `--tags-json` (read the tags payload from a file — tests, offline),
+`--tags-url` (default the GitHub tags endpoint for `stablyai/orca`), `--timeout`,
+`--json`; `capture` takes `--out` (required), `--timeout`; `diff` takes `--baseline` and
+`--fresh` (both required), `--json`.
+
+`latest` follows `Link: rel="next"` for up to five pages, sends `Authorization: Bearer
+$GITHUB_TOKEN` when that variable is set (the endpoint is public; the token only lifts the
+rate limit), and skips `-rc`, `mobile-*` and every other non-`vX.Y.Z` tag. Drift is
+`none` (the pin is the highest stable tag, or above it), `patch`, `minor` or `major` by
+the first component that moved; `patches_behind` counts the stable tags strictly newer
+than the pin. `--json` prints exactly `{"pin","latest","drift","patches_behind"}`.
+
+`capture` resolves the CLI the way upstream's skill stubs do — `ORCA_CLI_COMMAND` if set
+(one executable, no arguments), else `orca-dev` when `ORCA_DEV_REPO_ROOT` is set and it is
+on PATH, else `orca-ide` on Linux, else `orca` — and refuses when it is not on PATH. It
+runs `agent-context --json`, `--help`, `terminal --help`, and for the `orchestration` and
+`orca-cli` guides `skills get <topic>`, `--references`, then one `--reference <name>` per
+listed name (argv lists, never a shell), writing agent-context.json, help-root.txt,
+terminal-help.txt, guides/<topic>.md, guides/<topic>.refs.txt and
+guides/<topic>--<name>.md — the shape `docs/runs/2026-09-28-pin-it-500/` archives.
+
+`diff` accepts either naming on either side and maps the receipts' version-suffixed names
+onto a capture's: agent-context-<v>.json ↔ agent-context.json, help-root-<v>.txt ↔
+help-root.txt, terminal-help-<v>.txt ↔ terminal-help.txt, guides-<v>/ ↔ guides/ (several
+versions in one directory resolve to the highest; probe-*.json receipts are not compared).
+agent-context compares the set of command names (`commands[].command`, else the joined
+`path`) and reports added, removed and changed entries; the two help texts diff by line;
+the guides directory compares file by file. Every added, removed or changed command and
+every changed, added or removed file is named.
+
+Exits: 0 no re-pin due / captured / identical · 2 could-not-run (network or HTTP error,
+unreadable pins, no stable tags, CLI missing or a command failed, missing or incomplete
+directory) · 3 re-pin due (`minor`/`major` drift, or `patches_behind` ≥ `--max-patches`)
+/ drift.
+
+> Why: upstream cuts about a release a day and the pin record re-pins quarterly, so the
+> gap between "the pin is fine" and "the pin is a quarter stale" was invisible until a
+> field sighting. `latest` costs one API call and no binary, which is what lets the
+> workflow run it weekly; `capture` and `diff` speak the receipt shape pin-it already
+> archives (`runtime/scripts/upstream_probe.py:locate` maps the two namings) so a
+> maintainer with a binary gets the diff the re-pin would produce, not a second format.
+> Patch drift rides until the count reaches the threshold
+> (`runtime/scripts/upstream_probe.py:re_pin_due`) because the pin record says patch
+> bumps ride, and a minor is a re-pin trigger by the same rule. Exit 2 is never 0: a
+> probe that could not look must not read as "nothing moved".
 
 ## `watchdog.py`
 

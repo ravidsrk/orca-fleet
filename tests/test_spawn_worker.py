@@ -23,7 +23,7 @@ def run(title, agent="claude", effort="high", task="task_test"):
     """Invoke spawn_worker.sh in self-test mode; return (rc, stdout, stderr)."""
     p = subprocess.run(
         ["bash", str(SPAWN), task, "active", title, agent, effort],
-        env={"SW_SELFTEST": "1", "PATH": "/usr/bin:/bin"},
+        env={"SW_SELFTEST": "1", "PATH": "/usr/bin:/bin", "ORCA_CLI_COMMAND": "orca"},
         capture_output=True, text=True,
     )
     return p.returncode, p.stdout, p.stderr
@@ -37,7 +37,7 @@ def run_spawn(args, env_extra=None, task_list=None):
     (written to a file the stub cats, so no shell quoting of the JSON).
     """
     with tempfile.TemporaryDirectory() as tmp:
-        env = {"PATH": "/usr/bin:/bin", "SP": tmp}
+        env = {"PATH": "/usr/bin:/bin", "SP": tmp, "ORCA_CLI_COMMAND": "orca"}
         if task_list is not None:
             payload = Path(tmp) / "task-list.json"
             payload.write_text(json.dumps(task_list))
@@ -374,7 +374,7 @@ esac
         return log
 
     def _run(self, tmp, args, env_extra=None):
-        env = {"PATH": f"{tmp}:/usr/bin:/bin", "SP": tmp,
+        env = {"PATH": f"{tmp}:/usr/bin:/bin", "SP": tmp, "ORCA_CLI_COMMAND": "orca",
                "SETTLE_SECS": "0", "SUBMIT_SECS": "1"}
         env.update(env_extra or {})
         return subprocess.run(["bash", str(SPAWN), *args], env=env,

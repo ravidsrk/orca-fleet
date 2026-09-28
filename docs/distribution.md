@@ -46,8 +46,8 @@ but no mission will dispatch until they clear.
 | Prerequisite | Class | Enforced | Observed 2026-09-16 |
 |---|---|---|---|
 | `git` | install | present (hard) | 2.47.3 (clean container), 2.55.0 (macOS host) |
-| `python3` | install | ≥ 3.13 (hard; same pin as CI) | 3.13.15 |
-| Orca app + CLI | run | ≥ the `runtime/pins.json` pin, currently v1.4.200 (warn) | 1.4.203 (`orca --version`, app `runtime.state: ready`) |
+| `python3` | install | ≥ 3.11 (hard; CI runs the suite on 3.11, 3.12 and 3.13, #514) | 3.13.15 |
+| Orca app + CLI | run | ≥ the `runtime/pins.json` pin, currently v1.4.215 (warn; `scripts/validate.py` fails when this number and the pin disagree, #512) | witness binary v1.4.215 at the 2026-09-28 re-pin; the on-PATH app then ran an older build (`pins.json` `onpath_at_witness`) |
 | `gh`, authenticated | run | present + `gh auth status` green (warn) | 2.100.0 |
 | Claude Code | run | present (warn; the symlinked skills load under it) | 2.1.272 |
 

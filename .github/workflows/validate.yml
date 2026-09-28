@@ -62,8 +62,39 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 1
+  floor:
+    # #514: the Python floor is a measured claim, not an installer setting. The sharded `tests`
+    # job above proves 3.13 (the CI pin, and the job that carries the D9 coverage data); this
+    # matrix proves the floor and the minor between it and the pin, without coverage. Same
+    # shards, same runner, no artifacts; `gates` needs it so a red floor blocks the merge.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; same pin as the tests job)
+        with:
+          fetch-depth: 0  # same full-history checkout the suite ran under in gates
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install coverage from the hashed lock
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --require-hashes --only-binary :all: \
+            -r .github/ci-tools.lock
+          coverage --version
+      - name: Run suite shard on the floor interpreter
+        # Same invocation as the 3.13 matrix, coverage included, so the sharder's contract
+        # (tests/test_shard_tests.py) holds for every lane; the data files are not uploaded —
+        # the D9 gate reads the 3.13 matrix, this lane proves the floor.
+        run: |
+          python3 --version
+          python3 scripts/shard-tests.py --shard ${{ matrix.shard }} --of 4 --with-coverage
   gates:
-    needs: [tests]
+    needs: [tests, floor]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; Node 20 left runners 2026-09-23, #367)

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security report
+    url: https://github.com/ravidsrk/orca-fleet/security/advisories/new
+    about: Vulnerabilities go through private reporting, never a public issue (SECURITY.md).
+  - name: Submit a mission run for a proof promotion
+    url: https://github.com/ravidsrk/orca-fleet/blob/main/docs/run-submission-guide.md
+    about: A run bundle is a pull request, not an issue; the guide gives the format.

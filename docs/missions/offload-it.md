@@ -1,7 +1,7 @@
 # ☁️ offload-it — a recipe that provisions, proven by provisioning
 
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — one serial recipe lane (snapshots are paid and ordered); the money and the login are yours at classified checkpoints.
-> **Activation load:** ~14,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
+> **Activation load:** ~14,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 7% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no run has been retained against this mission yet
 > (`runtime/scripts/run_report.py`)
 

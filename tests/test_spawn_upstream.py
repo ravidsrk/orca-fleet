@@ -90,7 +90,7 @@ def write_stub(tmp, *, receipt=None, request_show=None, task_create=None,
 def run_spawn(args, env_extra=None, **stub_kw):
     with tempfile.TemporaryDirectory() as tmp:
         log, env_rec = write_stub(tmp, **stub_kw)
-        env = {"PATH": f"{tmp}:/usr/bin:/bin", "SP": tmp, "SETTLE_SECS": "0"}
+        env = {"PATH": f"{tmp}:/usr/bin:/bin", "SP": tmp, "SETTLE_SECS": "0", "ORCA_CLI_COMMAND": "orca"}
         env.update(env_extra or {})
         p = subprocess.run(["bash", str(SPAWN), *args], env=env,
                            capture_output=True, text=True)
@@ -102,7 +102,7 @@ def run_spawn(args, env_extra=None, **stub_kw):
 def run_selftest(*args):
     p = subprocess.run(
         ["bash", str(SPAWN), *args],
-        env={"SW_SELFTEST": "1", "PATH": "/usr/bin:/bin"},
+        env={"SW_SELFTEST": "1", "PATH": "/usr/bin:/bin", "ORCA_CLI_COMMAND": "orca"},
         capture_output=True, text=True)
     return p.returncode, p.stdout, p.stderr
 

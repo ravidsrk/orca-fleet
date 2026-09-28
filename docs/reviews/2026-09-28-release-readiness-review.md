@@ -15,16 +15,24 @@ for this repository.
 
 ## 1. Verdict
 
-**Ready to cut 0.7.0 as a public beta this week. Not ready for the 1.0 the repo's own checklist
-defines. Not ready to announce to Linux users at all until one bug is fixed.**
+**Ready to cut 0.7.0 this week. Not ready to announce that cut as a public beta until the
+Tier B items in §8 land. Not ready for the 1.0 the repo's own checklist defines. Not ready to
+invite Linux users at all until one bug is fixed.**
+
+The version cut and the announcement are different acts. Cutting 0.7.0 is release hygiene the
+tree already supports; announcing it to strangers is what the P0 and P1 findings below gate.
 
 - **As an MIT catalog on GitHub** (which it already is): the engineering bar is unusually high.
-  Every frozen gate in `CONSTRAINTS.md` is green at this SHA, locally and in CI. The verifier
-  scores 0/20 false-done on its trap corpus, the secret scan over 1,446 commits is clean, and
-  the three proof reports that claim a tier really do re-hash at the commits they name. What is
-  missing is release hygiene: the published version is `0.6.1` from 2026-09-09, **1,372 commits
-  behind HEAD**, and the repository has **zero GitHub Releases** despite nine annotated tags.
-- **As a public beta you tell strangers to install**: four things block an honest announcement.
+  Every frozen gate in `CONSTRAINTS.md` is green in CI at this SHA. Locally, every gate this
+  container could run was green once three container artifacts were accounted for (a 3.11
+  interpreter on `PATH`, a root uid, and a clone that was shallow when the first suite run
+  began); the coverage floor was read from CI only. The verifier scores 0/20 false-done on
+  its trap corpus, the secret scan over 1,446 commits is clean, and the three proof reports
+  that claim a tier really do re-hash at the commits they name. What is missing is release
+  hygiene: the published version is `0.6.1` from 2026-09-09, **1,372 commits behind HEAD**, and
+  the repository has **zero GitHub Releases** despite nine annotated tags.
+- **As a public beta you tell strangers to install**: four things block an honest announcement,
+  and none of them is part of the 0.7.0 cut.
   Every runtime script hardcodes the `orca` command, which on Linux is `orca-ide` (and bare
   `orca` is the GNOME screen reader), so the fleet has never run on the platform most servers
   use. The installer refuses Python below 3.13 while every script compiles and the suite passes
@@ -193,13 +201,26 @@ byte-compile on 3.10, 3.11, 3.12 and 3.13; the full suite on 3.11 fails only whe
 refuses the interpreter or where this container lacks history; `docs/completion/STATUS.md`
 already recorded "Cold start of the catalog gates = pass (also on Python 3.11)" on 2026-09-02.
 A grep for 3.12+ and 3.13+ features (PEP 695 generics and `type` aliases, `itertools.batched`,
-`Path.walk`, `copy.replace`, `warnings.deprecated`) across `scripts/`, `runtime/scripts/` and
-`bench/` finds none, and `tomllib` (3.11+) is unused. Nothing in the code needs 3.13.
+`Path.walk`, `copy.replace`, `warnings.deprecated`, `@override`, `glob.translate`) across
+`scripts/`, `runtime/scripts/`, `tests/` and `bench/` finds none; 3.11-only names
+(`ExceptionGroup`, `StrEnum`, `datetime.UTC`, `tomllib`) are unused, and the three
+`fromisoformat` call sites strip the `Z` themselves. What the code does need is 3.10: PEP 604
+`X | None` annotations evaluated at definition time in `scripts/gen-badges.py`,
+`scripts/eval.py:133,164,350` and `tests/test_evals.py:75-76`. The two 3.13-conditional spots
+(`tests/test_run_report.py:122,139`, `runtime/scripts/run_report.py:268-285`) are guarded.
+Nothing in the code needs 3.13; the real floor is 3.10.
 
 Debian 12 ships 3.11, Ubuntu 24.04 ships 3.12, and neither Orca's headless guide nor most
 servers put 3.13 on `PATH`. Either lower the floor to what the code needs and add a 3.11/3.12/3.13
 matrix to `validate.yml` (cheap: the suite is stdlib-only), or state in one sentence why 3.13 is
 required. A floor nobody can justify reads as a bug to a stranger.
+
+*Resolution (#514):* the floor is now **3.11**, not 3.10. The code byte-compiles on 3.10 and the
+scripts run there, but the suite has two 3.10-only failures on the test side
+(`tests/test_run_report.py` passes `-X frozen_modules`, which 3.11 introduced, and
+`tests/test_egress.py` observes a file mode through a pathlib accessor 3.10 lacks), and a floor
+the suite cannot prove is not a floor. `install.sh` asks for ≥ 3.11 and `validate.yml` runs the
+sharded suite on 3.11 and 3.12 beside the 3.13 lane.
 
 ### P1-2. The proof ladder does not yet support the headline
 
@@ -293,9 +314,15 @@ for green `validate` runs. No `ci-failure` issue was filed; the newest one is #4
 2026-09-16. `docs/ops.md` step 1 says the issue "is the alert". When Actions cannot start jobs,
 there is no alert.
 
-Fix: a scheduled workflow (or an external uptime check) that fails when the latest `validate`
-run on `main` is not `success`, and a note in `docs/ops.md` that a `failure` with no steps is an
-Actions incident to re-run, not a red suite.
+Fix, in two layers because they cover different outages. An in-repository scheduled workflow
+that fails when the latest `validate` run on `main` is not `success` covers the narrower case
+where Actions runs but a red `main` went unfiled (a broken alert workflow, a filter that did
+not match, a `workflow_run` that never fired). It cannot cover the incident above, because it
+needs the same runner that was never assigned. The no-runner case needs a check that lives
+outside Actions: an external uptime monitor polling the Actions API for `main`'s latest
+`validate` conclusion, or a cron on the maintainer's machine doing the same. Both layers plus a
+note in `docs/ops.md` that a `failure` with no steps is an Actions incident to re-run, not a red
+suite.
 
 ### P1-8. Community and legal surface for a public project
 
@@ -358,7 +385,13 @@ command specs at v1.4.215 (`src/cli/specs/*.ts`, where every command declares it
 | `spawn_worker.sh` | `orca --version`; `vm recipe doctor <recipe> [--provision]`; `orchestration task-list --run --from [--brief]`; `task-create`; `worker-start --task --worktree --name --agent --run --from --on --timeout-ms --retry-of --retry-request [--environment --pairing-code]`; `request-show --request`; `terminal create`; `dispatch --task --to --inject --dry-run --return-preamble`; `terminal wait --terminal --for tui-idle --timeout-ms`; `terminal read --screen` | present; the agent-side flags it appends (`--dangerously-skip-permissions`, `--yolo`, `--sandbox`, `--permission-mode`, `--auto`) are the agents' own, taken from Orca's YOLO map |
 
 So the argv shapes are correct at the pin, which agrees with the 2026-09-28 pin-it drift table.
-Three things the table cannot show:
+Two smaller things the table hides: three bare flags (`--brief` on `task-list`, `--peek` and
+`--format` on `check`) are not in Orca's boolean-flag set and parse correctly only because the
+fleet always follows them with another `--flag` (`src/cli/args.ts:98-101`), which is fragile if
+a positional is ever placed after them; and `worker-list`, `worker-stop`, `worker-abandon`,
+`worker-release` and `worker-retain` accept no `--from`, which `worker_ops.py` correctly never
+passes (a hand receipt from the 1.4.200 witness, `helper-release.json`, shows the exit 1 that
+passing it earns). Three things the table cannot show:
 
 - **The command name is wrong on Linux** (P0-1). Every row above spells the executable `orca`.
 - **The suite never touches a real binary.** Every operator-tool test puts a shell stub named
@@ -370,16 +403,25 @@ Three things the table cannot show:
   call. The only real-binary receipts in the tree are the pin-it captures
   (`docs/runs/2026-09-28-pin-it-500/`: `agent-context-1.4.215.json`, `help-root-1.4.215.txt`,
   the served guides, and probe JSON taken with the app **not** running, so every sender-bound
-  verb returned `runtime_unavailable`). No operator tool has a recorded live exchange with a
-  running runtime; `spawn_worker.sh` has (the 2026-09-14 and 2026-09-20 runs).
+  verb returned `runtime_unavailable`). The underlying verbs were driven by hand against
+  1.4.200 (about a hundred receipts under `docs/reports/release-20260912/pin/receipts/`), and
+  `spawn_worker.sh` reached a real binary exactly once there, refusing at its `PROFILE=rw`
+  gate after `orca --version`. No operator tool has a recorded live exchange with a running
+  runtime, and against v1.4.215 specifically no fleet script has been executed live at all.
 - **The security-relevant scripts hold up to a read.** No `shell=True` anywhere under
   `runtime/scripts/` or `scripts/` (the one mention is `verify.py:1014` saying so). The vendored
   `ed25519.py` states that it is the public-domain reference port, not constant-time, verified
   against the RFC 8032 vectors, hardened against `S >= L` malleability, non-canonical points
   and small-order keys, and swappable for libsodium; that is an honest description for a
   scheme that signs a few hundred bytes of dispatch record and is dormant until a public key
-  is committed. `deny-hook.sh` and `verify.py` were the subject of the 2026-09-21 `harden-it`
-  self-run (six rounds, eleven findings closed) and this review did not re-audit them.
+  is committed; key handling in `dispatch-sign.py` is careful (`os.urandom`, mode 0600 at
+  creation, refusal of unignored in-repo paths, custody re-asserted at use). The verifier's
+  custody probe is POSIX-only (`os.geteuid`, `stat` mode bits, an `lstat` symlink walk at
+  `verify.py:781-808`), which is why a root uid turns every authority advisory and why none
+  of this runs on Windows. `deny-hook.sh` fails closed on unparseable input, a missing
+  `python3`, a symlink chain deeper than 32 hops and an unresolvable worktree bound. Both
+  scripts were the subject of the 2026-09-21 `harden-it` self-run (six rounds, eleven findings
+  closed) and this review did not re-audit them line by line.
 
 ## 7. The substrate: what Orca actually is at v1.4.215
 
@@ -439,6 +481,9 @@ doctrine's accuracy, is the substrate risk.
 
 ## 8. What it takes to release
 
+Tier A is the version cut. Tier B is what an announcement waits on; a 0.7.0 tag can exist
+before Tier B lands, a "public beta" post cannot.
+
 ### Tier A — cut 0.7.0 (one to two days, no new runs)
 
 1. P0-3: fix the five stale sentences; add the pin-version and proof-rollup lint so they cannot
@@ -459,7 +504,8 @@ doctrine's accuracy, is the substrate risk.
 7. P1-1: decide the Python floor on evidence and add the CI matrix.
 8. P1-4: the "What this will do on your machine" box at the top of the README.
 9. P1-5: one plugin-install transcript; publish `dist/`; shrink or relocate the receipt trees.
-10. P1-7: the dead-man's-switch workflow and the ops note.
+10. P1-7: the in-repository health workflow, the external check for the no-runner case, and
+    the ops note.
 11. P1-2 (half): the `proof:` column in the README catalog table.
 
 ### Tier C — 1.0 (weeks to months, mostly runs)

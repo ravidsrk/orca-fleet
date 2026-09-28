@@ -18,7 +18,7 @@ Three hard requirements, same as running any mission
 2. **`git` and `gh`**, authenticated (`gh auth status` succeeds). Your
    evidence must live in commits in this repository — a run whose artifacts
    were never retained here stays recorded history and supports no tier.
-3. **Python 3.13**, stdlib only. The catalog gates and the runtime scripts
+3. **Python 3.11 or newer**, stdlib only. The catalog gates and the runtime scripts
    below need no venv.
 
 Plus the mission's own tooling from its `SKILL.md` `compatibility:` field

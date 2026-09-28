@@ -1,8 +1,9 @@
 # Call for runs
 
-Every mission in this catalog stands at `doctrine-only`: the doctrine is
+Every mission listed below stands at `doctrine-only`: its doctrine is
 written, and no run has yet been bound to evidence the checker can
-re-derive. Maintainer-run missions do not scale to the whole catalog, so
+re-derive (the missions that have earned a tier are absent from the list,
+which a test holds equal to the doctrine-only set). Maintainer-run missions do not scale to the whole catalog, so
 proof is open to anyone who can run a mission and submit the bundle. This
 page lists every mission still waiting for its run; the
 [run submission guide](run-submission-guide.md) turns your run into a

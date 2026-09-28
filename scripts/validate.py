@@ -919,6 +919,39 @@ def check_doc_counts():
     return failures
 
 
+# #512: the Orca floor was typed by hand in three places and lagged the pin by fifteen
+# releases. Any Orca version named on a line that talks about the pin or a floor must equal
+# runtime/pins.json; a version named for another reason (a support-window range, an observed
+# build) stays free. Distinct from check_doc_counts: this is a version, not a catalog count.
+PIN_LINT_FILES = ("README.md", "docs/getting-started.md", "docs/install.md", "docs/distribution.md")
+ORCA_VERSION_RE = re.compile(r"\bv?1\.4\.\d{2,3}\b")
+PIN_CONTEXT_RE = re.compile(r"(?i)\bpins?\b|≥|>=|at or above")
+
+
+def check_pin_version_claims():
+    """Fail on a hand-typed Orca floor that disagrees with runtime/pins.json."""
+    pins = ROOT / "runtime" / "pins.json"
+    try:
+        pin = json.loads(pins.read_text(encoding="utf-8"))["orca"]["version"].lstrip("v")
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as err:
+        return [f"runtime/pins.json: cannot read orca.version ({err})"]
+    failures = []
+    for rel in PIN_LINT_FILES:
+        p = ROOT / rel
+        if not p.exists():
+            continue
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if not PIN_CONTEXT_RE.search(line):
+                continue
+            for m in ORCA_VERSION_RE.finditer(line):
+                if m.group(0).lstrip("v") != pin:
+                    failures.append(
+                        f"{rel}:{i}: names Orca {m.group(0)} beside the pin, but runtime/pins.json "
+                        f"pins v{pin} — update the sentence with the pin, never one without the other"
+                    )
+    return failures
+
+
 def check_manifest_keywords():
     """Every mission dir must be a plugin.json keyword — discovery, and a guard that a new
     mission is not silently dropped from the manifest now that the description no longer lists them."""
@@ -1049,6 +1082,13 @@ def main():
         all_passed = False
         print("\nFAIL count-agnostic docs — a hardcoded catalog count would rot on every new mission:")
         for failure in count_failures:
+            print(f"   - {failure}")
+
+    pin_failures = check_pin_version_claims()
+    if pin_failures:
+        all_passed = False
+        print("\nFAIL pin-version claims — a hand-typed Orca version drifted from runtime/pins.json:")
+        for failure in pin_failures:
             print(f"   - {failure}")
 
     keyword_failures = check_manifest_keywords()

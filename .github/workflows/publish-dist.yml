@@ -1,0 +1,57 @@
+name: publish-dist
+
+# #518: copy installers (the `skills` CLI and anything that copies one skill directory) sever a
+# mission's bare-name lookups, because playbooks/ and runtime/ live two levels above the skill.
+# `scripts/bundle.py` builds a self-contained tree with every referenced doc vendored under each
+# mission, and CI has checked that build for months — but nothing ever published it, so there
+# was no target to point an installer at. On every `v*` tag this job builds that tree and pushes
+# it to the `dist` branch as a single orphan commit (history is the tag's, not the branch's).
+# `docs/install.md` names the branch. Uses only git and the runner's token.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  dist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; same pin as validate.yml)
+        with:
+          fetch-depth: 0  # bundle.py resolves references against the full tree; provenance names the commit
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
+        with:
+          python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
+
+      - name: Build the self-contained tree
+        run: |
+          set -euo pipefail
+          python3 scripts/bundle.py --check
+          python3 scripts/bundle.py --out "$RUNNER_TEMP/dist"
+          test -d "$RUNNER_TEMP/dist/skills"
+          cp LICENSE THIRD_PARTY_NOTICES.md "$RUNNER_TEMP/dist/"
+          printf 'Built by scripts/bundle.py from %s at %s.\nEvery mission under skills/ carries its playbooks and runtime docs under references/.\nSource: https://github.com/%s\n' \
+            "${GITHUB_REF_NAME}" "$(git rev-parse HEAD)" "${GITHUB_REPOSITORY}" > "$RUNNER_TEMP/dist/DIST-PROVENANCE.txt"
+
+      - name: Publish to the dist branch
+        # An orphan commit per publish: the branch is a build artifact, never a history to merge.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          src="$(git rev-parse HEAD)"
+          cd "$RUNNER_TEMP/dist"
+          git init -q -b dist
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -qm "dist: bundle of ${GITHUB_REF_NAME} (${src})"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" dist:dist
+          {
+            echo "## publish-dist"
+            echo ""
+            echo "- branch \`dist\` now holds the bundle of \`${GITHUB_REF_NAME}\` (\`${src}\`)"
+          } >> "$GITHUB_STEP_SUMMARY"

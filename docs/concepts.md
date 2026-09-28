@@ -22,6 +22,7 @@ doubt, the policy file is the source of truth.
 - [Chaining missions](#chaining-missions)
 - [Proof status](#proof-status)
 - [Autonomy](#autonomy)
+- [Activation load](#activation-load)
 - [The mission-identity test](#the-mission-identity-test)
 
 ## Glossary
@@ -475,6 +476,17 @@ this catalog does not invent one in its name. A scheduled, unattended run
 wakes the coordinator, which dispatches, verifies, retries within bounds, and escalates the rest
 to the human-owed queue — but the mission's declared level stays L4: the level describes the
 mission's structure, and scheduling is a way of invoking it.
+
+## Activation load
+
+Every mission is several times the 5,000-token community recommendation, on purpose: the
+runtime policies are whole contracts, and a coordinator that reads half of a merge-ordering rule
+improvises the other half. The cost is real, and each guide states it on its Activation-load
+line: roughly a sixth of a 200k-token context is spent before the first dispatch. Two
+consequences for you: start a mission in a fresh session, and expect the coordinator's own
+context to compact during a long run, which is why the ledger, not the scrollback, is its
+memory. The measurement, the cap and why it only ratchets down are in
+[ARCHITECTURE.md](../ARCHITECTURE.md#instruction-budget).
 
 ## The mission-identity test
 

@@ -201,8 +201,16 @@ class ShardCliAndWorkflowAgreement(unittest.TestCase):
     half's source so they cannot drift apart silently."""
 
     def _matrix_shards(self):
-        (m,) = re.findall(r"shard:\s*\[([0-9,\s]+)\]", WORKFLOW.read_text(encoding="utf-8"))
-        return [int(x) for x in m.split(",")]
+        """Every job that shards the suite (the 3.13 `tests` lane and, since #514, the
+        `floor` lanes) declares the same matrix; one list comes back once they agree, so a
+        lane whose matrix drifts from the others fails here rather than running a shard
+        under the wrong total."""
+        found = re.findall(r"shard:\s*\[([0-9,\s]+)\]", WORKFLOW.read_text(encoding="utf-8"))
+        self.assertTrue(found, "no job declares a shard matrix")
+        matrices = [[int(x) for x in m.split(",")] for m in found]
+        self.assertEqual(matrices, [matrices[0]] * len(matrices),
+                         f"shard matrices disagree across jobs: {matrices}")
+        return matrices[0]
 
     def test_shard_index_out_of_range_exits_2(self):
         for bad in ("0", "5"):
