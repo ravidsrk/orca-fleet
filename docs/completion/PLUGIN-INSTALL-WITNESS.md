@@ -53,16 +53,22 @@ the output is long, keep the first and last ten lines and say how many were cut.
    number stops being hearsay.
 
    ```bash
-   find ~/.claude/plugins -maxdepth 4 -name plugin.json -path '*orca-fleet*'
-   ROOT="$(dirname "$(dirname "$(find ~/.claude/plugins -maxdepth 4 -name plugin.json -path '*orca-fleet*' | head -n 1)")")"
-   echo "$ROOT"
+   matches="$(find ~/.claude/plugins -name plugin.json -path '*orca-fleet*' 2>/dev/null)"
+   printf '%s\n' "$matches"
+   test "$(printf '%s\n' "$matches" | grep -c .)" = 1 || echo "STOP: expected exactly one orca-fleet manifest"
+   ROOT="$(dirname "$(dirname "$matches")")"
+   grep -q '"name": "orca-fleet"' "$ROOT/.claude-plugin/plugin.json" && echo "root verified: $ROOT"
    du -sh "$ROOT"
    python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/.claude-plugin/plugin.json"
    ```
 
-   The version printed must equal the version of the tag you meant to install. If the plugin
-   was installed from the default branch tip rather than a tag, say which commit:
-   `git -C "$ROOT" rev-parse HEAD` when the copy is a checkout, otherwise the version alone.
+   The search has no depth limit and must find exactly one manifest: zero means the install
+   did not land where Claude Code keeps plugins (record the `/plugin` output and stop), more
+   than one means a stale copy is present (remove it, or name the one you verify and say why).
+   `ROOT` is only used once its manifest names `orca-fleet`. The version printed must equal
+   the version of the tag you meant to install. If the plugin was installed from the default
+   branch tip rather than a tag, say which commit: `git -C "$ROOT" rev-parse HEAD` when the
+   copy is a checkout, otherwise the version alone.
 
 3. **Verify the three layers resolve inside the copy** (the symlink witness's own check, run
    against the plugin root instead):
@@ -92,10 +98,28 @@ the output is long, keep the first and last ten lines and say how many were cut.
    which missions are available?
    ```
 
-   Capture the answer. The outcome-named missions must list. Then start one mission that stops
-   at its first human gate without touching a repository, for example `review-it` on a pull
-   request the session did not author, and capture its first response: it must read its
-   playbooks by bare name from inside the plugin directory, not report a missing file.
+   Capture the answer. The outcome-named missions must list. Then prove the bare-name lookups
+   resolve inside the copy, which needs no Orca and no repository. First the machine check:
+   the catalog validator, run from the plugin root, resolves every playbook and runtime
+   policy a mission composes:
+
+   ```bash
+   cd "$ROOT" && python3 scripts/validate.py | tail -1
+   ```
+
+   It must end with "three-layer separation holds; evals valid." Then the in-session check:
+   ask exactly
+
+   ```
+   read the playbooks that map-it composes and list their first headings
+   ```
+
+   and capture the answer: it must quote headings from files under the plugin's `playbooks/`
+   directory, not report a missing file. A mission run is not part of this witness: every
+   mission needs the Orca app and a target repository, and `review-it` has no human gate
+   inside its run. If Orca is running and you want the extra evidence, start `review-it` on a
+   pull request the session did not author and capture its first turn as a separate file
+   named for what it shows; it neither adds to nor substitutes for the checks above.
 
 6. **Negative control: uninstall and confirm the missions came from the plugin.** The repo's
    habit is a paired failure transcript; here it proves the skills were not a stray symlink.
@@ -129,10 +153,14 @@ One pull request, from anyone:
 2. In [install.md](../install.md), replace the sentence that says the plugin path "has no
    recorded install transcript yet" with a link to the transcript, keeping the sentence about
    the symlink path as it is.
-3. In [DEFINITION.md](DEFINITION.md), the CF-02 row may name the plugin evidence beside the
-   symlink evidence; do not touch frozen rows elsewhere.
-4. Reference #518 in the PR body. The remaining half of #518, the first `v*` tag populating the
-   `dist` branch, is the maintainer's tag push and is checked separately.
+3. Do not edit [DEFINITION.md](DEFINITION.md): its binding text is frozen (R6 / R13), and the
+   CF-02 row there stays as written. Record the witness outside the frozen block, as a new
+   row in [HUMAN_ACTIONS.md](HUMAN_ACTIONS.md) in that page's H-row format (id, instruction,
+   what it unblocks, whether it gates launch, verification naming the two transcript files,
+   status), the way H-07 records the CF-05 re-witness.
+4. Reference #518 in the PR body. The transcript is one part of #518; the others, the first
+   `v*` tag populating the `dist` branch and a recorded disposition for the size of the
+   plugin copy, are the maintainer's and are checked separately.
 
 If any step fails, the transcript still lands, as a failure transcript with the failing step's
 output, and the PR says so in its title. A failed witness is evidence; a skipped one is not.
