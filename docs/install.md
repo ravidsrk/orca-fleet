@@ -118,7 +118,8 @@ If that fails, the references are broken — bundle, or use the symlink or plugi
 symlink path is verified to preserve them
 ([`docs/completion/evidence/CF-02-r2-happy-symlink-install.txt`](completion/evidence/CF-02-r2-happy-symlink-install.txt));
 the plugin path preserves them by construction — the whole repo is copied — but has no recorded
-install transcript yet.
+install transcript yet. The procedure that produces one, for anyone with a clean machine, is
+[the plugin-install witness](completion/PLUGIN-INSTALL-WITNESS.md); #518 closes on its transcript.
 
 </details>
 

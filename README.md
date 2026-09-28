@@ -590,6 +590,8 @@ If a fleet touches your default branch, that is a bug — file it. The full trus
 - [docs/reviews/2026-09-28-release-readiness-review.md](docs/reviews/2026-09-28-release-readiness-review.md)
   — the 2026-09-28 release-readiness review: every frozen gate re-run, the 1.0 checklist walked
   against live state, findings ranked P0–P2, and the tiered path to 0.7.0, a public beta, and 1.0.
+- [docs/announcements/public-beta-draft.md](docs/announcements/public-beta-draft.md) — the
+  public-beta announcement as a draft, with the witnessed acts it waits on listed above the text.
 - [AGENTS.md](AGENTS.md) — the agent-facing summary of this page; [docs/about.md](docs/about.md) —
   the canonical repository description; [docs/ops.md](docs/ops.md) — maintainer ops.
 
