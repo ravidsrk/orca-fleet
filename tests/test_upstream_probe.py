@@ -617,13 +617,20 @@ class CaptureAgainstAShim(unittest.TestCase):
         for forbidden in ("shell=True", "os.system(", "os.popen("):
             self.assertNotIn(forbidden, text)
 
-    @unittest.skipUnless(sys.platform.startswith("linux"), "orca-ide is the Linux default")
-    def test_without_the_override_linux_runs_orca_ide(self):
-        make_shim(self.bin, surface(), name="orca-ide")
+    def test_without_the_override_the_platform_default_runs(self):
+        # The default is whatever runtime/scripts/orca_cli.py says for this host (orca-ide on
+        # Linux, orca elsewhere), so the test runs on every platform instead of skipping.
+        spec = importlib.util.spec_from_file_location(
+            "orca_cli_for_probe_test", ROOT / "runtime" / "scripts" / "orca_cli.py")
+        orca_cli = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(orca_cli)
+        default = orca_cli.resolve(env={})
+        self.assertEqual(default, "orca-ide" if sys.platform.startswith("linux") else "orca")
+        make_shim(self.bin, surface(), name=default)
         env = clean_env(PATH=f"{self.bin}{os.pathsep}{os.environ.get('PATH', '')}")
         r = run("capture", "--out", str(self.out), env=env)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn("cli: orca-ide (platform default)", r.stdout)
+        self.assertIn(f"cli: {default} (platform default)", r.stdout)
 
 
 class CaptureThenDiff(unittest.TestCase):
