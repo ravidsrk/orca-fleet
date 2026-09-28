@@ -167,7 +167,9 @@ These still need an account with rights to submit. Do not flip them from a clone
       section below.
 - [x] Get `ravidsrk/orca-fleet` onto **skills.sh** so the predecessor listing is not the
       hit — DONE 2026-09-23: [skills.sh/ravidsrk/orca-fleet](https://www.skills.sh/ravidsrk/orca-fleet)
-      lists all 21 missions (registration is first-install telemetry, run from a scratch HOME).
+      is listed (registration is first-install telemetry, run from a scratch HOME) — but
+      listed ≠ up to date: 21 skills at 2026-09-28, one behind the 22-catalog (`offload-it`);
+      no refresh path short of another install event, which would fabricate telemetry.
 - [ ] Confirm a green **"does-it-load"** score once an indexer actually scores the pack.
 - [ ] On every listing a human files, lead with the **`proof:` trust badge** framing + a
       link to the [run archive](runs/). The buildwithclaude auto-index currently leads with
