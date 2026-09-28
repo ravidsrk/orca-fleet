@@ -24,16 +24,19 @@ Output, text mode: a header per gate, then one line per check —
 — and a final `summary:` line with the counts and the exit code.
 
 Exit contract (fail-closed):
-  0  every check PASS (SKIP and INFO lines are allowed; the summary counts them)
+  0  every check PASS (INFO lines are allowed; the summary counts them)
   1  any check FAIL
   2  could not run: --repo is not a directory, or a gate raised
+  3  incomplete: no FAIL, but at least one SKIP — the run proved less than the
+     release needs (--fast, --skip-github, or a machine without gh, network,
+     git or sh). A 3 is not a release verdict; only a 0 is (PR #509 review).
 
 SKIP rules: a check that needs something this MACHINE does not have — `gh` not
 on PATH (SKIP(no gh)), `gh auth status` failing (SKIP(gh unauthenticated)), no
 route to GitHub (SKIP(no network)), git or sh absent — prints SKIP with the
-reason and never PASS. A SKIP does not fail the run, but it is counted and
-printed, so a run carrying one is visibly not a full run: re-run it where the
-tool exists. The gh-backed checks carry `gh-` in their name. Something the
+reason and never PASS. A SKIP is not a FAIL, but it is counted, printed, and
+turns exit 0 into exit 3, so a run carrying one cannot be mistaken for a full
+run by a script reading only the exit code: re-run it where the tool exists. The gh-backed checks carry `gh-` in their name. Something the
 CHECKOUT lacks (no scripts/validate.py, no gate-batch store, a missing report)
 is a FAIL, not a SKIP: that is the release's state, not the machine's.
 
@@ -695,8 +698,17 @@ def summarize(results):
     return counts
 
 
+EXIT_INCOMPLETE = 3
+
+
 def exit_code(counts):
-    return 1 if counts["fail"] else 0
+    """1 on any FAIL; else 3 when a SKIP stands (the run proved less than the release
+    needs, so a gate reading only the code cannot cut on it); else 0."""
+    if counts["fail"]:
+        return 1
+    if counts["skip"]:
+        return EXIT_INCOMPLETE
+    return 0
 
 
 def to_json(ctx, results, counts):

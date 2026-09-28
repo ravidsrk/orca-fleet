@@ -7,7 +7,9 @@ screen reader. Before this, eight operator tools and spawn_worker.sh spelled the
 the resolution order, the CLI entrypoint, and — the part that keeps the bug from returning —
 that no script under runtime/scripts/ names the executable itself.
 """
+import contextlib
 import importlib.util
+import io
 import os
 import re
 import stat
@@ -16,6 +18,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "runtime" / "scripts"
@@ -63,32 +66,49 @@ class ResolutionOrder(unittest.TestCase):
 
 
 class CommandLine(unittest.TestCase):
+    """main() in this process (the D9 coverage floor sees it; a subprocess is invisible to
+    the shard's tracer) under the environment a subprocess would have had, plus one real
+    subprocess call that proves the entry point."""
+
+    def setUp(self):
+        self.m = _load()
+
+    def main(self, argv, env):
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.dict(os.environ, env, clear=True), \
+                contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = self.m.main(argv)
+        return code, out.getvalue(), err.getvalue()
+
     def test_prints_the_name(self):
-        p = subprocess.run([sys.executable, str(RESOLVER)], capture_output=True, text=True,
-                           env={"PATH": os.environ["PATH"], "ORCA_CLI_COMMAND": "orca-stub"})
-        self.assertEqual((p.returncode, p.stdout.strip()), (0, "orca-stub"))
+        code, out, _ = self.main([], {"PATH": os.environ["PATH"], "ORCA_CLI_COMMAND": "orca-stub"})
+        self.assertEqual((code, out.strip()), (0, "orca-stub"))
 
     def test_path_mode_fails_closed_when_the_command_is_absent(self):
         with tempfile.TemporaryDirectory() as tmp:
-            p = subprocess.run([sys.executable, str(RESOLVER), "--path"], capture_output=True,
-                               text=True, env={"PATH": tmp, "ORCA_CLI_COMMAND": "orca-stub"})
-        self.assertEqual(p.returncode, 1, p.stderr)
-        self.assertIn("not on PATH", p.stderr)
-        self.assertEqual(p.stdout, "")
+            code, out, err = self.main(["--path"], {"PATH": tmp, "ORCA_CLI_COMMAND": "orca-stub"})
+        self.assertEqual(code, 1, err)
+        self.assertIn("not on PATH", err)
+        self.assertEqual(out, "")
 
     def test_path_mode_prints_the_resolved_executable(self):
         with tempfile.TemporaryDirectory() as tmp:
             stub = Path(tmp) / "orca-stub"
             stub.write_text("#!/bin/sh\nexit 0\n")
             stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
-            p = subprocess.run([sys.executable, str(RESOLVER), "--path"], capture_output=True,
-                               text=True, env={"PATH": tmp, "ORCA_CLI_COMMAND": "orca-stub"})
-            self.assertEqual((p.returncode, p.stdout.strip()), (0, str(stub)))
+            code, out, _ = self.main(["--path"], {"PATH": tmp, "ORCA_CLI_COMMAND": "orca-stub"})
+            self.assertEqual((code, out.strip()), (0, str(stub)))
 
     def test_unknown_arguments_are_usage(self):
-        p = subprocess.run([sys.executable, str(RESOLVER), "--bogus"], capture_output=True,
-                           text=True)
-        self.assertEqual(p.returncode, 2)
+        code, out, err = self.main(["--bogus"], {"PATH": os.environ["PATH"]})
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        self.assertIn("usage", err)
+
+    def test_runs_as_a_program(self):
+        p = subprocess.run([sys.executable, str(RESOLVER)], capture_output=True, text=True,
+                           env={"PATH": os.environ["PATH"], "ORCA_CLI_COMMAND": "orca-stub"})
+        self.assertEqual((p.returncode, p.stdout.strip()), (0, "orca-stub"))
 
 
 class NoScriptNamesTheExecutable(unittest.TestCase):

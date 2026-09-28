@@ -10,8 +10,10 @@ script run as a subprocess; pure helpers are imported by path. The tag API is st
 a local stdlib HTTP server, so pagination, the bearer header and the HTTP-error paths are
 exercised for real rather than mocked away.
 """
+import contextlib
 import http.server
 import importlib.util
+import io
 import json
 import os
 import re
@@ -23,6 +25,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "runtime" / "scripts" / "upstream_probe.py"
@@ -40,9 +43,56 @@ def load_probe():
     return module
 
 
+_PROBE = None
+
+
+def probe_module():
+    global _PROBE
+    if _PROBE is None:
+        _PROBE = load_probe()
+    return _PROBE
+
+
+class Completed:
+    """What subprocess.run returns, for a main() that ran in this process."""
+
+    def __init__(self, returncode, stdout, stderr):
+        self.returncode, self.stdout, self.stderr = returncode, stdout, stderr
+
+
 def run(*args, env=None, cwd=None):
-    return subprocess.run([sys.executable, str(SCRIPT), *args], capture_output=True,
-                          text=True, env=env, cwd=cwd, timeout=120)
+    """main() in this process, under the environment and cwd a subprocess would have had.
+
+    In-process so the D9 coverage floor sees the probe (a subprocess is invisible to the
+    shard's tracer). `env` replaces os.environ wholesale when given, exactly as
+    subprocess.run(env=...) would; `cwd` is entered and left; both streams are captured.
+    The exit code is main()'s return; an argparse exit surfaces as its SystemExit code.
+    `RunsAsAProgram` keeps the one real subprocess call that proves the entry point."""
+    out, err = io.StringIO(), io.StringIO()
+    before = os.getcwd()
+    with mock.patch.dict(os.environ, env if env is not None else {}, clear=env is not None):
+        try:
+            if cwd is not None:
+                os.chdir(cwd)
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                try:
+                    code = probe_module().main([str(a) for a in args])
+                except SystemExit as exc:
+                    code = exc.code if isinstance(exc.code, int) else (0 if exc.code is None else 2)
+        finally:
+            os.chdir(before)
+    return Completed(code, out.getvalue(), err.getvalue())
+
+
+class RunsAsAProgram(unittest.TestCase):
+    """The one subprocess call: `python3 upstream_probe.py --help` is the entry point the
+    workflow uses, so it must run as a program, not only as an imported main()."""
+
+    def test_help_exits_zero_from_a_subprocess(self):
+        proc = subprocess.run([sys.executable, str(SCRIPT), "--help"], capture_output=True,
+                              text=True, timeout=120)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("usage: upstream_probe.py", proc.stdout)
 
 
 def clean_env(**extra):

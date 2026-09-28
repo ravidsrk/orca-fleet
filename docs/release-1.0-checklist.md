@@ -7,7 +7,8 @@ file DEFINES the release; [`scripts/release_check.py`](../scripts/release_check.
 RUNS it (#414). Every gate below is a command with its expected output — prose
 approvals do not count — and the script runs those same commands from the repo
 root, printing one `PASS` / `FAIL` / `SKIP(<reason>)` line per check and a
-summary: exit 0 when every check passes, 1 on any FAIL, 2 when it could not run.
+summary: exit 0 when every check passes, 1 on any FAIL, 2 when it could not run,
+3 when nothing failed but a check was skipped (a 3 is not green).
 A check that needs something the machine lacks (`gh` absent or unauthenticated,
 no network) prints `SKIP(<reason>)` and never `PASS`; the summary counts it, so a
 run carrying a SKIP is visibly not a full run. `--skip-github` skips the
@@ -128,8 +129,8 @@ gh issue view 419 --json state -q .state    # CLOSED (gate-batch tooling)
 
 ## Release mechanics — 1.0.0
 
-All six gates green — `python3 scripts/release_check.py` exits 0 with no SKIP in
-its summary? Cut exactly like any release ([ops.md](ops.md#release-cut)): the
+All six gates green — `python3 scripts/release_check.py` exits 0 (a standing SKIP
+makes it exit 3, and 3 is not green)? Cut exactly like any release ([ops.md](ops.md#release-cut)): the
 prepare/cut/tag/record blocks with `RELEASE_VERSION=1.0.0`. The maintainer
 authorizes the cut SHA before tagging; green checks never authorize publication.
 

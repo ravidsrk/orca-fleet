@@ -15,7 +15,9 @@ them. These tests keep the two from drifting apart and the script from lying:
   runs — the stale grep over the rendered gate-batch.md, the #235 gate and the
   pre-re-scope harden-it bar are gone.
 """
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import re
@@ -25,6 +27,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "release_check.py"
@@ -60,9 +63,45 @@ def parse(stdout):
     return rows
 
 
+class Completed:
+    """What subprocess.run returns, for a main() that ran in this process."""
+
+    def __init__(self, returncode, stdout, stderr):
+        self.returncode, self.stdout, self.stderr = returncode, stdout, stderr
+
+
 def run_script(*args, cwd=ROOT, env=None, timeout=900):
-    return subprocess.run([sys.executable, str(SCRIPT), *args], cwd=str(cwd),
-                          capture_output=True, text=True, env=env, timeout=timeout)
+    """rc.main() in this process, under the cwd and environment a subprocess would have.
+
+    In-process so the D9 coverage floor sees the script (a subprocess is invisible to the
+    shard's tracer); the gates it runs still shell out exactly as before. `env` replaces
+    os.environ wholesale when given, as subprocess.run(env=...) would. `timeout` is kept
+    for the call sites; the checks bound their own subprocesses."""
+    del timeout
+    out, err = io.StringIO(), io.StringIO()
+    before = os.getcwd()
+    with mock.patch.dict(os.environ, env if env is not None else {}, clear=env is not None):
+        try:
+            os.chdir(str(cwd))
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                try:
+                    code = rc.main([str(a) for a in args])
+                except SystemExit as exc:
+                    code = exc.code if isinstance(exc.code, int) else (0 if exc.code is None else 2)
+        finally:
+            os.chdir(before)
+    return Completed(code, out.getvalue(), err.getvalue())
+
+
+class RunsAsAProgram(unittest.TestCase):
+    """The one subprocess call: the checklist tells a person to run the file, so it must
+    run as a program, not only as an imported main()."""
+
+    def test_help_exits_zero_from_a_subprocess(self):
+        proc = subprocess.run([sys.executable, str(SCRIPT), "--help"], capture_output=True,
+                              text=True, cwd=str(ROOT), timeout=120)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("usage: release_check.py", proc.stdout)
 
 
 def skill_md(name, proof):
@@ -154,7 +193,9 @@ class TheScriptAgainstThisRepository(unittest.TestCase):
             self.assertEqual(proc.returncode, 1, transcript)
         else:
             self.assertEqual(failed, [], transcript)
-            self.assertEqual(proc.returncode, 0, transcript)
+            # --fast and --skip-github leave SKIPs standing, and a SKIP is not a pass:
+            # the run is incomplete (3), never green (0) — PR #509 review.
+            self.assertEqual(proc.returncode, 3, transcript)
         passed = [name for status, _, name in rows if status == "PASS"]
         self.assertEqual(set(names) - set(skips) - set(infos) - set(failed), set(passed))
 
@@ -316,6 +357,118 @@ class GatesFailOnAFixtureThatViolatesThem(unittest.TestCase):
                 self.assertEqual(find(c4, name)[1], rc.PASS, name)
 
 
+FAKE_GH = """#!/bin/sh
+# A canned `gh` for tests: every answer comes from the environment, so one script
+# plays authenticated, logged-out, offline and wrong-answer GitHub in turn.
+case "$1 $2" in
+  "auth status")
+    [ -n "$GH_AUTH_STDERR" ] && printf '%s\\n' "$GH_AUTH_STDERR" >&2
+    exit "${GH_AUTH_EXIT:-0}" ;;
+  "issue view") out="$GH_ISSUE_JSON" ;;
+  "pr view") out="$GH_PR_JSON" ;;
+  "run list") out="$GH_RUN_JSON" ;;
+  *) echo "unexpected gh argv: $*" >&2; exit 9 ;;
+esac
+[ -n "$GH_CMD_STDERR" ] && printf '%s\\n' "$GH_CMD_STDERR" >&2
+printf '%s\\n' "$out"
+exit "${GH_CMD_EXIT:-0}"
+"""
+
+
+class GitHubAnswersAreVerdicts(unittest.TestCase):
+    """With gh present and answering, its answer is a verdict (PASS/FAIL), never a SKIP;
+    a machine at fault (logged out, offline) is a SKIP that names why. A canned `gh` on
+    PATH plays each role; the fixture is a real git repository so HEAD binds."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = make_fixture(Path(self.tmp.name) / "repo")
+        for argv in (["git", "init", "-q"], ["git", "config", "user.email", "t@example.com"],
+                     ["git", "config", "user.name", "t"], ["git", "add", "-A"],
+                     ["git", "commit", "-q", "-m", "fixture"]):
+            subprocess.run(argv, cwd=str(self.root), check=True, capture_output=True)
+        self.head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(self.root),
+                                   capture_output=True, text=True, check=True).stdout.strip()
+        bin_dir = Path(self.tmp.name) / "bin"
+        bin_dir.mkdir()
+        gh = bin_dir / "gh"
+        gh.write_text(FAKE_GH, encoding="utf-8")
+        gh.chmod(0o755)
+        self.env = {"PATH": f"{bin_dir}{os.pathsep}{os.environ.get('PATH', '')}"}
+
+    def ctx(self):
+        return rc.Context(self.root, fast=True, skip_github=False)
+
+    def with_gh(self, **answers):
+        env = dict(self.env)
+        env.update({k: str(v) for k, v in answers.items()})
+        return mock.patch.dict(os.environ, env, clear=False)
+
+    def test_closed_and_merged_answers_pass_open_ones_fail(self):
+        with self.with_gh(GH_ISSUE_JSON='{"state": "CLOSED"}', GH_PR_JSON='{"state": "MERGED"}'):
+            ctx = self.ctx()
+            self.assertEqual(rc.check_issue_closed(ctx, "gate1", 408, "x")[1], rc.PASS)
+            self.assertEqual(rc.check_pr_merged(ctx, "gate1", 406, "x")[1], rc.PASS)
+        with self.with_gh(GH_ISSUE_JSON='{"state": "OPEN"}', GH_PR_JSON='{"state": "OPEN"}'):
+            ctx = self.ctx()
+            name, status, detail = rc.check_issue_closed(ctx, "gate1", 408, "x")
+            self.assertEqual((name, status), ("gate1/gh-issue-408-closed", rc.FAIL))
+            self.assertIn("OPEN", detail)
+            _, status, detail = rc.check_pr_merged(ctx, "gate1", 406, "x")
+            self.assertEqual(status, rc.FAIL)
+            self.assertIn("OPEN", detail)
+
+    def test_a_workflow_run_is_green_only_at_this_head(self):
+        at_head = json.dumps([{"conclusion": "success", "headSha": self.head}])
+        with self.with_gh(GH_RUN_JSON=at_head):
+            name, status, detail = rc.check_workflow_green_at_head(self.ctx(), "gate0", "validate")
+            self.assertEqual((name, status), ("gate0/gh-validate-run-green-at-head", rc.PASS))
+            self.assertIn(self.head, detail)
+        stale = json.dumps([{"conclusion": "success", "headSha": "0" * 40}])
+        with self.with_gh(GH_RUN_JSON=stale):
+            _, status, detail = rc.check_workflow_green_at_head(self.ctx(), "gate0", "validate")
+            self.assertEqual(status, rc.FAIL)
+            self.assertIn("stale green", detail)
+        with self.with_gh(GH_RUN_JSON="[]"):
+            _, status, detail = rc.check_workflow_green_at_head(self.ctx(), "gate0", "validate")
+            self.assertEqual(status, rc.FAIL)
+            self.assertIn("no `validate` workflow run", detail)
+
+    def test_an_answer_that_is_not_json_fails_the_check(self):
+        with self.with_gh(GH_ISSUE_JSON="<html>rate limited</html>"):
+            _, status, detail = rc.check_issue_closed(self.ctx(), "gate1", 408, "x")
+        self.assertEqual(status, rc.FAIL)
+        self.assertIn("printed no JSON", detail)
+
+    def test_a_failing_gh_command_is_a_skip_when_the_machine_is_at_fault_else_a_fail(self):
+        cases = (("error: not logged in to any hosts. run gh auth login", rc.SKIP, "gh unauthenticated"),
+                 ("dial tcp: lookup api.github.com: no such host", rc.SKIP, "no network"),
+                 ("GraphQL: Could not find an Issue with the number of 408 (repository.issue)",
+                  rc.FAIL, "exit 1"))
+        for stderr, want_status, want_detail in cases:
+            with self.subTest(stderr=stderr), self.with_gh(GH_CMD_EXIT=1, GH_CMD_STDERR=stderr):
+                _, status, detail = rc.check_issue_closed(self.ctx(), "gate1", 408, "x")
+                self.assertEqual(status, want_status, detail)
+                self.assertIn(want_detail, detail)
+
+    def test_the_auth_probe_runs_once_and_classifies_the_machine(self):
+        with self.with_gh():
+            ctx = self.ctx()
+            self.assertIsNone(rc.gh_unavailable(ctx))
+            self.assertIsNone(rc.gh_unavailable(ctx))  # memoized, not re-probed
+        with self.with_gh(GH_AUTH_EXIT=1, GH_AUTH_STDERR="You are not logged in to any GitHub hosts"):
+            self.assertEqual(rc.gh_unavailable(self.ctx()), "gh unauthenticated")
+        with self.with_gh(GH_AUTH_EXIT=1, GH_AUTH_STDERR="error connecting: could not resolve host"):
+            self.assertTrue(rc.gh_unavailable(self.ctx()).startswith("no network: "))
+        with self.with_gh(GH_ISSUE_JSON='{"state": "CLOSED"}', GH_PR_JSON='{"state": "MERGED"}',
+                          GH_RUN_JSON=json.dumps([{"conclusion": "success", "headSha": self.head}])):
+            rows = rc.gate1(self.ctx())
+            gh_rows = [r for r in rows if "/gh-" in r[0]]
+            self.assertTrue(gh_rows)
+            self.assertNotIn(rc.SKIP, {status for _, status, _ in gh_rows})
+
+
 class SkipsNeverPass(unittest.TestCase):
     def test_skip_github_skips_every_gh_backed_check_with_the_flag_as_reason(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -342,7 +495,7 @@ class SkipsNeverPass(unittest.TestCase):
             env.pop("GH_TOKEN", None)
             env.pop("GITHUB_TOKEN", None)
             proc = run_script("--fast", "--repo", str(root), cwd=root, env=env)
-            self.assertIn(proc.returncode, (0, 1), proc.stderr)  # it ran; a fixture is no release
+            self.assertIn(proc.returncode, (1, 3), proc.stderr)  # it ran; a fixture is no release
             rows = parse(proc.stdout)
             gh_rows = [r for r in rows if "/gh-" in r[2]]
             self.assertGreaterEqual(len(gh_rows), 8, proc.stdout)
@@ -358,6 +511,29 @@ class SkipsNeverPass(unittest.TestCase):
 
 
 class MachineOutputAndExitContract(unittest.TestCase):
+    def test_a_standing_skip_is_incomplete_never_green(self):
+        # PR #509 review: --fast / --skip-github / a machine without gh used to exit 0
+        # when nothing failed, so a release script reading the code could cut 1.0 on a
+        # run that never checked the suite, CI at HEAD, or the issue and PR states.
+        counts = {"pass": 30, "fail": 0, "skip": 0, "info": 1}
+        self.assertEqual(rc.exit_code(counts), 0)
+        self.assertEqual(rc.exit_code(dict(counts, skip=1)), 3)
+        self.assertEqual(rc.exit_code(dict(counts, skip=1, fail=1)), 1)
+        self.assertEqual(rc.exit_code(dict(counts, fail=1)), 1)
+        self.assertEqual(rc.EXIT_INCOMPLETE, 3)
+
+    def test_the_summary_line_and_the_exit_carry_a_skip_as_3(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_fixture(tmp)
+            (root / "scripts").mkdir(exist_ok=True)
+            proc = run_script("--fast", "--skip-github", "--json", "--repo", str(root), cwd=root)
+            data = json.loads(proc.stdout)
+            self.assertEqual(data["exit"], proc.returncode)
+            if data["summary"]["fail"] == 0:
+                self.assertEqual(proc.returncode, 3)
+            else:
+                self.assertEqual(proc.returncode, 1)
+
     def test_json_is_one_object_whose_summary_and_exit_agree_with_its_checks(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = make_fixture(tmp)
@@ -385,7 +561,8 @@ class MachineOutputAndExitContract(unittest.TestCase):
     def test_the_header_documents_the_contract(self):
         head = SCRIPT.read_text(encoding="utf-8")[:4000]
         for needle in ("0  every check PASS", "1  any check FAIL", "2  could not run",
-                       "--fast", "--skip-github", "--repo", "--json", "never PASS"):
+                       "3  incomplete", "--fast", "--skip-github", "--repo", "--json",
+                       "never PASS"):
             self.assertIn(needle, head, needle)
         self.assertTrue(os.access(SCRIPT, os.X_OK), "scripts/release_check.py is not executable")
 

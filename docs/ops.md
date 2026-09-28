@@ -182,7 +182,8 @@ gh release list --limit 20     # nine rows once the runs finish
 ```
 
 `.github/workflows/publish-dist.yml` builds `scripts/bundle.py`'s self-contained tree on the
-same tag pushes and force-pushes it to the `dist` branch, the target copy installers point at
+same tag pushes (a manual run must name an existing `v*` tag; it refuses a branch) and
+force-pushes it to the `dist` branch, the target copy installers point at
 ([docs/install.md](install.md)).
 
 ## Incident (2 a.m.)
