@@ -3,6 +3,13 @@
 This file is a pointer, not a backlog. Open work lives where it is machine-checked or
 issue-tracked, so this surface cannot drift into "nothing open" while gaps stand:
 
+- **The 2026-09-28 release-readiness review** —
+  [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md):
+  four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the
+  published version is 1,372 commits behind with no GitHub Releases; five stale hand-typed pin
+  and proof sentences; a schema line the 2026-09-28 re-pin missed), eight P1 findings, and a
+  three-tier release path (0.7.0 → public beta → 1.0). **Open**: none of its findings is filed
+  as an issue yet; filing them is the maintainer's next round.
 - **Standing gaps** — [`docs/completion/GAPS.md`](docs/completion/GAPS.md): every finding
   between HEAD and the completion definition with a FINISH / CUT / DEFER decision. G-09
   (field proof) and G-19 (ops-step precision) are the open DEFER rows. Their tracking ISSUES

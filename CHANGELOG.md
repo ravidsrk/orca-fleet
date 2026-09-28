@@ -114,6 +114,10 @@ to `main` in #387.
 
 ### Added
 
+- Release-readiness review of 2026-09-28 at `ad1a0ed`
+  (`docs/reviews/2026-09-28-release-readiness-review.md`): every frozen gate re-run locally and
+  against CI, upstream Orca read at the v1.4.215 pin and at HEAD, the 1.0 checklist walked
+  against live state, findings ranked P0–P2, and the tiered path to 0.7.0, a public beta, and 1.0.
 - Upstream CLI adoption: eight fail-closed operator tools (`task_ops.py`,
   `check_reply.py`, `hitl_ask.py`, `worker_ops.py`, `terminal_ops.py`,
   `worktree_ops.py`, `send_msg.py`, `search_sessions.py`) plus `spawn_worker.sh`
