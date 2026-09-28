@@ -77,20 +77,39 @@ the output is long, keep the first and last ten lines and say how many were cut.
    ```
 
    When neither prints a commit, fingerprint the copy's tree and match it against the tree of
-   the commit you intended, extracted from a clone of the repository into a scratch directory:
+   the tag being witnessed, extracted from a clone of the repository into a scratch directory.
+   `TAG` is the tag under witness: `v0.7.0` today, or the announced tag if the receipt-tree
+   shrink moved the release past it (the announcement draft's gate list says which). The hash
+   is computed by the Python this procedure already requires, so it runs the same on stock
+   macOS, which ships no `sha256sum`, and on Linux:
 
    ```bash
-   fp() { (cd "$1" && find . -type f -not -path './.git/*' -print0 | sort -z | xargs -0 sha256sum | sha256sum); }
+   TAG=v0.7.0
+   SCRATCH="${TMPDIR:-/tmp}/orca-fleet-witness"; mkdir -p "$SCRATCH"
+   fp() { python3 - "$1" <<'PY'
+   import hashlib, os, sys
+   root, h = sys.argv[1], hashlib.sha256()
+   for dp, dn, fn in os.walk(root):
+       dn[:] = sorted(d for d in dn if d != ".git")
+       for f in sorted(fn):
+           p = os.path.join(dp, f)
+           h.update(os.path.relpath(p, root).encode() + b"\0")
+           h.update(hashlib.sha256(open(p, "rb").read()).hexdigest().encode() + b"\n")
+   print(h.hexdigest())
+   PY
+   }
    fp "$ROOT"
-   git clone -q https://github.com/ravidsrk/orca-fleet "$TMPDIR/orca-fleet-src"
-   mkdir -p "$TMPDIR/orca-fleet-tag" && git -C "$TMPDIR/orca-fleet-src" archive v0.7.0 | tar -x -C "$TMPDIR/orca-fleet-tag"
-   fp "$TMPDIR/orca-fleet-tag"
+   git clone -q https://github.com/ravidsrk/orca-fleet "$SCRATCH/src"
+   mkdir -p "$SCRATCH/tag" && git -C "$SCRATCH/src" archive "$TAG" | tar -x -C "$SCRATCH/tag"
+   fp "$SCRATCH/tag"
    ```
 
    Equal fingerprints identify the copy as that tag's tree; unequal ones mean the install came
-   from another commit, and the transcript says so and names the closest commit it can (the
-   default-branch tip at install time, from the clone's `git rev-parse origin/HEAD`). The
-   `du -sh` above is a measurement of the copy this commit identity names, and of nothing else.
+   from another commit or carries files the archive does not, so list both trees
+   (`find . -type f | sort` in each) and record the difference before naming the closest commit
+   the transcript can (the default-branch tip at install time, from the clone's
+   `git rev-parse origin/HEAD`). The `du -sh` above is a measurement of the copy this commit
+   identity names, and of nothing else.
 
 3. **Verify the three layers resolve inside the copy** (the symlink witness's own check, run
    against the plugin root instead):
