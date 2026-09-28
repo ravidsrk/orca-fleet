@@ -66,9 +66,31 @@ the output is long, keep the first and last ten lines and say how many were cut.
    did not land where Claude Code keeps plugins (record the `/plugin` output and stop), more
    than one means a stale copy is present (remove it, or name the one you verify and say why).
    `ROOT` is only used once its manifest names `orca-fleet`. The version printed must equal
-   the version of the tag you meant to install. If the plugin was installed from the default
-   branch tip rather than a tag, say which commit: `git -C "$ROOT" rev-parse HEAD` when the
-   copy is a checkout, otherwise the version alone.
+   the version of the tag you meant to install, and a version is not an identity: two copies
+   can both say `0.7.0` and differ in every receipt tree. Every transcript therefore records
+   the commit its copy came from, established one of three ways, tried in order:
+
+   ```bash
+   git -C "$ROOT" rev-parse HEAD 2>/dev/null                       # the copy is a checkout
+   for d in $(find ~/.claude/plugins -maxdepth 3 -name .git -type d 2>/dev/null); do
+     echo "$d: $(git -C "$(dirname "$d")" rev-parse HEAD)"; done       # the marketplace clone that fed it
+   ```
+
+   When neither prints a commit, fingerprint the copy's tree and match it against the tree of
+   the commit you intended, extracted from a clone of the repository into a scratch directory:
+
+   ```bash
+   fp() { (cd "$1" && find . -type f -not -path './.git/*' -print0 | sort -z | xargs -0 sha256sum | sha256sum); }
+   fp "$ROOT"
+   git clone -q https://github.com/ravidsrk/orca-fleet "$TMPDIR/orca-fleet-src"
+   mkdir -p "$TMPDIR/orca-fleet-tag" && git -C "$TMPDIR/orca-fleet-src" archive v0.7.0 | tar -x -C "$TMPDIR/orca-fleet-tag"
+   fp "$TMPDIR/orca-fleet-tag"
+   ```
+
+   Equal fingerprints identify the copy as that tag's tree; unequal ones mean the install came
+   from another commit, and the transcript says so and names the closest commit it can (the
+   default-branch tip at install time, from the clone's `git rev-parse origin/HEAD`). The
+   `du -sh` above is a measurement of the copy this commit identity names, and of nothing else.
 
 3. **Verify the three layers resolve inside the copy** (the symlink witness's own check, run
    against the plugin root instead):
@@ -165,9 +187,12 @@ One pull request, from anyone:
    `v*` tag populating the `dist` branch and the receipt trees under `docs/runs/` and
    `docs/reports/` shrunk or relocated out of the plugin copy (review P1-5), are the
    maintainer's and are checked separately. The `du -sh` in step 2 measures the copy at the
-   one commit the transcript names; a shrink is shown by running step 2 again on a clean
-   machine at the shrunk commit, so the two transcripts carry the before and after sizes,
-   each tied to its commit. One measurement is a size, not a reduction.
+   one commit the transcript identifies (by checkout, by the marketplace clone, or by the tree
+   fingerprint matched against the intended tag); a shrink is shown by running step 2 again on
+   a clean machine with the copy identified as the shrunk tag's tree, so the two transcripts
+   carry the before and after sizes, each tied to a commit and never only to a version string.
+   One measurement is a size, not a reduction; two measurements without commit identities are
+   two sizes of unknown things.
 
 If any step fails, the transcript still lands, as a failure transcript with the failing step's
 output, and the PR says so in its title. A failed witness is evidence; a skipped one is not.
