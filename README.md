@@ -25,7 +25,7 @@
   <a href="docs/ops.md">Ops</a>
 </p>
 
-**Install — one command** (needs `git` + Python ≥ 3.13; to *run* missions add Orca ≥ v1.4.200, `gh`, Claude Code — [pinned list](docs/distribution.md#prerequisites-pinned)):
+**Install — one command** (needs `git` + Python ≥ 3.11; to *run* missions add Orca ≥ v1.4.215, `gh`, Claude Code — [pinned list](docs/distribution.md#prerequisites-pinned)):
 
 ```bash
 git clone https://github.com/ravidsrk/orca-fleet.git && cd orca-fleet && sh scripts/install.sh
@@ -36,6 +36,8 @@ The installer validates the catalog, links every mission into `~/.claude/skills`
 ---
 
 **orca-fleet** is a catalog of missions for the [Orca](https://github.com/stablyai/orca) runtime.
+It is an independent, community-maintained project, not affiliated with or endorsed by Stably,
+the maker of Orca ([third-party notices](THIRD_PARTY_NOTICES.md)).
 Each mission is a complete autonomous fleet: a coordinator that decomposes a goal, dispatches
 isolated workers, and stops at a named end state whose claims an independent verifier re-derives
 from git. You give it a goal in plain words. You get back a verified end state, or the exact place
@@ -82,8 +84,28 @@ No mission is named for a vendor or a technique. The upstream packs
 that missions compose — one pack per worker, never two in the same context
 ([why](docs/concepts.md#one-router-per-worker)).
 
+## Before you run a mission
+
+What a mission does on your machine, stated before the first one:
+
+- **Workers run your coding agent with its permission prompts off** (`--dangerously-skip-permissions`
+  and each agent's equivalent), because a worker that blocks on a prompt kills the run. Orca's
+  worktree is an isolated checkout, not a security sandbox.
+- **Each worker gets a git worktree under your checkout and opens pull requests on your
+  repository** against an integration branch the fleet creates. The fleet never merges to your
+  default branch; that promotion is always your click.
+- **The completion gate is advisory inside a worker's own session**, and `deny-hook.sh` is not
+  registered by default; the sound verification surface is off-worker (CI, or a process the
+  worker cannot influence).
+- **For a first run** use a repository you can afford to lose, a VM, or the
+  [`offload-it`](docs/missions/offload-it.md) recipe. The full boundary is in
+  [docs/verify-gate.md](docs/verify-gate.md#trust-boundary) and
+  [runtime/sandbox-policy.md](runtime/sandbox-policy.md); what a run asks you to decide, step by
+  step, is in [Getting started](docs/getting-started.md#your-side-of-the-human-gates).
+
 ## Contents
 
+- [Before you run a mission](#before-you-run-a-mission)
 - [Requirements](#requirements)
 - [Quick start](#quick-start)
 - [The mission catalog](#the-mission-catalog)
@@ -114,15 +136,18 @@ Every mission has a hard dependency on companions not published in this repo
 (the enforced-vs-observed pin table is in [distribution](docs/distribution.md#prerequisites-pinned)):
 
 1. **The Orca app**, running, with the orchestration experimental feature enabled — at or above
-   the catalog pin, currently **v1.4.200** (`runtime/pins.json`; the installer warns below it).
+   the catalog pin, currently **v1.4.215** (`runtime/pins.json`; the installer warns below it,
+   and `scripts/validate.py` fails when this number and the pin disagree). Tested against
+   v1.4.209 through v1.4.215; upstream ships almost daily, and a weekly probe files an issue
+   when the catalog falls behind (`runtime/orca-pin.md`).
 2. **The `orca` CLI** (`orca-ide` on Linux outside Orca terminals).
 3. **Orca's two public skills, `orchestration` and `orca-cli`**, installed for the agent host —
    they provide the worktrees, terminals, task DAG, ask/reply and `worker_done` primitives.
    orca-fleet is the *outcome* layer; those two are the *substrate*, and without them no mission
    can dispatch.
 4. **`git` and `gh`**, authenticated — or a tracker reachable via `orca linear`.
-5. **Python 3.13** for the catalog gates and the runtime scripts; stdlib only. The installer
-   refuses to run below 3.13.
+5. **Python 3.11 or newer** for the catalog gates and the runtime scripts; stdlib only. CI runs
+   the suite on 3.11, 3.12 and 3.13; the installer refuses to run below 3.11.
 
 Each mission declares any extra tooling in its `SKILL.md` frontmatter; the per-mission list lives
 in [Getting started](docs/getting-started.md#prerequisites).
@@ -164,30 +189,33 @@ carry the gate.
 Every mission is one outcome with its own state machine, its own convergence proof, and an
 evidence-based definition of done. Click through for the full guide to each.
 
-| Mission | Outcome (definition of done) | Use when |
-|---|---|---|
-| 🚢 **[ship-it](docs/missions/ship-it.md)** | Intent or a frozen spec → a released, verified change, stopped at the highest release state you authorized (`BUILT` → `PROMOTION_READY` → `RELEASED` → `DEPLOYED_AND_VERIFIED`) | "build and ship this", spec-to-shipped-product |
-| 🧹 **[clean-sweep](docs/missions/clean-sweep.md)** | A finite backlog exhausted to zero, PR-per-finding, every close backed by a merged SHA + a test that failed pre-fix; re-enumerated until dry | "close every issue", "fix everything in this audit", "the README lies" |
-| 🛡️ **[harden-it](docs/missions/harden-it.md)** | A threat model closed: audit → exploit → fix → **re-attack the fix** → clean re-audit finds zero unrefuted P0/P1 (or `HARDENED-WITH-OPEN-ITEMS`) | "harden this", "security sweep", "red team" |
-| ⚡ **[speed-it](docs/missions/speed-it.md)** | A perf budget met against a pre-declared measurement contract: `WITHIN-BUDGET` or `OPTIMIZED-WITH-PARKED` | "the app is slow", "perf budget", "Core Web Vitals" |
-| 📦 **[modernize-it](docs/missions/modernize-it.md)** | Dependency currency via expand/migrate/contract at the code level: `CURRENT` or `CURRENT-WITH-PINNED`, every pin justified | "update the dependencies", "framework migration" |
-| 🧪 **[prove-it](docs/missions/prove-it.md)** | A mutation-audited critical surface: `COVERED` or `COVERED-WITH-PARKED`, tests that die when the code is mutated | "close the test gap", "cover the critical paths" |
-| 🎯 **[deflake-it](docs/missions/deflake-it.md)** | Flake eradication to a statistical streak, local **and** CI: `STABLE` or `STABLE-WITH-QUARANTINE` | "kill the flaky tests", "deflake the suite" |
-| 🔍 **[review-it](docs/missions/review-it.md)** | A trusted, read-only, SHA-bound GO/NO-GO verdict — acceptance always, risk lenses when the diff triggers them. **No fix authority.** | "review this PR", "is this ready to merge" |
-| 🗺️ **[map-it](docs/missions/map-it.md)** | A foggy multi-session goal resolved into a frozen execution map `ship-it` can consume — decisions, not deliverables | "chart this", "plan this epic", "I don't know the shape yet" |
-| 🔬 **[root-cause](docs/missions/root-cause.md)** | A reproduced symptom and a demonstrated cause: repro-first → falsify rival hypotheses → one survivor, with evidence; optional fix handoff | "diagnose this", "why is this happening" |
-| 🤝 **[oss-contribute](docs/missions/oss-contribute.md)** | Upstream issues on a repo you do NOT control, each landed as an open, reviewed, etiquette-correct PR (or a quoted review-assist on an existing PR): `CONTRIBUTED` or `CONTRIBUTED-WITH-PARKED`, merge left to maintainers | "contribute to this project", "open PRs upstream", "we only have a fork" |
-| 📋 **[attest-it](docs/missions/attest-it.md)** | Conformance to a frozen standard (EU AI Act Art-12/50, SOC 2, NIST SSDF) proven with independently re-derived, auditor-grade evidence: `CONFORMANT` or `CONFORMANT-WITH-GAPS` (gaps parked to a human/legal owner) | "prove compliance", "conformance", "audit-ready evidence", "SOC 2 / EU AI Act / SSDF" |
-| ♿ **[access-it](docs/missions/access-it.md)** | A frozen page/flow set driven to WCAG 2.2 AA (EAA/ADA/508): a deterministic axe-core oracle clean + a revert-to-violation negative control, the ~30–40% automation ceiling parked to a human-AT reviewer: `CONFORMANT` or `CONFORMANT-WITH-MANUAL-PARKED` | "accessibility", "a11y", "WCAG", "screen reader / keyboard" |
-| 📌 **[pin-it](docs/missions/pin-it.md)** | Runtime doctrine re-witnessed against the installed binary: every mechanics claim receipted CURRENT, patched with receipts, or removed with an archived refutation — `PINNED` or `PINNED-WITH-PARKED` | "Orca updated", "re-pin the runtime contract", "policy lags practice" |
-| 🧱 **[floor-it](docs/missions/floor-it.md)** | A written, numbered quality bar: one tool per frozen dimension, every gate proven RED on an injected violation before it blocks CI, and a guard against bar-lowering diffs — `FLOORED` or `FLOORED-WITH-PARKED` | "set the quality bar", "make CI enforce", "define our standards" |
-| 🧬 **[reshape-it](docs/missions/reshape-it.md)** | Confirmed hot modules deepened behind smaller, testable interfaces with behaviour demonstrably unchanged — characterization net pinned before any restructure: `RESHAPED` or `RESHAPED-WITH-PARKED` | "god file", "architecture erosion", "refactor the hot path safely" |
-| 📱 **[field-test-it](docs/missions/field-test-it.md)** | On-device reproduce → fix → re-verify at the head SHA with a revert negative control — the ledgered device session is the oracle, never a desktop pass: `FIELD-PROVEN` or `FIELD-PROVEN-WITH-PARKED` | "test on a real device", "works on desktop, breaks on mobile", "emulator QA" |
-| 🗄️ **[migrate-it](docs/missions/migrate-it.md)** | A stateful shape change landed across deploys — expand → dual-write → backfill → switch reads → zero readers → contract, each phase deployed and baked, each `down` run, parity probed: `MIGRATED`, `MIGRATED-WITH-PARKED`, or `ABANDONED` | "migrate the database", "rename this column safely", "backfill without downtime" |
-| 📟 **[oncall-it](docs/missions/oncall-it.md)** | A frozen path set made operable: every on-call question answered by a quoted signal, symptom alerts test-fired with runbooks, and an induced staging failure named by a source-blind worker: `OPERABLE` or `OPERABLE-WITH-PARKED` | "make this operable", "we were blind during the incident", "add observability" |
-| 📥 **[absorb-it](docs/missions/absorb-it.md)** | An inbound PR queue drained: each contribution absorbed with authorship preserved and a RED-on-base / GREEN-on-head receipt, refuted with a reproduction, or parked with a named ask: `ABSORBED` or `ABSORBED-WITH-PARKED` | "drain the PR queue", "absorb these community contributions", "close out the contributor backlog" |
-| 📚 **[document-it](docs/missions/document-it.md)** | A public surface covered by quadrant with zero critical gaps, every claim bound to a `file:symbol` or a run and proven by a rename-to-RED control: `DOCUMENTED` or `DOCUMENTED-WITH-PARKED` | "document this project", "the API is undocumented", "docs coverage" |
-| ☁️ **[offload-it](docs/missions/offload-it.md)** | A per-workspace environment recipe stood up end to end — doctor-clear (no fail, no warn) plus a live provision enacting create→validate→destroy: `OFFLOADED` or `OFFLOADED-WITH-PARKED` | "run this in the cloud", "sandbox recipe", "per-workspace environment" |
+| Mission | Proof | Outcome (definition of done) | Use when |
+|---|---|---|---|
+| 🚢 **[ship-it](docs/missions/ship-it.md)** | `doctrine-only` | Intent or a frozen spec → a released, verified change, stopped at the highest release state you authorized (`BUILT` → `PROMOTION_READY` → `RELEASED` → `DEPLOYED_AND_VERIFIED`) | "build and ship this", spec-to-shipped-product |
+| 🧹 **[clean-sweep](docs/missions/clean-sweep.md)** | `self-run` | A finite backlog exhausted to zero, PR-per-finding, every close backed by a merged SHA + a test that failed pre-fix; re-enumerated until dry | "close every issue", "fix everything in this audit", "the README lies" |
+| 🛡️ **[harden-it](docs/missions/harden-it.md)** | `self-run` | A threat model closed: audit → exploit → fix → **re-attack the fix** → clean re-audit finds zero unrefuted P0/P1 (or `HARDENED-WITH-OPEN-ITEMS`) | "harden this", "security sweep", "red team" |
+| ⚡ **[speed-it](docs/missions/speed-it.md)** | `doctrine-only` | A perf budget met against a pre-declared measurement contract: `WITHIN-BUDGET` or `OPTIMIZED-WITH-PARKED` | "the app is slow", "perf budget", "Core Web Vitals" |
+| 📦 **[modernize-it](docs/missions/modernize-it.md)** | `doctrine-only` | Dependency currency via expand/migrate/contract at the code level: `CURRENT` or `CURRENT-WITH-PINNED`, every pin justified | "update the dependencies", "framework migration" |
+| 🧪 **[prove-it](docs/missions/prove-it.md)** | `self-run` | A mutation-audited critical surface: `COVERED` or `COVERED-WITH-PARKED`, tests that die when the code is mutated | "close the test gap", "cover the critical paths" |
+| 🎯 **[deflake-it](docs/missions/deflake-it.md)** | `doctrine-only` | Flake eradication to a statistical streak, local **and** CI: `STABLE` or `STABLE-WITH-QUARANTINE` | "kill the flaky tests", "deflake the suite" |
+| 🔍 **[review-it](docs/missions/review-it.md)** | `doctrine-only` | A trusted, read-only, SHA-bound GO/NO-GO verdict — acceptance always, risk lenses when the diff triggers them. **No fix authority.** | "review this PR", "is this ready to merge" |
+| 🗺️ **[map-it](docs/missions/map-it.md)** | `doctrine-only` | A foggy multi-session goal resolved into a frozen execution map `ship-it` can consume — decisions, not deliverables | "chart this", "plan this epic", "I don't know the shape yet" |
+| 🔬 **[root-cause](docs/missions/root-cause.md)** | `doctrine-only` | A reproduced symptom and a demonstrated cause: repro-first → falsify rival hypotheses → one survivor, with evidence; optional fix handoff | "diagnose this", "why is this happening" |
+| 🤝 **[oss-contribute](docs/missions/oss-contribute.md)** | `doctrine-only` | Upstream issues on a repo you do NOT control, each landed as an open, reviewed, etiquette-correct PR (or a quoted review-assist on an existing PR): `CONTRIBUTED` or `CONTRIBUTED-WITH-PARKED`, merge left to maintainers | "contribute to this project", "open PRs upstream", "we only have a fork" |
+| 📋 **[attest-it](docs/missions/attest-it.md)** | `doctrine-only` | Conformance to a frozen standard (EU AI Act Art-12/50, SOC 2, NIST SSDF) proven with independently re-derived, auditor-grade evidence: `CONFORMANT` or `CONFORMANT-WITH-GAPS` (gaps parked to a human/legal owner) | "prove compliance", "conformance", "audit-ready evidence", "SOC 2 / EU AI Act / SSDF" |
+| ♿ **[access-it](docs/missions/access-it.md)** | `doctrine-only` | A frozen page/flow set driven to WCAG 2.2 AA (EAA/ADA/508): a deterministic axe-core oracle clean + a revert-to-violation negative control, the ~30–40% automation ceiling parked to a human-AT reviewer: `CONFORMANT` or `CONFORMANT-WITH-MANUAL-PARKED` | "accessibility", "a11y", "WCAG", "screen reader / keyboard" |
+| 📌 **[pin-it](docs/missions/pin-it.md)** | `doctrine-only` | Runtime doctrine re-witnessed against the installed binary: every mechanics claim receipted CURRENT, patched with receipts, or removed with an archived refutation — `PINNED` or `PINNED-WITH-PARKED` | "Orca updated", "re-pin the runtime contract", "policy lags practice" |
+| 🧱 **[floor-it](docs/missions/floor-it.md)** | `doctrine-only` | A written, numbered quality bar: one tool per frozen dimension, every gate proven RED on an injected violation before it blocks CI, and a guard against bar-lowering diffs — `FLOORED` or `FLOORED-WITH-PARKED` | "set the quality bar", "make CI enforce", "define our standards" |
+| 🧬 **[reshape-it](docs/missions/reshape-it.md)** | `doctrine-only` | Confirmed hot modules deepened behind smaller, testable interfaces with behaviour demonstrably unchanged — characterization net pinned before any restructure: `RESHAPED` or `RESHAPED-WITH-PARKED` | "god file", "architecture erosion", "refactor the hot path safely" |
+| 📱 **[field-test-it](docs/missions/field-test-it.md)** | `doctrine-only` | On-device reproduce → fix → re-verify at the head SHA with a revert negative control — the ledgered device session is the oracle, never a desktop pass: `FIELD-PROVEN` or `FIELD-PROVEN-WITH-PARKED` | "test on a real device", "works on desktop, breaks on mobile", "emulator QA" |
+| 🗄️ **[migrate-it](docs/missions/migrate-it.md)** | `doctrine-only` | A stateful shape change landed across deploys — expand → dual-write → backfill → switch reads → zero readers → contract, each phase deployed and baked, each `down` run, parity probed: `MIGRATED`, `MIGRATED-WITH-PARKED`, or `ABANDONED` | "migrate the database", "rename this column safely", "backfill without downtime" |
+| 📟 **[oncall-it](docs/missions/oncall-it.md)** | `doctrine-only` | A frozen path set made operable: every on-call question answered by a quoted signal, symptom alerts test-fired with runbooks, and an induced staging failure named by a source-blind worker: `OPERABLE` or `OPERABLE-WITH-PARKED` | "make this operable", "we were blind during the incident", "add observability" |
+| 📥 **[absorb-it](docs/missions/absorb-it.md)** | `doctrine-only` | An inbound PR queue drained: each contribution absorbed with authorship preserved and a RED-on-base / GREEN-on-head receipt, refuted with a reproduction, or parked with a named ask: `ABSORBED` or `ABSORBED-WITH-PARKED` | "drain the PR queue", "absorb these community contributions", "close out the contributor backlog" |
+| 📚 **[document-it](docs/missions/document-it.md)** | `doctrine-only` | A public surface covered by quadrant with zero critical gaps, every claim bound to a `file:symbol` or a run and proven by a rename-to-RED control: `DOCUMENTED` or `DOCUMENTED-WITH-PARKED` | "document this project", "the API is undocumented", "docs coverage" |
+| ☁️ **[offload-it](docs/missions/offload-it.md)** | `doctrine-only` | A per-workspace environment recipe stood up end to end — doctor-clear (no fail, no warn) plus a live provision enacting create→validate→destroy: `OFFLOADED` or `OFFLOADED-WITH-PARKED` | "run this in the cloud", "sandbox recipe", "per-workspace environment" |
+
+The **Proof** column is each mission's `metadata.proof` tier, bound to its `SKILL.md` by a contract
+test; what a tier means and how one is earned is under [Proof status](#proof-status).
 
 Every mission is a coordinator plus parallel isolated workers, which is level L4 on Addy Osmani's
 autonomy ladder; a scheduled unattended run is the L5 shape. The derivation is in
@@ -211,8 +239,10 @@ Every mission's `metadata:` block carries a validator-enforced `proof:` field: `
 `self-run`, or `external-run`. A tier cannot be claimed without artifacts that hash true at a
 named commit: a run report with a `RUN:` header, an evidence manifest inside the run's own
 `docs/runs/` directory, and an integrity inventory that re-hashes at the commit the header names.
-**Today `clean-sweep` and `prove-it` read `self-run` — the first tiers earned under the binding gate — and
-every other mission reads `doctrine-only`.** The [run archive](docs/runs/) records every run
+<!-- BEGIN GENERATED: proof-status — scripts/gen-badges.py -->
+**Today `clean-sweep`, `harden-it` and `prove-it` read `self-run`; every other mission reads `doctrine-only`; no mission reads `external-run` yet.**
+<!-- END GENERATED: proof-status -->
+The [run archive](docs/runs/) records every run
 that really happened and says, per run, whether and why it binds. Be precise about what the gate
 buys: it hashes, it does not re-run the verifier, and [the 2026-09-11 review](REVIEW.md) showed
 that a fabricated run can pass it; closing that is
@@ -557,6 +587,9 @@ If a fleet touches your default branch, that is a bug — file it. The full trus
   [docs/reviews/2026-09-10-review.md](docs/reviews/2026-09-10-review.md), the later one
   [docs/reviews/2026-09-14-holistic-review.md](docs/reviews/2026-09-14-holistic-review.md)
   (filed as #349–#386).
+- [docs/reviews/2026-09-28-release-readiness-review.md](docs/reviews/2026-09-28-release-readiness-review.md)
+  — the 2026-09-28 release-readiness review: every frozen gate re-run, the 1.0 checklist walked
+  against live state, findings ranked P0–P2, and the tiered path to 0.7.0, a public beta, and 1.0.
 - [AGENTS.md](AGENTS.md) — the agent-facing summary of this page; [docs/about.md](docs/about.md) —
   the canonical repository description; [docs/ops.md](docs/ops.md) — maintainer ops.
 
@@ -572,6 +605,7 @@ where it is due:
 | [garrytan/gstack](https://github.com/garrytan/gstack) | review-army dispatch mechanics, ship's release state machine, canary observation, user-challenge governance |
 
 And the substrate everything rides: the [Orca](https://github.com/stablyai/orca) runtime.
+Upstream notices are collected in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## License
 

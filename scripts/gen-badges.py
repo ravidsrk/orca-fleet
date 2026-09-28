@@ -64,9 +64,12 @@ def activation_loads() -> dict:
 
 
 def load_callout(mission: str, tokens: int) -> str:
+    # #525: the number alone says nothing to a person; the share of a 200k-token context does.
+    share = round(tokens / 200_000 * 100)
     return (
         f"> **Activation load:** ~{tokens:,} tokens — this SKILL.md plus every playbook and "
-        f"runtime doc its Composes/rides clause makes mandatory "
+        f"runtime doc its Composes/rides clause makes mandatory, about {share}% of a 200k-token "
+        f"context before the first dispatch "
         f"([why it is measured](../../ARCHITECTURE.md#instruction-budget))"
     )
 
@@ -113,7 +116,7 @@ def compute() -> dict:
         )
     return {
         "missions.json": badge("missions", str(mission_count()), "1f6feb"),
-        "tests.json": badge("test definitions", f"{test_count()} in source", "6e7781"),
+        "tests.json": badge("test functions", f"{test_count()} in source", "6e7781"),
     }
 
 
@@ -225,6 +228,84 @@ def write_architecture() -> None:
         print(f"wrote {ARCH.name}: activation-load table")
 
 
+# --- README.md's proof-status sentence -------------------------------------------------
+# It named two missions by hand and was stale within a week of the third promotion (#512): a
+# sentence a human retypes about which missions hold which tier is the same shape as the
+# activation-load table above. The block lists every mission by tier, read from the SKILL
+# frontmatter, so a promotion rewrites it and `--check` fails until it is regenerated.
+README = ROOT / "README.md"
+README_BEGIN = "<!-- BEGIN GENERATED: proof-status — scripts/gen-badges.py -->"
+README_END = "<!-- END GENERATED: proof-status -->"
+README_BLOCK_RE = re.compile(re.escape(README_BEGIN) + r".*?" + re.escape(README_END), re.S)
+PROOF_RE = re.compile(r"(?m)^  proof:\s*(\S+)")
+TIERS = ("external-run", "self-run", "doctrine-only")
+
+
+def proof_tiers() -> dict[str, list[str]]:
+    """{tier: [mission, ...]} read from every SKILL.md frontmatter; unknown tiers raise."""
+    tiers: dict[str, list[str]] = {tier: [] for tier in TIERS}
+    for d in sorted(SKILLS_DIR.iterdir()):
+        if not d.is_dir() or d.name.startswith((".", "_")) or not (d / "SKILL.md").exists():
+            continue
+        text = (d / "SKILL.md").read_text(encoding="utf-8")
+        head = text.split("---")[1] if text.startswith("---") else ""
+        m = PROOF_RE.search(head)
+        if not m or m.group(1) not in tiers:
+            raise RuntimeError(f"skills/{d.name}/SKILL.md: no legal metadata.proof tier")
+        tiers[m.group(1)].append(d.name)
+    return tiers
+
+
+def _join(names: list[str]) -> str:
+    quoted = [f"`{n}`" for n in names]
+    if len(quoted) <= 1:
+        return "".join(quoted)
+    return ", ".join(quoted[:-1]) + " and " + quoted[-1]
+
+
+def proof_block() -> str:
+    tiers = proof_tiers()
+    parts = []
+    for tier in ("external-run", "self-run"):
+        if tiers[tier]:
+            verb = "reads" if len(tiers[tier]) == 1 else "read"
+            parts.append(f"{_join(tiers[tier])} {verb} `{tier}`")
+    if parts:
+        sentence = ("Today " + "; ".join(parts) + "; every other mission reads `doctrine-only`")
+    else:
+        sentence = "Today every mission reads `doctrine-only`"
+    absent = [tier for tier in ("external-run", "self-run") if not tiers[tier]]
+    if absent:
+        sentence += "; no mission reads " + " or ".join(f"`{t}`" for t in absent) + " yet"
+    return "\n".join([README_BEGIN, f"**{sentence}.**", README_END])
+
+
+def check_readme() -> list[str]:
+    if not README.is_file():
+        return [f"{README.name} missing at {README}"]
+    text = README.read_text(encoding="utf-8")
+    found = README_BLOCK_RE.search(text)
+    if not found:
+        return [f"{README.name} has no generated proof-status block — run scripts/gen-badges.py"]
+    if found.group(0) != proof_block():
+        return [f"{README.name} proof-status sentence is stale — run scripts/gen-badges.py"]
+    return []
+
+
+def write_readme() -> None:
+    if not README.is_file():
+        print(f"skip {README.name}: missing")
+        return
+    text = README.read_text(encoding="utf-8")
+    if not README_BLOCK_RE.search(text):
+        print(f"skip {README.name}: no generated proof-status markers to fill")
+        return
+    new_text = README_BLOCK_RE.sub(lambda _m: proof_block(), text, count=1)
+    if new_text != text:
+        README.write_text(new_text, encoding="utf-8")
+        print(f"wrote {README.name}: proof-status sentence")
+
+
 def check() -> list[str]:
     """Return a list of stale-artifact errors (empty if everything committed is current)."""
     errors = []
@@ -247,7 +328,7 @@ def check() -> list[str]:
                 f"assets/badges/{name} is stale (have {have.get('message')!r}, "
                 f"want {want.get('message')!r}) — run scripts/gen-badges.py"
             )
-    return errors + check_guides() + check_architecture()
+    return errors + check_guides() + check_architecture() + check_readme()
 
 
 def write() -> None:
@@ -257,6 +338,7 @@ def write() -> None:
         print(f"wrote assets/badges/{name}: {data['message']}")
     write_guides()
     write_architecture()
+    write_readme()
 
 
 if __name__ == "__main__":

@@ -39,7 +39,7 @@ def run_cli(args, env_extra=None, payload=None):
         stub = Path(tmp) / "orca"
         stub.write_text(f'#!/bin/sh\nprintf \'%s\\n\' "$*" >> "{log}"\ncat "{resp}"\n')
         stub.chmod(0o755)
-        env = {"PATH": f"{tmp}:/usr/bin:/bin"}
+        env = {"PATH": f"{tmp}:/usr/bin:/bin", "ORCA_CLI_COMMAND": "orca"}
         env.update(env_extra or {})
         p = subprocess.run(["python3", str(SCRIPT), *args], env=env,
                            capture_output=True, text=True)

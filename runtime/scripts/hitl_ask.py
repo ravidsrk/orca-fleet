@@ -27,6 +27,12 @@ import os
 import subprocess
 import sys
 
+try:
+    import orca_cli
+except ImportError:  # loaded by file path (tests): the resolver sits beside this script
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import orca_cli
+
 EXIT_OK = 0
 EXIT_FAILED = 1
 EXIT_REFUSED = 2
@@ -130,7 +136,7 @@ def build_argv(ns, env):
 
 def run_orca(argv):
     try:
-        proc = subprocess.run(["orca", *argv, "--json"],
+        proc = subprocess.run([orca_cli.resolve(), *argv, "--json"],
                               capture_output=True, text=True, timeout=1900)
     except (OSError, subprocess.SubprocessError) as exc:
         raise Failed(f"could not run orca: {exc}")

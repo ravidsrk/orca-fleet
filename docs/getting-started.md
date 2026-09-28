@@ -13,6 +13,7 @@ have used Claude Code before but never run a multi-agent fleet.
 - [What you will see while a fleet runs](#what-you-will-see-while-a-fleet-runs)
 - [Where the evidence lands](#where-the-evidence-lands)
 - [Your side of the human gates](#your-side-of-the-human-gates)
+- [What a run costs](#what-a-run-costs)
 - [Troubleshooting](#troubleshooting)
 
 ## Prerequisites
@@ -46,9 +47,10 @@ Three hard requirements, without which no mission will start:
    ancestry; `gh auth status` must succeed. Repos on a tracker other than GitHub issues can use
    `orca linear` where a mission supports it.
 
-3. **Python 3.13** for the catalog gates (`scripts/validate.py`, `tests/`) and for the runtime
-   scripts a fleet runs (`runtime/scripts/verify.py` and its neighbours). CI is pinned to 3.13;
-   stdlib only — no venv required.
+3. **Python 3.11 or newer** for the catalog gates (`scripts/validate.py`, `tests/`) and for the
+   runtime scripts a fleet runs (`runtime/scripts/verify.py` and its neighbours). CI runs the
+   suite on 3.11, 3.12 and 3.13 (3.10 compiles, but two tests depend on 3.11 interpreter
+   behaviour, so it is not supported); stdlib only — no venv required.
 
 Per-mission tooling on top of that — each mission declares its own in `SKILL.md` frontmatter:
 
@@ -125,6 +127,11 @@ and it blocks only a turn that is mid-unit with a failing manifest
 ([docs/verify-gate.md](verify-gate.md#native-path--plugin-hooks-set-claude_plugin_root)).
 
 ## Your first mission: a review-it dry run
+
+Before any run, read the README's
+[Before you run a mission](../README.md#before-you-run-a-mission) section: it says what a
+fleet does on your machine (permission-bypass workers, worktrees, PRs on your repository) and
+where to run a first one.
 
 Start with [`review-it`](missions/review-it.md), because it has **no fix authority** — the worst
 it can do is be wrong in a report. Open a Claude Code session in a repo that has an open PR or a
@@ -303,6 +310,26 @@ of being wrong.
 
 An unattended run never fakes your answer: unanswerable one-way questions get parked with the
 run continuing elsewhere, or the run winds down and tells you what it was blocked on.
+
+## What a run costs
+
+No mission has a fixed price; the measured runs in the [archive](runs/README.md) are the honest
+anchors. Rules of thumb from them:
+
+- **One worker session per unit, plus its reviewers.** A unit is one finding, slice, flake or
+  hypothesis; each gets a builder in a fresh worktree, a build-blind reviewer and, where it merges,
+  an integrator turn. The [attention budget](../runtime/attention-budget.md) caps concurrent
+  builders so review keeps up, which sets the wall clock more than model speed does.
+- **A first `ship-it` is an overnight run, not a lunch break.** The one narrated run
+  ([Anatomy of a run](guides/anatomy-of-a-run.md)) spans more than fourteen hours with five
+  builder panes at its peak; the 2026-09-14 tracker close was ten units in two waves; the
+  2026-09-21 `harden-it` self-run took ten waves to a clean re-audit.
+- **A `review-it` dry run is cheap:** a few read-only worker sessions and no writes, which is why
+  it is the first mission this guide recommends.
+- **Activation alone costs context.** Every mission loads roughly a sixth of a 200k-token window
+  before the first dispatch (each guide's Activation-load line has the number), so start a mission
+  in a fresh session, never mid-conversation; the coordinator's own context compacts during a long
+  run, which is why the ledger, not the scrollback, is its memory.
 
 ## Troubleshooting
 

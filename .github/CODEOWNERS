@@ -1,0 +1,3 @@
+# Every path is owned by the maintainer until a second person holds write access (#521).
+# Reviews requested from the owner on every PR; the bus factor is documented in docs/ops.md.
+* @ravidsrk

@@ -35,7 +35,10 @@ echo "self-scorer exit: $ss"
 echo
 
 echo "== [2] orca-fleet INDEPENDENT verifier (re-derives the frozen denominator) =="
-out=$(python3 "$ROOT/runtime/scripts/verify.py" --manifest "$M" --contract-source "$SRC" --contract-digest "$DIGEST" --unit-class report-only 2>&1); vf=$?
+# `-u`: stdout and stderr are merged into one transcript, and a block-buffered stdout lets the
+# host decide where the NOTE lines land relative to the stderr FAIL lines (an extra advisory NOTE
+# on one host reordered the whole tail, #522). Unbuffered, the order is emission order everywhere.
+out=$(python3 -u "$ROOT/runtime/scripts/verify.py" --manifest "$M" --contract-source "$SRC" --contract-digest "$DIGEST" --unit-class report-only 2>&1); vf=$?
 printf '%s\n' "$out"   # includes the stderr FAIL line naming the dropped AC-2 — the checkable reason
 echo "verify.py exit: $vf"
 echo

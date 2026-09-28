@@ -1179,3 +1179,33 @@ class EveryReleaseHasTheTagItDescribes(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class ReadmeCatalogShowsProofTier(unittest.TestCase):
+    """#515: the promise is made on README line one; the tier lived three clicks away in a guide.
+    The catalog table now carries a Proof column, and this binds every cell to the SKILL
+    frontmatter the way the guide callouts are bound."""
+
+    ROW = re.compile(r"^\|\s*\S+\s+\*\*\[([a-z-]+)\]\(docs/missions/\1\.md\)\*\*\s*\|\s*`([a-z-]+)`\s*\|")
+
+    def test_every_mission_row_carries_its_skill_proof_tier(self):
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        rows = {}
+        for line in readme.splitlines():
+            m = self.ROW.match(line)
+            if m:
+                rows[m.group(1)] = m.group(2)
+        missions = sorted(d.name for d in (ROOT / "skills").iterdir()
+                          if d.is_dir() and not d.name.startswith((".", "_"))
+                          and (d / "SKILL.md").exists())
+        self.assertEqual(sorted(rows), missions,
+                         "the README catalog table must carry one row per mission with a Proof cell")
+        for name in missions:
+            tier = re.search(r"(?m)^  proof:\s*(\S+)",
+                             (ROOT / "skills" / name / "SKILL.md").read_text(encoding="utf-8")).group(1)
+            self.assertEqual(rows[name], tier, f"README Proof cell for {name} != skills/{name} frontmatter")
+
+    def test_the_row_matcher_reads_the_table_shape(self):
+        m = self.ROW.match("| 🚢 **[ship-it](docs/missions/ship-it.md)** | `doctrine-only` | Intent … | use |")
+        self.assertEqual((m.group(1), m.group(2)), ("ship-it", "doctrine-only"))
+        self.assertIsNone(self.ROW.match("| 🚢 **[ship-it](docs/missions/ship-it.md)** | Intent … | use |"))

@@ -69,7 +69,7 @@ Settings-tunable, so on a raised host this stops being runtime-enforced and stay
 one worker per axis — never by a reviewer worker fanning out its own.
 
 Operational specifics: a worktree id is the composite `<repoId>::<worktreePath>` returned by `worktree create --json` — pass `path:/abs/worktree/path`
-(unambiguous) or that full id, never the bare repo id. On Linux use `orca-ide` (upstream's Linux-only rename, `web-cli-api.ts:7`); the bare-`orca`-is-GNOME-screen-reader rationale is unwitnessed env lore — kept as caution, not claim. After an accepted `worker_done`, run **`worker-release --dispatch <id>`** (Orca preserves inspectable output, then closes only the exact
+(unambiguous) or that full id, never the bare repo id. The CLI is `orca-ide` on Linux (`bundled-cli-launcher-path.ts:4`; upstream's shared CLI-resolution stub under `skill-stubs/_shared`, lines 12-14, says why: bare `orca` there is the GNOME screen reader) — every fleet script resolves the name through `runtime/scripts/orca_cli.py` (#510), never spells it. After an accepted `worker_done`, run **`worker-release --dispatch <id>`** (Orca preserves inspectable output, then closes only the exact
 agent terminal that dispatch owned) — or `worker-retain` at the user's explicit request. Its exit contract: `retained`, `release_pending`, and
 `already_released` all exit 0 (it is idempotent); an unknown dispatch exits 1 (`dispatch_not_found`, witnessed at v1.4.204, re-verified CURRENT at v1.4.209) and needs the receipt's own recovery action
 (`orchestration-worker-specs.ts:101`). The pane that outlived its `worker_done` under a new handle (the old dual-writer class) is now fenced by the runtime at

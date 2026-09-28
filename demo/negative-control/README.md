@@ -55,7 +55,7 @@ predates convergence (round-2 threat brief: competitors run public priority doss
 
 | Artifact | sha256 |
 |----------|--------|
-| `head-to-head.txt` | `055e8725df76853ec97dc369557ee1f7d52e0c6fb21a192c818a1908a1a11c0e` |
+| `head-to-head.txt` | `39ebe265f5e3e704c10e802e7605223f8941e5f2ca78985815852c0ff449eb3d` |
 
 (Re-running `run.sh` re-stamps the timestamp line, so a fresh transcript hashes differently; the value
 above pins the committed snapshot and is re-derived from it, not carried forward — the 2026-09-10 deep

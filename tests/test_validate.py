@@ -794,7 +794,7 @@ class TestCountAgnosticGuards(unittest.TestCase):
                     generated.append(badge)
                     self.assertEqual(gb.check(), [])
                 # The fixture's single definition exists in source regardless of its exit.
-                self.assertEqual(badge["label"], "test definitions")
+                self.assertEqual(badge["label"], "test functions")
                 self.assertEqual(badge["message"], "1 in source")
                 self.assertEqual(badge["color"], "6e7781")  # neutral inventory
         self.assertEqual(generated[0], generated[1])
@@ -1164,3 +1164,57 @@ class ActivationLoad(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class PinVersionClaims(unittest.TestCase):
+    """#512: the Orca floor was typed by hand in three places and lagged runtime/pins.json by
+    fifteen releases. A version named beside the pin must be the pin; a version named for
+    another reason (a support-window range, an observed build) stays free."""
+
+    def _tree(self, tmp, readme, pin="v1.4.215"):
+        root = Path(tmp)
+        (root / "runtime").mkdir()
+        (root / "runtime" / "pins.json").write_text(json.dumps({"orca": {"version": pin}}))
+        (root / "README.md").write_text(readme)
+        return root
+
+    def test_the_real_tree_names_no_stale_pin(self):
+        self.assertEqual(validate.check_pin_version_claims(), [])
+
+    def test_a_floor_that_lags_the_pin_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, "at or above the catalog pin, currently **v1.4.200**\n")
+            with mock.patch.object(validate, "ROOT", root):
+                failures = validate.check_pin_version_claims()
+        self.assertEqual(len(failures), 1, failures)
+        self.assertIn("README.md:1", failures[0])
+        self.assertIn("v1.4.200", failures[0])
+        self.assertIn("v1.4.215", failures[0])
+
+    def test_the_floor_operator_alone_is_context_enough(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, "to run missions add Orca ≥ v1.4.100, gh, Claude Code\n")
+            with mock.patch.object(validate, "ROOT", root):
+                self.assertEqual(len(validate.check_pin_version_claims()), 1)
+
+    def test_a_version_named_for_another_reason_is_free(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, "Tested against v1.4.209 through v1.4.215; upstream ships daily.\n"
+                                   "the on-PATH app then ran 1.4.204 while the witness binary was newer\n")
+            with mock.patch.object(validate, "ROOT", root):
+                self.assertEqual(validate.check_pin_version_claims(), [])
+
+    def test_the_pin_itself_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, "at or above the catalog pin, currently **v1.4.215**\n")
+            with mock.patch.object(validate, "ROOT", root):
+                self.assertEqual(validate.check_pin_version_claims(), [])
+
+    def test_an_unreadable_pin_is_a_failure_not_a_pass(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self._tree(tmp, "≥ v1.4.215\n")
+            (root / "runtime" / "pins.json").write_text("{}")
+            with mock.patch.object(validate, "ROOT", root):
+                failures = validate.check_pin_version_claims()
+        self.assertEqual(len(failures), 1)
+        self.assertIn("pins.json", failures[0])

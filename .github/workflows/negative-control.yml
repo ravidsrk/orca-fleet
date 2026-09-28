@@ -31,8 +31,11 @@ jobs:
             exit 1
           fi
           # Line 1 carries a run timestamp by design (README integrity-inventory note);
-          # normalize it on both sides so only real drift fails the build.
-          norm() { sed '1s/ — .*Z//'; }
+          # normalize it on both sides so only real drift fails the build. The authority-custody
+          # NOTEs are host-dependent (a git/gh/gitleaks in a user-writable dir, or a root uid,
+          # turns them advisory) and are stripped exactly as tests/test_negative_control.py
+          # strips them (#522).
+          norm() { sed '1s/ — .*Z//' | grep -vE '^NOTE: (authority: advisory \((git|gh|gitleaks) at |redaction: gitleaks at )' || true; }
           if ! diff <(norm < demo/negative-control/head-to-head.txt) <(norm < fresh-head-to-head.txt); then
             echo "::error::demo/negative-control DRIFTED: fresh run.sh output differs from head-to-head.txt. To change expected output, change the demo AND explain why — see demo/negative-control/README.md."
             exit 1

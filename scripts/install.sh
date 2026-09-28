@@ -7,7 +7,7 @@
 #   git clone https://github.com/ravidsrk/orca-fleet.git && cd orca-fleet && sh scripts/install.sh
 #
 # What it does:
-#   1. HARD prerequisites: git present, python3 >= 3.13, catalog gates green
+#   1. HARD prerequisites: git present, python3 >= 3.11, catalog gates green
 #      (scripts/validate.py), every mission symlinked into the skills dir with
 #      its playbooks/ and runtime/ references resolving, completion-gate
 #      snippet available. Any failure here exits nonzero.
@@ -43,9 +43,11 @@ die() { printf 'FAIL: %s\n' "$1" >&2; exit 1; }
 
 # --- hard prerequisites -------------------------------------------------------
 command -v git >/dev/null 2>&1 || die "git not found in PATH (install git first)"
-command -v python3 >/dev/null 2>&1 || die "python3 not found in PATH (Python >= 3.13 required)"
-python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 13) else 1)' \
-  || die "python3 is $(python3 -V 2>&1); orca-fleet requires Python >= 3.13"
+command -v python3 >/dev/null 2>&1 || die "python3 not found in PATH (Python >= 3.11 required)"
+# 3.11 is the measured floor (#514): the suite is green on 3.11, 3.12 and 3.13 in CI; 3.10
+# compiles but two tests depend on 3.11 interpreter behaviour, so it is not supported.
+python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' \
+  || die "python3 is $(python3 -V 2>&1); orca-fleet requires Python >= 3.11"
 [ -d "$ROOT/skills" ] && [ -d "$ROOT/playbooks" ] && [ -d "$ROOT/runtime" ] \
   || die "not an orca-fleet checkout: $ROOT lacks skills/, playbooks/ or runtime/"
 

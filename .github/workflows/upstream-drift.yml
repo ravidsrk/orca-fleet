@@ -1,0 +1,120 @@
+name: upstream-drift
+
+# Weekly drift probe against the Orca pin. Upstream (stablyai/orca) cuts about a
+# release a day and this catalog re-pins quarterly (runtime/orca-pin.md), so between
+# re-pins nothing said how far runtime/pins.json had fallen behind — the first
+# warning was a field sighting. `upstream_probe.py latest` lists upstream's stable
+# tags through the GitHub API (network only, no binary) and exits 3 when a re-pin is
+# due (a minor or major moved, or ten or more stable tags sit above the pin), 0 when
+# it is not, 2 when it could not tell. Exit 3 opens — or comments on — an issue
+# labeled `upstream-drift`, so the signal reaches the maintainer through ordinary
+# issue notifications (the alert-on-failure path, #213); anything but 0 or 3 fails
+# the job, because a probe that could not look must not read as "nothing moved".
+# Uses only the runner's preinstalled `gh` and `jq` — no third-party actions beyond
+# the pinned checkout and setup-python. `workflow_dispatch` runs the same path by
+# hand: on a current pin it writes the one-line summary and files nothing.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'  # Mondays 06:17 UTC — off the hour, where the cron queue piles up
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; Node 20 left runners 2026-09-23, #367)
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24, #367)
+        with:
+          python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
+
+      - name: Probe upstream tags against the pin
+        id: probe
+        # The tags endpoint is public; the token only lifts the API rate limit that
+        # shared runner IPs exhaust. `|| code=$?` keeps the runner's `-e` from aborting
+        # on exit 3, which is a verdict, not a failure. Outputs go through
+        # $GITHUB_OUTPUT so later steps read them from env, never from an inline
+        # expression (a script-injection hole, PR #468 review).
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          code=0
+          python3 runtime/scripts/upstream_probe.py latest --json > "${RUNNER_TEMP}/probe.json" || code=$?
+          cat "${RUNNER_TEMP}/probe.json"
+          echo "code=${code}" >> "$GITHUB_OUTPUT"
+          if [ "${code}" -eq 0 ] || [ "${code}" -eq 3 ]; then
+            for key in pin latest drift patches_behind; do
+              echo "${key}=$(jq -r ".${key}" "${RUNNER_TEMP}/probe.json")" >> "$GITHUB_OUTPUT"
+            done
+          fi
+
+      - name: Fail when the probe could not run
+        if: steps.probe.outputs.code != '0' && steps.probe.outputs.code != '3'
+        env:
+          CODE: ${{ steps.probe.outputs.code }}
+        run: |
+          echo "::error::upstream_probe.py exited ${CODE} — it could not tell whether upstream moved (see the probe step)"
+          exit 1
+
+      - name: Ensure the upstream-drift label exists
+        if: steps.probe.outputs.code == '3'
+        run: >-
+          gh label create upstream-drift --force --color FBCA04
+          --description "upstream Orca moved past runtime/pins.json (filed by the upstream-drift workflow)"
+
+      - name: Open or update the drift issue
+        if: steps.probe.outputs.code == '3'
+        id: drift
+        env:
+          PIN: ${{ steps.probe.outputs.pin }}
+          LATEST: ${{ steps.probe.outputs.latest }}
+          DRIFT: ${{ steps.probe.outputs.drift }}
+          PATCHES_BEHIND: ${{ steps.probe.outputs.patches_behind }}
+        run: |
+          title="Orca moved past the pin: ${LATEST} vs ${PIN}"
+          pin_record="https://github.com/${GH_REPO}/blob/main/runtime/orca-pin.md"
+          body="$(printf '%s\n' \
+            "Upstream \`stablyai/orca\` is at **${LATEST}**; \`runtime/pins.json\` pins **${PIN}** — \`${DRIFT}\` drift, ${PATCHES_BEHIND} stable tag(s) newer than the pin." \
+            "" \
+            "- Probe run: ${RUN_URL}" \
+            "- Re-pin: run the \`pin-it\` mission (cadence and steps: ${pin_record})" \
+            "- With a binary at hand: \`runtime/scripts/upstream_probe.py capture --out <dir>\`, then \`diff --baseline <the receipts directory the pin record names> --fresh <dir>\`" \
+            "" \
+            "Filed by the \`upstream-drift\` workflow. Close it when the pin advances past ${LATEST}.")"
+          existing="$(gh issue list --label upstream-drift --state open --json number --jq '.[0].number // empty')"
+          if [ -n "${existing}" ]; then
+            gh issue edit "${existing}" --title "${title}" > /dev/null
+            gh issue comment "${existing}" --body "${body}" > /dev/null
+            number="${existing}"
+            action="commented"
+          else
+            number="$(gh issue create --title "${title}" --label upstream-drift --body "${body}" | grep -oE '[0-9]+$')"
+            action="created"
+          fi
+          echo "number=${number}" >> "$GITHUB_OUTPUT"
+          echo "action=${action}" >> "$GITHUB_OUTPUT"
+          {
+            echo "## upstream-drift"
+            echo ""
+            echo "- verdict: re-pin due — \`${DRIFT}\` drift, ${PATCHES_BEHIND} stable tag(s) newer than the pin (${PIN} → ${LATEST})"
+            echo "- issue: https://github.com/${GH_REPO}/issues/${number} (${action})"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Summary
+        if: steps.probe.outputs.code == '0'
+        env:
+          PIN: ${{ steps.probe.outputs.pin }}
+          LATEST: ${{ steps.probe.outputs.latest }}
+          DRIFT: ${{ steps.probe.outputs.drift }}
+          PATCHES_BEHIND: ${{ steps.probe.outputs.patches_behind }}
+        run: >-
+          echo "upstream-drift: pin ${PIN}, upstream ${LATEST}, \`${DRIFT}\` drift, ${PATCHES_BEHIND} stable tag(s) newer than the pin — no re-pin due"
+          >> "$GITHUB_STEP_SUMMARY"

@@ -9,7 +9,9 @@ surface is the pre-deepening one).
 
 WIDTH is the mission's own probe (skills/reshape-it/SKILL.md § SCAN):
 count of lines matching ^(def |class |async def |[A-Z_]+ =).
-Pre-deepening baseline: 73. Post-deepening pin: 64.
+Pre-deepening baseline: 73. Post-deepening pin: 64; 68 since #512 added the
+pin-version lint (PIN_LINT_FILES, ORCA_VERSION_RE, PIN_CONTEXT_RE and
+check_pin_version_claims) — a new check, not the engine leaking back.
 """
 import importlib.util
 import re
@@ -19,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 WIDTH_RE = re.compile(r"(?:def |class |async def |[A-Z_]+ =)")
 BASELINE_WIDTH = 73
-PINNED_WIDTH = 64
+PINNED_WIDTH = 68  # 64 after RV-D1, +4 for the #512 pin-version lint
 
 
 def interface_width(path):

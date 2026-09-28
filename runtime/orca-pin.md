@@ -50,6 +50,21 @@ holds its shape. The two never disagree — a run updates both or neither.
   (P30/P32/P33), sandbox/recipe/doctor (P40 stays parked — surface zero-diff),
   terminal-stop hedge (D9 — spec + handler confirmed at release sources; §correction).
 
+## Noted since the pin (inherited by the next re-pin, #508)
+
+Upstream `main` past v1.4.215, not yet in a tagged release, as of 2026-09-28 (#513):
+
+- `7438bc80f5` (#23325): mail to `dispatch:<id>` is redirected to `run:<child>` when that
+  worker now leads a child Run, with a new send warning `recipient_run_bound_redirect`
+  (`recipient-routing.ts:20-134` at main `2f8f4f576d`). Re-witness the addressing rules in
+  `dispatch-lifecycle.md` (group addresses, `dispatch_inactive`) and the conductor-handle rule
+  in `merge-serialization.md` when it ships.
+- `45f3512a33` (#22468): `dsh` (DeepSeek Harness) joins the agents `worker-start --agent`
+  accepts; the `spawn_worker.sh` roster does not list it.
+- A weekly probe (`runtime/scripts/upstream_probe.py`, `.github/workflows/upstream-drift.yml`,
+  #516) files an `upstream-drift` issue when a new minor lands or the pin falls ten patches
+  behind, so the date trigger below is no longer the only thing keeping a quiet upstream honest.
+
 ## Re-pin cadence + owner
 
 A re-pin fires on whichever comes first:

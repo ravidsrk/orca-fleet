@@ -167,6 +167,25 @@ before removing a stale lock; never delete an active process's lock. An inventor
 that differs from both expected states stops for investigation. Do not amend the
 cut, recreate its tag, or reset published mappings to make a retry pass.
 
+## Publishing Releases
+
+`.github/workflows/release.yml` publishes a GitHub Release with the version's CHANGELOG
+section as notes on every `v*` tag push (idempotent; it never creates a tag — the tag is
+the authorization step above). The historical tags that predate it get their Releases once,
+by hand, from an account with write access:
+
+```bash
+for t in v0.1.0 v0.1.1 v0.2.0 v0.2.1 v0.3.0 v0.4.0 v0.5.0 v0.6.0 v0.6.1; do
+  gh workflow run release.yml -f tag="$t"
+done
+gh release list --limit 20     # nine rows once the runs finish
+```
+
+`.github/workflows/publish-dist.yml` builds `scripts/bundle.py`'s self-contained tree on the
+same tag pushes (a manual run must name an existing `v*` tag; it refuses a branch) and
+force-pushes it to the `dist` branch, the target copy installers point at
+([docs/install.md](install.md)).
+
 ## Incident (2 a.m.)
 
 1. A red `validate` or `negative-control-demo` run on `main` files (or updates) an issue labeled
@@ -178,6 +197,17 @@ cut, recreate its tag, or reset published mappings to make a retry pass.
    routing score. Close the issue when `main` is green again. To prove the
    path without redding `main`: Actions → `alert-on-failure` → Run workflow
    (a `[drill]` issue is filed and closed by the same run).
+   Two shapes that are NOT a red suite: a run whose jobs all ended within
+   seconds with no steps and no runner (`runner_id: 0` in the API) is an
+   Actions or account-level incident — re-run it, do not debug the tests;
+   and when that happens the alert workflow could not run either (it needs
+   the same runner), which is how 2026-09-23 and 2026-09-25 went red on
+   `main` with nothing filed (#520). The daily `main-health` schedule
+   re-reads the latest `validate` conclusion and files the issue when
+   Actions is running but nothing was filed; the no-runner case needs a
+   check outside Actions — an uptime monitor or a cron on your machine
+   polling `gh run list --workflow validate.yml --branch main --limit 1
+   --json conclusion` and paging you on anything but `success`.
 2. If a clone or plugin load is broken: `plugin.json` `version` must equal
    the latest **dated** [CHANGELOG](../CHANGELOG.md) heading
    (`## [x.y.z] - YYYY-MM-DD`), not `[Unreleased]`. Do not half-cut a

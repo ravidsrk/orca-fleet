@@ -9,7 +9,7 @@ wired by hand; the plugin install wires it by construction. The
 <summary><b>Symlink the catalog (recommended for trying it out)</b></summary>
 
 One command — it validates the catalog, links every mission, and checks the gate
-snippet is available (prerequisites: `git` + Python ≥ 3.13; the
+snippet is available (prerequisites: `git` + Python ≥ 3.11; the
 [pinned table](distribution.md#prerequisites-pinned) names the run substrate too):
 
 ```bash
@@ -74,10 +74,15 @@ mission resolves its bare names against are not there after the install. The mis
 `decide-and-freeze`, `decompose-dag`…" with no file for any of those names, and either invents the
 protocol or stops. The command is not shown here as runnable because running it produces that.
 
-What works today is the symlink path or the plugin install, both above. What would make the skills
-CLI work is a published `dist/` for it to point at — a release branch or a second repository — which
-is [#294](https://github.com/ravidsrk/orca-fleet/issues/294); the bundler that produces that tree
-already exists and is CI-checked.
+What works today is the symlink path or the plugin install, both above. What makes the skills
+CLI work is a published `dist/` for it to point at. Since #518 the `publish-dist` workflow
+(`.github/workflows/publish-dist.yml`) builds that tree with `scripts/bundle.py` on every `v*` tag
+and force-pushes it to the **`dist` branch** as one orphan commit per tag, with a
+`DIST-PROVENANCE.txt` naming the tag and commit it was built from. The branch appears with the
+first tag pushed after that workflow landed (0.7.0). Point a copy installer at the `dist` branch,
+never at the repo root — and until an install from it has been witnessed and its transcript
+recorded here, the skills CLI stays listed as unsupported
+([#294](https://github.com/ravidsrk/orca-fleet/issues/294)).
 
 **Copy installers need a bundled tree.** Every mission resolves its playbooks and runtime
 policies two levels above its own directory. An installer that copies skill directories *out* of
@@ -92,8 +97,8 @@ python3 scripts/bundle.py --check   # verify no reference escapes a mission dire
 Each bundled mission carries its own `references/` copies of every protocol it names plus the root
 docs it links, with its SKILL.md links rewritten to point there and an index at
 `references/README.md`. A copy installer must take `dist/`, never the repo root — and no installer
-can be pointed at a local `dist/` over the network, which is why the CLI path waits on publishing
-one. `dist/` is generated and
+can be pointed at a local `dist/` over the network, which is why the tree is published to the
+`dist` branch above rather than left on a laptop. In the repository, `dist/` is generated and
 gitignored: committing a copy of the doctrine tree per mission would make every runtime edit a many-file diff
 and the copies would rot between edits.
 

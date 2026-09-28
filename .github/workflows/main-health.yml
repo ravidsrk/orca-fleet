@@ -1,0 +1,95 @@
+name: main-health
+
+# #520: the alert path (`alert-on-failure`) fires only when a `validate` run completes as
+# `failure` AND a runner picks the alert job up. On 2026-09-23 and 2026-09-25 no runner was
+# assigned to either job, two red runs on `main` filed nothing, and nothing noticed. This
+# schedule asks the Actions API what the latest completed `validate` run on `main` concluded
+# and files or updates the same `ci-failure` issue when it is anything but `success`, or when
+# no run has completed in seven days. It needs a runner too, so it covers the narrower case
+# (Actions runs, nothing was filed) — the no-runner case needs a check that lives outside
+# Actions; `docs/ops.md` names it. Uses only the runner's preinstalled `gh`.
+
+on:
+  schedule:
+    - cron: "23 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      STALE_DAYS: "7"
+    steps:
+      - name: Read the latest completed validate run on main
+        id: latest
+        run: |
+          set -euo pipefail
+          gh run list --workflow validate.yml --branch main --event push --status completed \
+            --limit 1 --json conclusion,headSha,url,updatedAt > "$RUNNER_TEMP/latest.json"
+          python3 - "$RUNNER_TEMP/latest.json" "$STALE_DAYS" >> "$GITHUB_OUTPUT" <<'PY'
+          import datetime, json, sys
+          runs = json.load(open(sys.argv[1], encoding="utf-8"))
+          stale_days = int(sys.argv[2])
+          if not runs:
+              print("verdict=none"); print("detail=no completed validate run on main is visible"); sys.exit(0)
+          run = runs[0]
+          updated = datetime.datetime.fromisoformat(run["updatedAt"].replace("Z", "+00:00"))
+          age = datetime.datetime.now(datetime.timezone.utc) - updated
+          print(f"sha={run['headSha']}")
+          print(f"url={run['url']}")
+          if run["conclusion"] != "success":
+              print("verdict=red"); print(f"detail=latest validate on main concluded `{run['conclusion']}` at `{run['headSha']}` ({run['url']})")
+          elif age.days >= stale_days:
+              print("verdict=stale"); print(f"detail=no completed validate run on main in {age.days} days; last was {run['url']}")
+          else:
+              print("verdict=green"); print(f"detail=validate is green on main at `{run['headSha']}` ({age.days} days ago)")
+          PY
+
+      - name: File or update the ci-failure issue
+        if: steps.latest.outputs.verdict != 'green'
+        env:
+          VERDICT: ${{ steps.latest.outputs.verdict }}
+          DETAIL: ${{ steps.latest.outputs.detail }}
+          SHA: ${{ steps.latest.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gh label create ci-failure --force --color B60205 \
+            --description "a watched CI workflow failed on main (filed by the alert-on-failure workflow)"
+          short="${SHA:0:7}"
+          ops="https://github.com/${GH_REPO}/blob/main/docs/ops.md#incident-2-am"
+          title="CI: main is not green (${VERDICT}, ${short:-no-run})"
+          body="$(printf '%s\n' \
+            "**main-health** found: ${DETAIL}." \
+            "" \
+            "- Incident steps: ${ops}" \
+            "- A \`failure\` whose jobs have no steps and no runner is an Actions incident: re-run it, do not debug the suite." \
+            "" \
+            "Filed by the \`main-health\` schedule (#520). Close it when \`main\` is green again.")"
+          existing="$(gh issue list --label ci-failure --state open --json number --jq '.[0].number // empty')"
+          if [ -n "${existing}" ]; then
+            gh issue comment "${existing}" --body "${body}" > /dev/null
+            echo "commented on #${existing}"
+          else
+            gh issue create --title "${title}" --label ci-failure --body "${body}"
+          fi
+
+      - name: Summary
+        if: always()
+        env:
+          VERDICT: ${{ steps.latest.outputs.verdict }}
+          DETAIL: ${{ steps.latest.outputs.detail }}
+        run: |
+          {
+            echo "## main-health"
+            echo ""
+            echo "- verdict: \`${VERDICT:-unknown}\`"
+            echo "- ${DETAIL:-no detail}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          test "${VERDICT}" = "green"

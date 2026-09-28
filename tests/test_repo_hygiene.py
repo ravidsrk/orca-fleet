@@ -232,7 +232,9 @@ class TheSuiteRunsOnTheStdlibAlone(unittest.TestCase):
     """
 
     # Modules that live in this directory and are imported by path, not by name.
-    LOCAL = {"test_pins", "test_evals", "conftest"}
+    # orca_cli is the sibling module every runtime script imports for the CLI name (#510):
+    # local, stdlib-only, not a distributable package.
+    LOCAL = {"test_pins", "test_evals", "conftest", "orca_cli"}
 
     def _offenders(self, source, name="sample.py"):
         """Every module imported by this source, via `ast` — not a line regex.

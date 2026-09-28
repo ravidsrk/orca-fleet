@@ -1,0 +1,76 @@
+name: release
+
+# #511: nine annotated tags and zero GitHub Releases. A tag is a repository ref; a Release is
+# the page indexers, plugin consumers and bug reports point at. On every `v*` tag push this
+# publishes a Release whose notes are that version's CHANGELOG section (the version source of
+# truth is `.claude-plugin/plugin.json`; `docs/ops.md` cuts and pushes the tag, which is the
+# maintainer's authorization step — this job never creates a tag). `workflow_dispatch` with an
+# existing tag publishes a Release for a historical tag the same way. Idempotent: an existing
+# Release is left alone. Uses only the runner's preinstalled `gh` — no third-party actions.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "An existing tag to publish a Release for (for example v0.6.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24; same pin as validate.yml)
+        with:
+          fetch-depth: 0  # the tag must resolve locally for --verify-tag and for reading the cut's CHANGELOG
+
+      - name: The tag exists and is annotated at a commit on the default branch
+        run: |
+          set -euo pipefail
+          test "$(git cat-file -t "refs/tags/$TAG")" = "tag"   # docs/ops.md: lightweight tags are refused
+          cut="$(git rev-parse "refs/tags/$TAG^{commit}")"
+          git merge-base --is-ancestor "$cut" "origin/HEAD" || git merge-base --is-ancestor "$cut" "origin/main"
+          echo "cut=$cut" >> "$GITHUB_ENV"
+
+      - name: Extract the CHANGELOG section for this version
+        # The section is read from the CHANGELOG as it stands on the checked-out ref (the cut's
+        # tree on a tag push; the default branch on a dispatch), so a retroactive tag whose heading
+        # was written later still finds its notes. Values reach python as argv, never as code.
+        run: |
+          set -euo pipefail
+          python3 - CHANGELOG.md "${TAG#v}" > "$RUNNER_TEMP/notes.md" <<'PY'
+          import re, sys
+          text = open(sys.argv[1], encoding="utf-8").read()
+          version = sys.argv[2]
+          m = re.search(r"^## \[" + re.escape(version) + r"\][^\n]*\n(.*?)(?=^## \[|\Z)", text, re.S | re.M)
+          if not m:
+              sys.exit(f"CHANGELOG.md has no '## [{version}]' section — cut the version per docs/ops.md first")
+          body = m.group(1).strip()
+          if not body:
+              sys.exit(f"CHANGELOG.md section for {version} is empty")
+          print(body)
+          PY
+          printf '\n\nCut commit: %s\n' "$cut" >> "$RUNNER_TEMP/notes.md"
+
+      - name: Publish the Release (idempotent)
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; leaving it unchanged"
+            exit 0
+          fi
+          gh release create "$TAG" --verify-tag --title "orca-fleet ${TAG#v}" --notes-file "$RUNNER_TEMP/notes.md"
+          {
+            echo "## release"
+            echo ""
+            echo "- published: $TAG at \`$cut\`"
+          } >> "$GITHUB_STEP_SUMMARY"
