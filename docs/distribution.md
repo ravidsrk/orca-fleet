@@ -61,6 +61,38 @@ expected run-substrate warnings, and `sh scripts/install.sh --check` re-verified
 without changes. `.github/workflows/install.yml` repeats that shape — empty HOME,
 no credentials — on every PR touching an install path.
 
+## Index check (2026-09-28; previous 2026-09-21, 2026-09-13, 2026-09-01)
+
+**Re-run 2026-09-28: two rows moved, two hold.** Every row re-measured against its live
+surface; the catalog is 22 missions (`offload-it` merged 2026-09-26, #505).
+
+- buildwithclaude RE-INDEXED: both records now carry `updatedAt` **2026-09-19**
+  (marketplace `05:02Z`, plugin `05:54Z`) — but the marketplace record's blurb STILL reads
+  "10 outcome-named autonomous fleets". A second record, type `plugin` / slug `orca-fleet`
+  (first noted this run — prior checks recorded only the marketplace hit), carries
+  count-free copy drawn from the refreshed repo description. Raw-value honesty note: the
+  2026-09-21 check reported `updatedAt` 2026-09-01, two days AFTER the 09-19 timestamp
+  these records carry today — either that read hit a cached API response or the field
+  backdates the source change rather than the crawl. Both records: 0 installs, no score.
+- skills.sh still lists **21** skills (no `offload-it`) at 21 total installs — the listing
+  lags the catalog by one mission. Refresh path unverified: the site documents no
+  submission form and no crawl schedule, and re-running the installer would fabricate an
+  install event, so this run declined to touch it. The 2026-09-23 box stays checked (the
+  listing is live; the predecessor is history) with the lag noted.
+- claudemarketplace.net still returns the literal `No results for "orca-fleet"` — holds.
+- anthropics/claude-plugins-official graduates from **unverified** to **verified no**:
+  the repo API answers again (200, was 403), the marketplace file lives at
+  `.claude-plugin/marketplace.json` — the root-path 404 all three prior checks recorded
+  was a wrong-path artifact — and its full content (548 `"name"` hits) plus a recursive
+  tree search contain zero mentions of `orca-fleet`/`ravidsrk` at 2026-09-28.
+
+Still no indexer publishes a does-it-load score for this catalog. One upstream DID move:
+the GitHub About text is count-free today (the `about.md` copy, applied at some point
+since 2026-09-21) — so buildwithclaude's surviving "10" is now definitively their cache,
+not our setting: either the 09-19 crawl predates the About edit or that field is sticky
+across crawls. Retiring it needs a re-index request through their contact channel —
+human, like the remaining submission boxes.
+
 ## Index check (2026-09-21; previous 2026-09-13, 2026-09-01)
 
 **Re-run 2026-09-21: still nothing moved.** Every row re-measured against its live surface;
@@ -117,10 +149,10 @@ caveat three paragraphs above it (PR #342 review).
 | Surface | Listed? | Evidence |
 |---|---|---|
 | Self-hosted marketplace | yes | `/plugin marketplace add ravidsrk/orca-fleet` (already the install path) |
-| [buildwithclaude.com](https://buildwithclaude.com/api/search?q=orca-fleet) | yes (auto-index) | slug `@ravidsrk/orca-fleet`; 0 installs; description still carries a stale hardcoded catalog count |
-| [skills.sh](https://www.skills.sh/ravidsrk/orca-fleet) | **yes (2026-09-23)** | listing live: all 21 missions (`0 total installs` at registration) — skills.sh has no submission form; the first `npx skills add ravidsrk/orca-fleet` registers the repo, so the agent slice ran it from a scratch HOME. CAUTION for any re-run: the installer's symlink mode rewires the CWD's skills/ tree into `.agents/` symlinks — run it from a throwaway directory, never from the repo root (the 2026-09-23 registration needed a full `git checkout -- skills/` repair). The predecessor `ravidsrk/autonomous-fleet` listing remains as history |
+| [buildwithclaude.com](https://buildwithclaude.com/api/search?q=orca-fleet) | yes (auto-index) | two records, both `updatedAt` 2026-09-19: the marketplace hit `@ravidsrk/orca-fleet` still carries the stale "10 outcome-named" blurb, while a `plugin` / `orca-fleet` record (first noted 2026-09-28) carries count-free copy. 0 installs each; the GitHub About is count-free since ≤2026-09-28, so the surviving "10" is their cache — needs a human re-index request |
+| [skills.sh](https://www.skills.sh/ravidsrk/orca-fleet) | **yes (2026-09-23)** | listing live: 21 skills at 21 total installs (was `0 total installs` at registration) — but the catalog is 22 since #505, so the listing lags by `offload-it` (2026-09-28). skills.sh has no submission form; the first `npx skills add ravidsrk/orca-fleet` registers the repo, so the agent slice ran it from a scratch HOME. CAUTION for any re-run: the installer's symlink mode rewires the CWD's skills/ tree into `.agents/` symlinks — run it from a throwaway directory, never from the repo root (the 2026-09-23 registration needed a full `git checkout -- skills/` repair) — and a re-run would fabricate an install event, so do not refresh the listing that way. The predecessor `ravidsrk/autonomous-fleet` listing remains as history |
 | [claudemarketplace.net](https://www.claudemarketplace.net/search?q=orca-fleet) | no | search payload `skills: []`, `mcpServers: []` |
-| [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | no **(unverified 2026-09-13)** | `marketplace.json` had neither `orca-fleet` nor `ravidsrk` **at 2026-09-01**; not re-checkable from this session — that path now 404s and the repository API returns 403 |
+| [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | no **(verified 2026-09-28)** | the file is `.claude-plugin/marketplace.json` — the root-path 404 was a wrong-path artifact. Full content (548 `"name"` hits) plus a recursive tree search: zero mentions of `orca-fleet`/`ravidsrk`. Still needs the human submission-form round |
 | `agentskills validate` | name/description/compatibility/license pass | extras `proof`/`autonomy`/`proof_evidence` are intentional (issue #211) |
 
 No indexer currently publishes a does-it-load score for this catalog (buildwithclaude
