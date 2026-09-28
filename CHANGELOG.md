@@ -6,6 +6,8 @@ truth is `.claude-plugin/plugin.json`.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-28
+
 The 2026-09-16 self-test campaign ran all 21 missions against orca-fleet itself
 (scoreboard: `docs/reports/selftest-campaign-2026-09-16/rollup.md`; per-mission transcripts
 under `docs/runs/campaign-2026-09-16-<mission>/`). No tier advanced on the campaign's own
