@@ -28,6 +28,13 @@ on:
 permissions:
   contents: write
 
+# One publish at a time, in order, never cancelled mid-push: two tag runs cannot interleave
+# their guard and their force-push (PR #509 review). The newest-tag rule is re-checked against
+# freshly fetched refs, and against what `dist` currently holds, right before the push.
+concurrency:
+  group: publish-dist
+  cancel-in-progress: false
+
 jobs:
   dist:
     runs-on: ubuntu-latest
@@ -80,6 +87,24 @@ jobs:
         run: |
           set -euo pipefail
           src="$(git rev-parse HEAD)"
+          # Re-run the newest-tag rule on refs fetched NOW: a run that passed the guard before
+          # a newer tag landed must not publish after the newer tag's run did.
+          git fetch -q origin 'refs/tags/*:refs/tags/*' main
+          newest="$(git tag --list 'v[0-9]*' --merged origin/main --sort=-v:refname | head -n 1)"
+          if [ "$TAG" != "$newest" ]; then
+            echo "::error::'$TAG' is no longer the newest release on main ($newest); not publishing"
+            exit 1
+          fi
+          # And never push over a newer bundle: the provenance file on dist names what is there.
+          if git fetch -q origin dist 2>/dev/null; then
+            published="$(git show FETCH_HEAD:DIST-PROVENANCE.txt 2>/dev/null \
+              | sed -n 's|^Built by scripts/bundle.py from \(v[0-9][^ ]*\) at .*|\1|p' | head -n 1)"
+            if [ -n "$published" ] \
+               && [ "$(printf '%s\n%s\n' "$published" "$TAG" | sort -V | tail -n 1)" != "$TAG" ]; then
+              echo "::error::dist already holds $published, newer than '$TAG'; not downgrading"
+              exit 1
+            fi
+          fi
           cd "$RUNNER_TEMP/dist"
           git init -q -b dist
           git add -A
