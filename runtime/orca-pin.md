@@ -14,45 +14,41 @@ holds its shape. The two never disagree — a run updates both or neither.
 | Field | Value |
 |---|---|
 | Upstream | `stablyai/orca` (`https://github.com/stablyai/orca`) |
-| Installed version | **v1.4.209** (release bundle; the on-PATH app is v1.4.204 — update owed, not blocking: the witness ran against the identical release artifact, extracted at `/tmp/orca-1209`) |
-| Build commit | `ee1c52207000c7d70282549c73e9945bd1cec1e8` (`orca-local-build.json`, arm64; tag `v1.4.209` = `e4d8a9dbc2`) |
-| Witnessed | 2026-09-23 (`live`: release binary + version-matched guides + read-only probes against the shared datadir) |
-| Upstream HEAD then | `dac82f61bc710324f8883b11788869b6cf8a0ce2` (main, 2026-09-23) |
-| Run record | docs/runs/2026-09-23-pin-it-488.md (ledger + park register) + docs/runs/2026-09-23-pin-it-488/ (receipts) |
-| Prior pin | v1.4.204 `357c9780` (2026-09-20, docs/runs/2026-09-20-pin-it-427.md) |
-| Verdict | **PINNED-WITH-PARKED** — doctor verdict shapes still need a per-workspace-env recipe (none on this host); the legacy-takeover live replay still needs a legacy Run |
+| Installed version | **v1.4.215** (release bundle; the on-PATH app is still v1.4.204 — update owed, not blocking: the witness ran against the identical release artifact, extracted at `/tmp/orca-1215`) |
+| Build commit | `3eb1adec20ff90503196ebfd1fe6dbaaefaad736` (`orca-local-build.json`, arm64; tag `v1.4.215` = `083f583a53e4c74a65acf420eee4ca2e0efa9df1`) |
+| Witnessed | 2026-09-28 (`live`: release binary + version-matched guides + read-only probes; the app was not running, so runtime-bound probes parked on substrate) |
+| Upstream HEAD then | `5219b8ada9da6bf625c750e5513c36037464a516` (main, 2026-09-28) |
+| Run record | docs/runs/2026-09-28-pin-it-500.md (ledger + park register) + docs/runs/2026-09-28-pin-it-500/ (receipts) |
+| Prior pin | v1.4.209 `ee1c5220` (2026-09-23, docs/runs/2026-09-23-pin-it-488.md) |
+| Verdict | **PINNED-WITH-PARKED** — no behavioral drift; live re-probes wait on a running app, doctor shapes on a per-workspace-env recipe, legacy replay on a legacy Run |
 
-## What moved since v1.4.204 (diff summary)
+## What moved since v1.4.209 (diff summary)
 
-- **Upstream fixed the worker-list bury hazard** (v1.4.206, `3336933cc8`): pages are now
-  newest-first and the receipt carries `warnings: string[]` on truncation (live-verified:
-  `Showing 100 of 551 Dispatches, newest first` — probe-worker-list-209.json).
-  `liveness-resume.md` / `orca-dag-semantics.md` reworded to match.
-- **`worktree rm` archive-hook gate** (v1.4.205, `f7b2736d6d`): a failed hook now BLOCKS removal
-  (`worktree_archive_hook_failed`; new `--allow-failed-archive-hook`, requires `--run-hooks`,
-  `--force` does not waive). The fleet's retirement path uses no `--run-hooks` — unaffected.
-- **Mailbox delivery is idle-gated** (v1.4.205, `49fba59925`): a busy TUI pane's delivery waits
-  for quiescence and is re-offered. Batch/ack semantics (P12/P24) unchanged — timing only.
-- **Error text drift, codes unchanged** (v1.4.206): `stale_delivery` names an id-kind mismatch
-  when `--ack` is handed a message id; `no_active_sender_terminal` no longer advises another
-  pane's handle (live-verified — probe-send-no-sender-209.json).
-- **New surface (additive):** `orca search` (agent-session full-text), `terminal create
-  --shell` (Windows), `orca browser identity get/set`. **Removed:** `--no-ua-spoof`
-  (`tab profile create`) and the `terminal stop` command (dispatch-lifecycle.md updated).
-- **`orca status`:** EPERM no longer reads as `stale_bootstrap` (ESRCH-only, `981a4821da`).
-- **Remote-runtime:** unreachable `--environment` fails in ~12s with
-  `remote_runtime_unavailable` (was ~60s `runtime_timeout`, `2531dc9d5a`); the
-  "outage is not a handle-gap verdict" family landed upstream (7 commits).
-- **Guides:** 3 of 10 served files differ byte-for-byte — `orca-cli` guide (new Agent Session
-  Search section + description), `orchestration` guide (description + newest-first line),
-  the `recovery-and-cleanup` reference; both ref-lists byte-identical. Help root gains the
-  Agent Sessions group + two usage tokens.
-- **Unchanged, re-verified:** gate/blocked-task promotion (P26), `dispatch_not_found` (P09),
-  nested-depth counting (P08), bogus-dep refusal (P20), inject staging (P04), readiness
-  semantics (P01/P02/P38), keepalives stderr-only (P14), `projection.liveness` (P21/P47),
-  `--types` wake + whole-batch delivery (P12/P24), worker-list scope semantics (P05/P22),
-  artifacts CLI, worktree create/list/set, the whole sandbox/recipe/doctor surface (P40 stays
-  parked — no new probe became possible).
+- **Nothing behavioral.** Zero drifts, zero removals, zero error-text changes across the
+  release-source range (`e4d8a9dbc2..083f583a`, v1.4.210/211/212/214/215 — all patches).
+  Every drift row from the v1.4.209 pin re-verified CURRENT (see the run record's table).
+- **New surface (additive, no doctrine claims):** `host name`, `profile state exports`,
+  `profile state rollback` (profile SQLite recovery, `47ddfbdc0d`/`82412dab8b`).
+- **Guides:** 1 of 14 served files differs — `orchestration--coordinator-loop` (`--model`
+  now also for Antigravity + Muse terminals; opencode/zcode reject it). Help root: one
+  line (`linear` read → read/write, `c2d9d12b1f`). agent-context 236 → 239, nothing
+  removed. One spawn_worker.sh roster line patched (muse → at-PIN set, 52a1e2875b);
+  nothing else claims these surfaces.
+- **Internals, reviewed:** the structured-session identity theme (creator `orcaSessionId`
+  plumbing across depth/check/runs/dispatch, preamble wording + `leadLine`), pane
+  reservation (`a375936c04`), worktree listing versioning (`ad6cb0e05c`), relay readiness
+  coalescing (`1fc0bfe46d`) — no CLI-contract change in any of them.
+- **Method note:** upstream builds from release branches, not main@build-commit (proven:
+  `c2d9d12b1f` predates the 209 build yet missed the 209 binary and tag). Verdicts rest on
+  the tag range; `ls-remote` tag shas are objects — peel them (run record §Source range).
+- **Unchanged, re-verified:** the whole v1.4.209 register — worker-list ordering + scope
+  (D1/P05/P22), archive-hook gate (D2), idle-gated delivery (D3), error texts (D4/D5),
+  search/--shell/browser-identity (D6–D8), status ESRCH-only (D10), remote 12s fail (D11),
+  readiness (P01/P02/P38), inject (P04), depth refusal (P08), release unknown (P09), run
+  verbs + Delivery batch + `--types` wake (P10/P12/P24), keepalives (P14), retry/group
+  (P15/P16), bogus-dep (P20), projection (P21/P47), gate promotion (P26), ask/gate
+  (P30/P32/P33), sandbox/recipe/doctor (P40 stays parked — surface zero-diff),
+  terminal-stop hedge (D9 — spec + handler confirmed at release sources; §correction).
 
 ## Re-pin cadence + owner
 
@@ -63,8 +59,8 @@ A re-pin fires on whichever comes first:
 3. A `SPAWN=NOTE … run pin-it` sighting in the field, or any dispatch-doc drift report.
 
 Owner: the **pin-it** mission (its coordinator runs the loop; the maintainer files the issue).
-Next trigger: **2026-12-23** (quarterly from the 2026-09-23 re-pin), filed as the successor
-issue — it inherits this run's park register (docs/runs/2026-09-23-pin-it-488.md).
+Next trigger: **2026-12-28** (quarterly from the 2026-09-28 re-pin), filed as the successor
+issue — it inherits this run's park register (docs/runs/2026-09-28-pin-it-500.md).
 
 ## How to re-pin (so a stranger can reproduce the diff)
 
@@ -90,3 +86,9 @@ run witnessed: source at the build commit keeps it as a hidden (`core.ts:241`) d
 HEAD 4cafa50e. `dispatch-lifecycle.md` now hedges accordingly. Live re-probe parked for the next
 pin-it with a live terminal: `orca terminal stop --worktree <selector> --json` (does it execute
 or refuse?) plus `orca terminal --help` (does `stop` stay unlisted?). History above untouched.
+
+2026-09-28 resolution (this re-pin): spec + handler confirmed present at the v1.4.215 release
+sources (`core.ts:240`, hidden + deprecated; `handlers/terminal.ts:137`); `stop` stays unlisted
+in `terminal --help` (terminal-help-1.4.215.txt) — the listing half is answered. The
+execute-or-refuse half re-parks: the app was not running, so the probe returned
+`runtime_unavailable` (substrate, not mechanism evidence).

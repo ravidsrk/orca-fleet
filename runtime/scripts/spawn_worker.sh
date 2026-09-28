@@ -101,9 +101,9 @@
 #   claude/codex/gemini → ro + rw + danger
 #   cursor              → rw + danger (`tui-agent-permissions.ts` maps cursor to `--yolo`;
 #                         ro → WORKER_CMD). `--model` is accepted at the PIN for claude, codex,
-#                         cursor, and antigravity (the catalogs with
-#                         supportsWorkerLaunchPreferences); HEAD adds muse
-#                         (agent-session-option-catalog-muse.ts). gemini/grok/omp carry catalogs
+#                         cursor, antigravity, and muse (the catalogs with
+#                         supportsWorkerLaunchPreferences; muse since v1.4.215,
+#                         52a1e2875b #22383). gemini/grok/omp carry catalogs
 #                         WITHOUT the flag, and opencode/pi/droid/kilo carry NO catalog at all,
 #                         so all of those reject --model ("does not support launch-time model
 #                         selection", worker-launch-preferences.ts). --effort requires --model,
@@ -411,7 +411,25 @@ fi
 #
 # A NOTE, not a refusal: an upstream release is not a safety failure, and refusing
 # every spawn on a version bump would make the catalog unusable the day Orca ships.
-# It names both versions and arms pin-it, which is the mission that re-witnesses.
+# It names both versions. A PATH that LAGS the pin (the witness host's version or any
+# older release, e.g. the previous pin) gets update-the-app advice — re-running a
+# completed pin is never the fix. A PATH AHEAD of the pin is fresh drift and arms
+# pin-it, the mission that re-witnesses.
+# ver_lt A B: true when dotted version A is older than B. Both sides are v-prefix
+# tolerant; a non-numeric component fails the comparison toward "not older", which
+# routes to the pin-it lane — the safe default for a version the check cannot read.
+ver_lt() {
+  _a=${1#v}; _b=${2#v}
+  while [ -n "$_a" ] || [ -n "$_b" ]; do
+    _pa=${_a%%.*}; _pb=${_b%%.*}
+    case $_a in *.*) _a=${_a#*.};; *) _a=;; esac
+    case $_b in *.*) _b=${_b#*.};; *) _b=;; esac
+    _pa=${_pa:-0}; _pb=${_pb:-0}
+    if [ "$_pa" -lt "$_pb" ] 2>/dev/null; then return 0; fi
+    if [ "$_pa" -gt "$_pb" ] 2>/dev/null; then return 1; fi
+  done
+  return 1
+}
 pin_version=$(python3 - "$HERE/../pins.json" <<'PIN'
 import json, sys
 try:
@@ -421,18 +439,15 @@ except Exception:
     print("")
 PIN
 )
-witness_state=$(python3 - "$HERE/../pins.json" <<'PIN'
+witness_binary=$(python3 - "$HERE/../pins.json" <<'PIN'
 import json, sys
 try:
     with open(sys.argv[1]) as fh:
-        o = json.load(fh).get("orca") or {}
-        print((o.get("witness_binary") or "") + "|" + (o.get("onpath_at_witness") or ""))
+        print((json.load(fh).get("orca") or {}).get("witness_binary") or "")
 except Exception:
-    print("|")
+    print("")
 PIN
 )
-witness_binary=${witness_state%%|*}
-onpath_at_witness=${witness_state##*|}
 if [ -n "$pin_version" ] && command -v orca >/dev/null 2>&1; then
   # `orca --version` is not source-witnessed as to its exact wording, so take the
   # first version-shaped token anywhere in its output rather than the whole line.
@@ -442,12 +457,14 @@ if [ -n "$pin_version" ] && command -v orca >/dev/null 2>&1; then
     # fix, and a check that quietly stops working is that defect wearing a fix.
     echo "SPAWN=NOTE task=${task} could not read a version from \`orca --version\`, so drift from runtime/pins.json (${pin_version}) could not be checked at all. If the output format changed, the check needs re-witnessing — pin-it (#301)." >&2
   elif [ "${installed#v}" != "${pin_version#v}" ]; then
-    if [ -n "$witness_binary" ] && [ "${installed#v}" = "${onpath_at_witness#v}" ]; then
-      # The pin advanced ahead of the app and PATH still reports exactly what it reported at
-      # the witness: the honest advice is to update the app, never to re-run a completed pin.
+    if [ -n "$witness_binary" ] && ver_lt "$installed" "$pin_version"; then
+      # PATH lags a completed pin (the witness host's version or any older release,
+      # e.g. the previous pin): the honest advice is to update the app, never to
+      # re-run the pin.
       echo "SPAWN=NOTE task=${task} Orca on PATH is ${installed} but runtime/pins.json was witnessed against ${pin_version} from ${witness_binary} — the app update is owed: update Orca to ${pin_version} and this note clears. Do NOT re-run pin-it; it already completed for ${pin_version} (#301)." >&2
     else
-      # Any OTHER divergence — a newer Orca, or a third version — is fresh drift.
+      # PATH runs something NEWER than the pin (or the pin record predates witness
+      # artifacts): fresh drift.
       echo "SPAWN=NOTE task=${task} Orca on PATH is ${installed}, runtime/pins.json was witnessed against ${pin_version}. Every behaviour this script relies on was read off the PINNED version's source, so the difference is unwitnessed, not known-wrong: run pin-it to re-witness before trusting the launch map or the receipt shape (#301)." >&2
     fi
   fi

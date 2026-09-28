@@ -46,6 +46,7 @@ git repositories and includes a fully bound positive case alongside a dozen refu
 | 2026-09-21 | [harden-it](2026-09-21-harden-409.md) | this catalog's own verify.py / dispatch-sign.py / verify-gate.sh (#409) | self-run | no — the living ledger, not a binding report; the run's close binds in the next row | CLEAN (final re-audit: 0 unrefuted P0/P1; 6 rounds, 11 findings closed) |
 | 2026-09-21 | [harden-it](2026-09-21-harden-it-self-run.md) | this catalog (#409 close: verify.py / dispatch-sign.py / verify-gate.sh; 10 waves) | self-run | yes | CLEAN (zero unrefuted P0/P1; 3 P0 + 1 CI-caught P0-class + 1 P1 + residual classes closed; gitleaks control held) |
 | 2026-09-23 | [pin-it](2026-09-23-pin-it-488.md) | this catalog's runtime doctrine against the Orca v1.4.209 release binary (#488) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | PINNED-WITH-PARKED (3 behavioral + 2 text drifts fixed in the re-pin; parks carried; successor 2026-12-23) |
+| 2026-09-28 | [pin-it](2026-09-28-pin-it-500.md) | this catalog's runtime doctrine against the Orca v1.4.215 release binary (#500, early re-pin) | self-run | no — the living ledger, not a binding report; binds, or does not, if a later promotion files one | PINNED-WITH-PARKED (zero drift; additive surfaces noted; terminal-stop hedge confirmed; parks carried; successor 2026-12-28) |
 
 ### Self-test campaign 2026-09-16
 
