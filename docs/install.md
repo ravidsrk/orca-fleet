@@ -119,8 +119,9 @@ symlink path is verified to preserve them
 ([`docs/completion/evidence/CF-02-r2-happy-symlink-install.txt`](completion/evidence/CF-02-r2-happy-symlink-install.txt));
 the plugin path preserves them by construction — the whole repo is copied — but has no recorded
 install transcript yet. The procedure that produces one, for anyone with a clean machine, is
-[the plugin-install witness](completion/PLUGIN-INSTALL-WITNESS.md); its transcript is one part of
-#518, whose other part is the first `v*` tag populating the `dist` branch.
+[the plugin-install witness](completion/PLUGIN-INSTALL-WITNESS.md); its transcript is one of three
+parts of #518, beside the first `v*` tag populating the `dist` branch and the receipt trees under
+`docs/runs/` and `docs/reports/` shrunk or relocated out of the plugin copy.
 
 </details>
 

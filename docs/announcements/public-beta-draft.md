@@ -19,11 +19,11 @@ Each row is a witnessed act, not a code change. The issue holds the evidence.
       plugin install has been witnessed on a clean machine, transcript under
       `docs/completion/evidence/` per [the witness procedure](../completion/PLUGIN-INSTALL-WITNESS.md)
       ([#518](https://github.com/ravidsrk/orca-fleet/issues/518)).
-- [ ] The size of the plugin copy has a recorded disposition (review P1-5, the third part of
-      #518): the receipt trees under `docs/runs/` and `docs/reports/` are either left out of
-      what the plugin copies, relocated, or kept with the size the witness transcript measured
-      stated on the install page beside the reason. An unmentioned copy of that size is not a
-      beta a stranger installs knowingly.
+- [ ] The receipt trees under `docs/runs/` and `docs/reports/` are shrunk or relocated out of
+      the plugin copy (review P1-5, the third part of #518), and a witness transcript's
+      `du -sh` of the plugin root shows the reduced size. Disclosing the full size is not a
+      substitute: the review requires the copy to shrink before a public beta, and this box
+      stays unchecked until it has.
 - [ ] One recorded `review-it` or `ship-it` run on an Ubuntu host driven by `orca-ide`, so the
       Linux sentence below can drop the word "untested" (review §8, item 6). Until then the
       sentence stays as written.

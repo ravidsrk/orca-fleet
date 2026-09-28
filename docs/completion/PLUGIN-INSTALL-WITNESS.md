@@ -104,10 +104,13 @@ the output is long, keep the first and last ten lines and say how many were cut.
    policy a mission composes:
 
    ```bash
-   cd "$ROOT" && python3 scripts/validate.py | tail -1
+   cd "$ROOT" && python3 scripts/validate.py; echo "exit=$?"
    ```
 
-   It must end with "three-layer separation holds; evals valid." Then the in-session check:
+   Record the whole output (first and last ten lines if it is long) and the exit line: the
+   validator's own exit code is the verdict, and a failure's detail lines are the evidence,
+   so nothing is piped through `tail`. A pass ends with "three-layer separation holds; evals
+   valid." and `exit=0`. Then the in-session check:
    ask exactly
 
    ```
@@ -159,8 +162,9 @@ One pull request, from anyone:
    what it unblocks, whether it gates launch, verification naming the two transcript files,
    status), the way H-07 records the CF-05 re-witness.
 4. Reference #518 in the PR body. The transcript is one part of #518; the others, the first
-   `v*` tag populating the `dist` branch and a recorded disposition for the size of the
-   plugin copy, are the maintainer's and are checked separately.
+   `v*` tag populating the `dist` branch and the receipt trees under `docs/runs/` and
+   `docs/reports/` shrunk or relocated out of the plugin copy (review P1-5; the `du -sh` in
+   step 2 is the before-and-after measure), are the maintainer's and are checked separately.
 
 If any step fails, the transcript still lands, as a failure transcript with the failing step's
 output, and the PR says so in its title. A failed witness is evidence; a skipped one is not.
