@@ -8,9 +8,12 @@ name: publish-dist
 # it to the `dist` branch as a single orphan commit (history is the tag's, not the branch's).
 # `docs/install.md` names the branch. Uses only git and the runner's token.
 #
-# Only a release tag is ever published: a manual run names an existing `v*` tag and checks
-# THAT out, and the guard step refuses anything else, so a dispatch from `main` cannot
-# replace the released bundle with unreleased content (PR #509 review).
+# Only the newest release tag is ever published: a manual run names an existing `v*` tag
+# and checks THAT out, and the guard step refuses anything else — a branch, a lightweight
+# tag, a tag off main, or an older release than the newest one on main — so a dispatch can
+# neither replace the released bundle with unreleased content nor downgrade `dist` to an
+# older catalog (PR #509 review). Re-publishing an older release is a deliberate act done
+# by hand, never by this job.
 
 on:
   push:
@@ -38,7 +41,7 @@ jobs:
         with:
           python-version: "3.13"  # pin: CI 3.x was a moving target (G-03)
 
-      - name: Refuse anything but an annotated release tag on main
+      - name: Refuse anything but the newest annotated release tag on main
         env:
           TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
@@ -51,6 +54,13 @@ jobs:
           cut="$(git rev-parse "refs/tags/$TAG^{commit}")"
           test "$(git rev-parse HEAD)" = "$cut"                # the checkout IS the tag's commit
           git merge-base --is-ancestor "$cut" origin/main      # a tag off main is not a release
+          # dist tracks the newest release only: an older tag would force-push a downgraded
+          # catalog over it (PR #509 review). Version order, not date order.
+          newest="$(git tag --list 'v[0-9]*' --merged origin/main --sort=-v:refname | head -n 1)"
+          if [ "$TAG" != "$newest" ]; then
+            echo "::error::'$TAG' is not the newest release on main ($newest); dist is never downgraded by this job"
+            exit 1
+          fi
           echo "TAG=$TAG" >> "$GITHUB_ENV"
 
       - name: Build the self-contained tree
