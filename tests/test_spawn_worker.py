@@ -739,6 +739,28 @@ esac
             self.assertEqual(p.returncode, 0)
             self.assertEqual(p.returncode, 0, p.stderr)
 
+    def test_a_previous_pin_advises_the_update(self):
+        # Review on #507: the pin advanced to v1.4.215 while a host may still run
+        # the previous pin v1.4.209. Older-than-pin is a lagging app, not fresh
+        # drift — the advice is to update, never to re-run the completed pin.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            notes, p = self._notes(tmp, "orca 1.4.209")
+            self.assertTrue(notes, "the previous pin produced no note at all")
+            self.assertIn("update Orca to v1.4.215", notes[0])
+            self.assertNotIn("run pin-it to re-witness", notes[0])
+            self.assertEqual(p.returncode, 0)
+
+    def test_a_newer_patch_arms_pin_it(self):
+        # The comparator's other direction: a version AHEAD of the pin is
+        # genuinely unwitnessed and must arm pin-it, not advise an update.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._stub(tmp)
+            notes, p = self._notes(tmp, "orca 1.4.216")
+            self.assertTrue(notes, "a newer patch produced no note at all")
+            self.assertIn("run pin-it to re-witness", notes[0])
+            self.assertEqual(p.returncode, 0)
+
     def test_the_v_prefix_is_not_a_difference(self):
         with tempfile.TemporaryDirectory() as tmp:
             self._stub(tmp)

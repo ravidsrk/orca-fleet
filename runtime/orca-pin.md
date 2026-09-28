@@ -32,7 +32,8 @@ holds its shape. The two never disagree — a run updates both or neither.
 - **Guides:** 1 of 14 served files differs — `orchestration--coordinator-loop` (`--model`
   now also for Antigravity + Muse terminals; opencode/zcode reject it). Help root: one
   line (`linear` read → read/write, `c2d9d12b1f`). agent-context 236 → 239, nothing
-  removed. Our doctrine claims none of these surfaces — noted, no patch.
+  removed. One spawn_worker.sh roster line patched (muse → at-PIN set, 52a1e2875b);
+  nothing else claims these surfaces.
 - **Internals, reviewed:** the structured-session identity theme (creator `orcaSessionId`
   plumbing across depth/check/runs/dispatch, preamble wording + `leadLine`), pane
   reservation (`a375936c04`), worktree listing versioning (`ad6cb0e05c`), relay readiness
