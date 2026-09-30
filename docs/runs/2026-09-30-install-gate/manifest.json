@@ -5,7 +5,7 @@
   "base_branch": "main",
   "contract": {
     "source": "docs/runs/2026-09-30-install-gate/contract.json",
-    "digest": "sha256:5f7e7370703f1ae7e3a8a62ac5435d3e8571cb7c5e44a87b51a1597735c2de5b",
+    "digest": "sha256:570e3db9ea3ced39695c4b20db68acfeee735ba42de041aecc31627b81aa3e4e",
     "criterion_ids": [
       "AC-1",
       "AC-2",
