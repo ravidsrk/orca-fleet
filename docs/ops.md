@@ -206,8 +206,12 @@ force-pushes it to the `dist` branch, the target copy installers point at
    re-reads the latest `validate` conclusion and files the issue when
    Actions is running but nothing was filed; the no-runner case needs a
    check outside Actions — an uptime monitor or a cron on your machine
-   polling `gh run list --workflow validate.yml --branch main --limit 1
-   --json conclusion` and paging you on anything but `success`.
+   polling `gh run list --workflow validate.yml --branch main --event push --status completed --limit 1 --json conclusion,updatedAt`
+   (the query `main-health` runs, so an in-progress run never pages) and
+   paging you when the result is absent (no completed run), stale
+   (`updatedAt` older than a day), or its conclusion is not `success`
+   (#528). No such monitor is installed yet — #528 tracks choosing one
+   and drilling it.
 2. If a clone or plugin load is broken: `plugin.json` `version` must equal
    the latest **dated** [CHANGELOG](../CHANGELOG.md) heading
    (`## [x.y.z] - YYYY-MM-DD`), not `[Unreleased]`. Do not half-cut a
@@ -224,11 +228,17 @@ force-pushes it to the `dist` branch, the target copy installers point at
    old private seed. Security reports follow [SECURITY.md](../SECURITY.md).
 4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR
    through the normal gates — never a force-push or a history rewrite
-   on `main`. There is no hosted service, staging, or deploy target to
-   roll back: `.github/workflows/` contains only `validate.yml`,
-   `negative-control.yml`, and `alert-on-failure.yml` (no deploy job);
-   "deploy" is merge to `main`.
-   A bad merge is undone the way it landed. Regenerate badges
+   on `main`. There is no hosted service or staging environment. A merge
+   to `main` is the "deploy" above: it changes the default-branch tree that
+   clones and the marketplace (`source: "./"`) install. Versioned
+   publication is separate — `release.yml` (the GitHub Release) and
+   `publish-dist.yml` (the `dist` branch) run on a `v*` tag push or a
+   manual run naming an existing tag, and a tag exists only for an exact
+   cut the maintainer authorized (Tag and record provenance, above). So an
+   untagged bad merge is undone by the revert alone; a published bad
+   release is never re-tagged or deleted — revert on `main`, then publish
+   a new version through that same authorization, whose tag re-runs both
+   workflows. A bad merge is undone the way it landed. Regenerate badges
    (`python3 scripts/gen-badges.py`) if the revert changes counts.
    Rehearsed on a scratch clone: 2026-09-01
    ([transcript](completion/evidence/P0-rollback-rehearsal.txt)) and
