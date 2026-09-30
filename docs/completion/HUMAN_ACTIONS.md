@@ -30,3 +30,9 @@ H-07 was executed **agent-side** on this machine (A-30): Orca was startable via 
 | id | instruction | unblocks | gates launch | verification | status |
 |---|---|---|---|---|---|
 | **H-08** | Install the Claude Code marketplace/plugin in a clean container; record its commit, file fingerprint, component inventory and uninstall control. | CF-02 plugin packaging / #518 | no | [CF-02b-plugin-install.txt](evidence/CF-02b-plugin-install.txt) and [CF-02b-plugin-uninstall.txt](evidence/CF-02b-plugin-uninstall.txt): 22 missions registered, then zero after uninstall; Stop/TaskCompleted discovered; missing-manifest control exits 2. No authenticated model turn or Orca run claimed. | done 2026-09-30 |
+
+## External CI monitor (2026-09-30)
+
+| id | instruction | unblocks | gates launch | verification | status |
+|---|---|---|---|---|---|
+| **H-09** | Activate the hourly Orca fleet external CI monitor in Codex Automations on the maintainer host. Keep Codex open and the host awake for scheduled checks. | #528 | no | [T-13-external-monitor-drill.txt](evidence/T-13-external-monitor-drill.txt) records a real no-runner failure detected outside Actions, alert issue #537 and a green control. The local watch is configured, but currently paused. | pending activation |
