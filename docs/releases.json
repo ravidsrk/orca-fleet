@@ -1,9 +1,6 @@
 {
   "_comment": "Published versions map to immutable cut commits and annotated tags. Historical rows and tag targets stay unchanged. The optional preparing object contains only version and cut_date for the sole newest heading; it claims no published release. After authorized tagging, a later provenance commit moves it into releases with the existing cut SHA and clears preparing. See docs/ops.md for preparation, cut, tagging, provenance and recovery.",
-  "preparing": {
-    "version": "0.7.0",
-    "cut_date": "2026-09-28"
-  },
+  "preparing": null,
   "releases": [
     {
       "version": "0.1.0",
@@ -67,6 +64,12 @@
       "commit": "c74f92a0e9899e505c833fac562b117e9ae72bf5",
       "cut_date": "2026-09-09",
       "note": "orca-fleet 0.6.1 (2026-09-09) \u2014 retroactive tag at the CHANGELOG cut"
+    },
+    {
+      "version": "0.7.0",
+      "cut_date": "2026-09-28",
+      "tag": "v0.7.0",
+      "commit": "8a5211be39a681b86a872f957dbd21d2db0de181"
     }
   ]
 }
