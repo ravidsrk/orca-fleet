@@ -36,3 +36,9 @@ H-07 was executed **agent-side** on this machine (A-30): Orca was startable via 
 | id | instruction | unblocks | gates launch | verification | status |
 |---|---|---|---|---|---|
 | **H-09** | Activate the hourly Orca fleet external CI monitor in Codex Automations on the maintainer host. Keep Codex open and the host awake for scheduled checks. | #528 | no | [T-13-external-monitor-drill.txt](evidence/T-13-external-monitor-drill.txt) records a real no-runner failure detected outside Actions, alert issue #537 and a green control. The local watch is configured, but currently paused. | pending activation |
+
+## Second maintainer (2026-09-30)
+
+| id | instruction | unblocks | gates launch | verification | status |
+|---|---|---|---|---|---|
+| **H-10** | Have `agentsalpha` accept write invitation `335422854`, verify write access, and approve a critical-path PR before its merge. Ravindra retains release, one-way-gate and floor-waiver authority. | #530 | no | Ownership configuration is prepared in [#541](https://github.com/ravidsrk/orca-fleet/pull/541) under Ravindra's instruction to proceed while acceptance remains pending. Still owed: collaborator write permissions plus an actual `APPROVED` review at a PR's head and its merge on main. No peer approval is claimed. | pending acceptance and peer review |

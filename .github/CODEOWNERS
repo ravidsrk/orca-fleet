@@ -1,3 +1,7 @@
-# Every path is owned by the maintainer until a second person holds write access (#521).
-# Reviews requested from the owner on every PR; the bus factor is documented in docs/ops.md.
+# Ravindra remains the release, one-way-gate and floor-waiver authority.
+# Critical-path peer ownership activates after agentsalpha accepts write access (#530).
 * @ravidsrk
+/runtime/ @ravidsrk @agentsalpha
+/scripts/ @ravidsrk @agentsalpha
+/.github/ @ravidsrk @agentsalpha
+/docs/ops.md @ravidsrk @agentsalpha
