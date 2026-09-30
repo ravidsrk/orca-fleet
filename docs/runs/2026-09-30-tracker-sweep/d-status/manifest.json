@@ -72,7 +72,8 @@
       "duration_s": 126.733,
       "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
       "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
-      "artifact": "docs/runs/2026-09-30-tracker-sweep/d-status/suite-shard-1-of-4.txt"
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/build/shard-1.txt",
+      "artifact_sha256": "e69eaed080f9ea858cac5564d74c5bd03ad2d5688c37d0ca25e48495f536d54a"
     },
     {
       "label": "suite-shard-2-of-4",
@@ -83,7 +84,8 @@
       "duration_s": 255.135,
       "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
       "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
-      "artifact": "docs/runs/2026-09-30-tracker-sweep/d-status/suite-shard-2-of-4.txt"
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/build/shard-2.txt",
+      "artifact_sha256": "89561849bfe7089db3f55120416f6b1d964588704b63439074167eea89750846"
     },
     {
       "label": "suite-shard-3-of-4",
@@ -94,7 +96,8 @@
       "duration_s": 204.741,
       "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
       "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
-      "artifact": "docs/runs/2026-09-30-tracker-sweep/d-status/suite-shard-3-of-4.txt"
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/build/shard-3.txt",
+      "artifact_sha256": "a3187a5cda44d6f8d055eddfc8b75577a9f28c187b57ddd5b0af29fc04a1c3fb"
     },
     {
       "label": "suite-shard-4-of-4",
@@ -105,7 +108,8 @@
       "duration_s": 176.38,
       "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
       "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
-      "artifact": "docs/runs/2026-09-30-tracker-sweep/d-status/suite-shard-4-of-4.txt"
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/build/shard-4.txt",
+      "artifact_sha256": "f968643ee4bbacb8b4fa6f2ce17e08e9971c82310241eddcc6370b3857cb983e"
     }
   ],
   "negative_control": {
@@ -146,22 +150,6 @@
     {
       "path": "docs/runs/2026-09-30-tracker-sweep/d-status/red-before-fix.txt",
       "sha256": "1a22abbb6b805811aa02a428d8e2ed5f80c368dca1d6f97bbfbcf182676fa224"
-    },
-    {
-      "path": "docs/runs/2026-09-30-tracker-sweep/d-status/suite-shard-1-of-4.txt",
-      "sha256": "e69eaed080f9ea858cac5564d74c5bd03ad2d5688c37d0ca25e48495f536d54a"
-    },
-    {
-      "path": "docs/runs/2026-09-30-tracker-sweep/d-status/suite-shard-2-of-4.txt",
-      "sha256": "89561849bfe7089db3f55120416f6b1d964588704b63439074167eea89750846"
-    },
-    {
-      "path": "docs/runs/2026-09-30-tracker-sweep/d-status/suite-shard-3-of-4.txt",
-      "sha256": "a3187a5cda44d6f8d055eddfc8b75577a9f28c187b57ddd5b0af29fc04a1c3fb"
-    },
-    {
-      "path": "docs/runs/2026-09-30-tracker-sweep/d-status/suite-shard-4-of-4.txt",
-      "sha256": "f968643ee4bbacb8b4fa6f2ce17e08e9971c82310241eddcc6370b3857cb983e"
     },
     {
       "path": "docs/runs/2026-09-30-tracker-sweep/d-status/validate.txt",

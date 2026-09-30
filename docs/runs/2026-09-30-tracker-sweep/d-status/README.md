@@ -27,7 +27,9 @@ proof-tier promotion, and a human release grant is still owed.
 - Gates at head: [`validate.txt`](validate.txt), [`gen-badges-check.txt`](gen-badges-check.txt)
   (empty = fresh), [`focused-tests.txt`](focused-tests.txt), and the full suite as the CI-equivalent
   four shards `scripts/shard-tests.py --shard N --of 4` under `env -u ORCA_TERMINAL_HANDLE`
-  (452 + 710 + 639 + 618 = 2419 tests, all exit 0).
+  (452 + 710 + 639 + 618 = 2419 tests, all exit 0). The raw full-suite shard logs are kept
+  outside the tree under `/tmp/orca-fleet-sweep-20260930/build/`; the manifest's `commands[]`
+  records each one's path and sha256 (`artifact_external`, `artifact_sha256`).
 
 ## Runner notes
 

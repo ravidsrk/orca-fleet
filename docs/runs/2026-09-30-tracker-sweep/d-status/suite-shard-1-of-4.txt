@@ -1,7 +1,0 @@
-shard 1/4: 15 modules, predicted ~85.2s: test_deny_hook test_verify_gate test_upstream_probe test_preflight test_terminal_ops test_egress test_check_reply test_ed25519 test_negative_control test_orca_cli test_wire_docs test_hitl_loop test_pm test_reshape_net_verify test_verdict_check
-................................................................................................................................................................................upstream_probe: ignoring --references line 'Available references:'
-....................................................................................................................................................................................................................................................................................
-----------------------------------------------------------------------
-Ran 452 tests in 126.638s
-
-OK
