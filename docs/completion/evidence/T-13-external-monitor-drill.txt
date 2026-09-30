@@ -70,3 +70,22 @@ exit=0
 $ python3 scripts/external-ci-monitor.py --drill-run 36146072394
 {"conclusion": "failure", "drill": true, "runId": 36146072394, "sha": "f78ef91e8abaf255b1bda46924722010f73b4e34", "status": "red", "updatedAt": "2026-09-25T14:13:51Z", "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/36146072394"}
 exit=1
+
+Installed-copy verification after run-identity validation at 2026-09-30T10:45:00.260343+00:00
+Installed at: ~/.codex/automations/orca-fleet-external-ci-monitor/external-ci-monitor.py
+Repository and installed SHA256: 6c3a18640212b07ac99a0b4ea142b49ac064683eafa5ad00beaa6d6ffcb947d2
+Byte comparison: identical. Automation remains PAUSED.
+$ python3 ~/.codex/automations/orca-fleet-external-ci-monitor/external-ci-monitor.py
+{"conclusion": "success", "drill": false, "runId": 35202395318, "sha": "e8ddbd988486694a2985822e557a382b344e2872", "status": "stale", "updatedAt": "2026-09-17T08:59:56Z", "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/35202395318"}
+exit=1
+
+The first installed-copy query above returned a valid but stale successful run
+(exit 1); it was not accepted as a healthy control. A separate limit-5 query and
+Actions API query both reported main run 36703014111 as latest. Replay:
+$ python3 ~/.codex/automations/orca-fleet-external-ci-monitor/external-ci-monitor.py
+{"conclusion": "success", "drill": false, "runId": 36703014111, "sha": "6f690f6c8f63b6dc140077f92eabbc8f59bd4b7b", "status": "healthy", "updatedAt": "2026-09-30T10:37:18Z", "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/36703014111"}
+exit=0
+$ python3 ~/.codex/automations/orca-fleet-external-ci-monitor/external-ci-monitor.py --drill-run 36146072394
+{"conclusion": "failure", "drill": true, "runId": 36146072394, "sha": "f78ef91e8abaf255b1bda46924722010f73b4e34", "status": "red", "updatedAt": "2026-09-25T14:13:51Z", "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/36146072394"}
+exit=1
+The installed bytes match the repository SHA256 above; scheduled execution remains unclaimed.

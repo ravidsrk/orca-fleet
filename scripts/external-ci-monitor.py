@@ -7,6 +7,7 @@ changing main. This tool only reads GitHub and emits JSON; the host routes alert
 import argparse
 import datetime as dt
 import json
+import re
 import subprocess
 
 REPO = "ravidsrk/orca-fleet"
@@ -25,6 +26,14 @@ def assess(run, now, max_age_hours=24):
     conclusion = run["conclusion"]
     if not isinstance(conclusion, str) or not conclusion:
         raise ValueError("completed run has no conclusion")
+    if not isinstance(run["headSha"], str) or not re.fullmatch(r"[0-9a-f]{40}", run["headSha"]):
+        raise ValueError("completed run has no valid commit SHA")
+    run_id = run["databaseId"]
+    if type(run_id) is not int or run_id <= 0:
+        raise ValueError("completed run has no valid run ID")
+    if not isinstance(run["url"], str) or not re.fullmatch(
+            rf"https://github\.com/[^/]+/[^/]+/actions/runs/{run_id}", run["url"]):
+        raise ValueError("completed run has no matching GitHub run URL")
     status = "healthy"
     if conclusion != "success":
         status = "red"
