@@ -1,0 +1,43 @@
+{
+  "unit": "D-CI",
+  "run": "run_fb923397d46a",
+  "task": "task_359fd36a5993",
+  "dispatch": "ctx_6efe391a4af1",
+  "base_sha": "e7089cbfef02d4b6187875be3985c201334b01c9",
+  "branch": "codex/install-every-main-sha-20260930",
+  "criterion_ids": [
+    "AC-1",
+    "AC-2",
+    "AC-3"
+  ],
+  "criteria": [
+    {
+      "id": "AC-1",
+      "text": "Every push to main can start install.yml regardless of changed paths: remove only push.paths, retain push.branches [main]; preserve pull_request.paths and jobs/permissions entirely; add workflow_dispatch."
+    },
+    {
+      "id": "AC-2",
+      "text": "Failing-first contract test re-derives trigger scope, proves an unrelated-path main push is accepted and PR path behaviour unchanged; exact-SHA checker still rejects a stale success; negative control fails when the push path filter is reinstated."
+    },
+    {
+      "id": "AC-3",
+      "text": "Focused tests, validate.py and the full suite (4 CI-equivalent shards, all exit 0) before commit; badges regenerated; clean commit, no trailers; manifest with intent and lighting lit; stop at BUILT."
+    }
+  ],
+  "scope": [
+    ".github/workflows/install.yml",
+    "tests/test_install_workflow_triggers.py",
+    "scripts/shard-tests.py (one WEIGHTS line, coordinator-approved msg_b9eca6f68051)",
+    "assets/badges/tests.json",
+    "docs/runs/2026-09-30-install-gate/"
+  ],
+  "forbidden": [
+    "scripts/release_check.py",
+    "versions",
+    "tags",
+    "proof tiers",
+    "issues",
+    "push/PR/merge"
+  ],
+  "terminal": "BUILT (no independent GitHub approver)"
+}

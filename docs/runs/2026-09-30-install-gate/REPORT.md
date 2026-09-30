@@ -2,9 +2,9 @@
 
 Unit D-CI of clean-sweep run `run_fb923397d46a` (task `task_359fd36a5993`, dispatch
 `ctx_6efe391a4af1`). Pack: Matt build-change. Base `e7089cbf` → head `6092315` on the worker's own
-checkout `ravidsrk/install-every-main-sha-20260930`. The TASK named the branch
-`codex/install-every-main-sha-20260930`, but the checkout was created under the `ravidsrk/` prefix
-at the same base SHA. **State: BUILT.** Not CLOSED: no independent GitHub approver exists, and
+checkout, branch `codex/install-every-main-sha-20260930` (renamed from
+`ravidsrk/install-every-main-sha-20260930`, the prefix the checkout was created with).
+Contract: [`contract.json`](contract.json), digest in the manifest; reviewer mode `same-vendor-fresh`. **State: BUILT.** Not CLOSED: no independent GitHub approver exists, and
 nothing was pushed, opened as a PR or merged.
 
 ## Defect

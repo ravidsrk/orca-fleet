@@ -4,8 +4,8 @@
   "head_sha": "6092315219eed426c440c939d4d1f9cc1c47af62",
   "base_branch": "main",
   "contract": {
-    "source": "coordinator TASK for task_359fd36a5993 (dispatch ctx_6efe391a4af1)",
-    "digest": "supplied out of band by the coordinator",
+    "source": "docs/runs/2026-09-30-install-gate/contract.json",
+    "digest": "sha256:5f7e7370703f1ae7e3a8a62ac5435d3e8571cb7c5e44a87b51a1597735c2de5b",
     "criterion_ids": [
       "AC-1",
       "AC-2",
@@ -105,7 +105,7 @@
       "sha256": "9eb06ba33b88b40a751b5e58ff54b6db418280987a0eb3da7ac6a96320fc1647"
     }
   ],
-  "reviewer_mode": "none \u2014 no independent GitHub approver exists; unit stops at BUILT",
+  "reviewer_mode": "same-vendor-fresh",
   "toolchain": "python 3 (host python3), stdlib unittest",
   "provenance": {
     "spec_version": "GitHub workflow syntax https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax (read 2026-09-30)",
