@@ -1,5 +1,7 @@
 # 🗺️ map-it — a foggy goal → a frozen, decided execution map
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel research workers chart the frontier; each decision you freeze is a one-way gate class, not a lower rung.
 > **Activation load:** ~24,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 12% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). A wayfinder/research worker playbook (mattpocock wayfinder + research) — one router per worker.
+
+## What to provide
+
+- The destination you want to reach and the constraints already known.
+- Open decisions, dependencies and the people who can resolve them.
+- Enough project context to define sharp acceptance criteria and the implementation handoff.
 
 ## What it does
 

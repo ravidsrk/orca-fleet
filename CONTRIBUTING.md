@@ -3,6 +3,10 @@
 Contributions are welcome — and this repo is unusually opinionated about what goes where. Read
 this page before opening a PR; it will save us both a review round.
 
+For clone/setup commands, a file map and the local test workflow, start with the
+[development guide](docs/development.md). You can edit docs and run catalog checks without a
+live Orca runtime. Use this page for the contracts your contribution must preserve.
+
 ## The one rule that decides everything else
 
 **A fleet is an outcome, not an ingredient.** Before adding anything, decide which layer it
@@ -123,6 +127,13 @@ fail-closed exits documented in the header comment.
 - `README.md` and `docs/` speak to humans; `AGENTS.md`, `SKILL.md`s, playbooks, and runtime
   policies speak to agents. Keep the registers distinct — agent files stay terse and
   imperative.
+- Write for a developer completing a task: name the inputs, show the command or prompt,
+  explain the expected result, and link the next step. Identify whether the example runs
+  in the catalog clone, the target project or the coding-agent session.
+- Link new human guides from the [documentation index](docs/README.md) and the relevant
+  entry point. Check file destinations and section anchors; preview tables and diagrams.
+- Keep generated callouts and historical run artifacts faithful to their source. Use
+  [the generator commands](docs/development.md#generated-content) for computed values.
 
 ## Before you open the PR
 
@@ -130,7 +141,7 @@ fail-closed exits documented in the header comment.
 python3 scripts/validate.py                # must end: "three-layer separation holds; evals valid."
 python3 -m unittest discover -s tests -v   # all contract + validator fixture tests green
 # optional: ruff check scripts runtime/scripts tests bench demo
-# (CI runs ruff 0.16.7 on E9/F63/F7/F82 only — see ruff.toml)
+# (CI's version is hash-pinned in .github/ci-tools.lock; rules are in ruff.toml)
 ```
 
 The validator finishes in under a second; the suite takes a few minutes because it builds real

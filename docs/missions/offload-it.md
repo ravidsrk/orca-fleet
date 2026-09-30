@@ -1,5 +1,7 @@
 # ☁️ offload-it — a recipe that provisions, proven by provisioning
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — one serial recipe lane (snapshots are paid and ordered); the money and the login are yours at classified checkpoints.
 > **Activation load:** ~14,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 7% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no run has been retained against this mission yet
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI) with vm recipe doctor. A provider account + CLI with a sandbox/VM plan, and the provider's own docs for its verbs. An agent CLI + account for the auth snapshot. git + gh. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
+## What to provide
+
+- The repository's build/test setup and any existing workspace recipe or lifecycle scripts.
+- Provider, region, project scope, quotas and the authorized lifetime or spend caps.
+- The person who can complete account login or other interactive provisioning steps.
 
 ## What it does
 

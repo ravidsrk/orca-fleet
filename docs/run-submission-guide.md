@@ -1,9 +1,21 @@
 # Run submission guide
 
+[Documentation](README.md) · [Call for runs](call-for-runs.md) · [Run archive](runs/README.md)
+
 You ran a mission. This guide turns that run into a promotion: a run bundle
 submitted as a PR, machine-checked for binding, then cited by the mission's
 `proof:` advance. Start from the [call for runs](call-for-runs.md) to pick a
 mission that still needs one.
+
+This procedure is for retaining a real mission run and proposing a proof-tier advance.
+For an ordinary docs or code contribution, use [Development](development.md) and
+[Contributing](../CONTRIBUTING.md). A binding report proves retained bytes and recorded
+execution; it does not replace the coordinator's independent checks.
+
+On this page: [prerequisites](#prerequisites), [bundle format](#the-bundle-format),
+[submission steps](#step-by-step), [binding](#what-binding-means), and
+[what happens after submission](#after-you-submit). The [retrofit notes](#retrofit-notes-for-the-phase-1-reports-acceptance-bundle-conformance)
+describe historical reports.
 
 ## Prerequisites
 

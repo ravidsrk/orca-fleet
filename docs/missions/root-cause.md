@@ -1,5 +1,7 @@
 # 🔬 root-cause — a reproduced symptom, a demonstrated cause
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel hypothesis workers, one falsification each; the demonstrated cause is a report you act on — a gate class, not a lower rung.
 > **Activation load:** ~18,700 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 9% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -29,6 +31,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A feedback-loop-first debugging playbook (mattpocock diagnosing-bugs or addyosmani debug) — one router per worker.
+
+## What to provide
+
+- The symptom, expected behavior, timestamps and environment where it occurred.
+- A reproduction if available, plus logs, traces or data that can distinguish hypotheses.
+- A way to repeat the failing entry point and an owner for any proposed fix handoff.
 
 ## What it does
 

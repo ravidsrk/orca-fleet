@@ -1,5 +1,7 @@
 # 📱 field-test-it — proven on hardware, not on hope
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel fix workers per device-observed defect, each re-verified on the target; device pairing and anything outside the paired device set are your one-way gates.
 > **Activation load:** ~33,900 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 17% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -27,6 +29,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI) plus the Orca emulator skills (orca-emulator for iOS simulators, orca-emulator-android for Android) or a paired physical device. git + gh. The app's own build/run toolchain. A fix worker playbook pack (mattpocock, addyosmani, gstack) — one router per worker.
+
+## What to provide
+
+- The target device or emulator, OS version, app build and reproduction steps.
+- The data, account state and permissions needed to exercise the flow.
+- Access to repeat the check on that target and retain its session evidence.
 
 ## What it does
 

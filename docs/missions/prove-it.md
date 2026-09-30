@@ -1,5 +1,7 @@
 # 🧪 prove-it — a mutation-audited test on every critical path
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel characterize and mutate workers per critical path; you own the one-way doors.
 > **Activation load:** ~26,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 13% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** self-run — [2026-09-16 run](../runs/2026-09-16-prove-it-self-run.md) (PF-2 kind gate, COVERED, 4/4 mutants killed).
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a runnable suite + coverage tool. A TDD worker playbook (addyosmani or mattpocock) — one router per worker.
+
+## What to provide
+
+- The critical behavior paths, existing tests and available coverage information.
+- A runnable suite and mutation tooling, or the hand-mutant fallback.
+- The person who confirms the critical-path scope and owns bugs exposed by the audit.
 
 ## What it does
 

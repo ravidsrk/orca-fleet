@@ -1,5 +1,7 @@
 # ⚡ speed-it — every journey within budget, proven by a number
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel hotspot workers under a pre-declared measurement contract; you own the one-way doors.
 > **Activation load:** ~26,500 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 13% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -27,6 +29,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. A real MEASUREMENT path (Lighthouse/DevTools for web CWV, or a load/profiler harness). A perf worker playbook (addyosmani performance-optimization or gstack benchmark) — one router per worker.
+
+## What to provide
+
+- The user journeys, metrics and numeric budgets you want to meet.
+- A measurement harness, environment and representative dataset.
+- The owner who freezes measurement conditions and decides infrastructure or architecture tradeoffs.
 
 ## What it does
 

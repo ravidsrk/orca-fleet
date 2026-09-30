@@ -1,5 +1,7 @@
 # 🧱 floor-it — a written bar that fires
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel wiring and prove-fires workers, one dimension each; freezing the bar is your one-way gate.
 > **Activation load:** ~30,500 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 15% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. The target repo's toolchain for each dimension's tool (coverage, linter, perf harness, axe-core…). CI write access on BASE. A worker pack (matt | addy | gstack) — one router per worker.
+
+## What to provide
+
+- The repository's existing counters, quality configuration and CI workflows.
+- The dimensions to measure, their baseline commands and proposed thresholds.
+- The human who freezes the bar and decides dimensions with no usable measurement tool.
 
 ## What it does
 

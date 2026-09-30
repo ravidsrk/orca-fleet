@@ -1,5 +1,7 @@
 # 📚 document-it — every public-surface cell filled, every claim anchored
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus parallel per-cell writer workers, each reviewed build-blind; which entities deserve a tutorial or an explanation is your call.
 > **Activation load:** ~31,500 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 16% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -27,6 +29,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. A machine-derivable public surface (an extractor script the repo has or the run writes) and a runnable claim check. Where the docs live in a framework (Docusaurus, MkDocs, Nextra), its build must run locally. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
+## What to provide
+
+- The public API, CLI or configuration surface and the developers who consume it.
+- Existing docs, extraction tooling and the source or tests that can check factual claims.
+- The reader tasks that need examples, plus an author for design rationale absent from the tree.
 
 ## What it does
 

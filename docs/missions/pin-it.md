@@ -1,5 +1,7 @@
 # 📌 pin-it — doctrine that matches the binary
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel re-witness probes, one claim each, against the installed binary; doctrine patches land through the normal review + merge gates.
 > **Activation load:** ~30,400 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 15% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — it ran twice against Orca 1.4.200 ([PARTIAL-WITNESS](../runs/2026-09-12-runtime-repin/), [PINNED-WITH-PARKED](../runs/2026-09-13-pin-it-266/)) and once against 1.4.203 ([PINNED-WITH-PARKED](../runs/2026-09-16-pin-it-416/)), but no run's tier is re-derivable here; the protocol is mechanism, not yet field-proven.
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI) — the binary under audit; `orca skills get <name>` must work, and re-witness probes run against the live local runtime from a live Orca terminal. git. A worker playbook pack (mattpocock, addyosmani, gstack) — one router per worker.
+
+## What to provide
+
+- The installed Orca version and the runtime claims that may have drifted.
+- Access to the relevant hosts and surfaces needed to witness each claim.
+- Owners for remote, paid or interactive probes the session cannot perform.
 
 ## What it does
 

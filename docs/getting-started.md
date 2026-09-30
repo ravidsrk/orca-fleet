@@ -1,8 +1,11 @@
 # Getting started with orca-fleet
 
-This guide takes you from a fresh clone to your first completed mission, explains what you will
-see on screen while a fleet runs, and covers the failure modes new users hit most. It assumes you
-have used Claude Code before but never run a multi-agent fleet.
+[Documentation](README.md) · [Install](install.md) · [Prompt recipes](recipes.md)
+
+Use this guide to run a mission on your project. It assumes you have used Claude Code before
+but never run a multi-agent fleet. You will install the catalog, review an existing change,
+then see how a bounded feature moves to a promotion PR. For editing this repository and running
+its local checks, use [Development](development.md).
 
 ## Contents
 
@@ -73,8 +76,9 @@ repeating it.
 
 ## Install the catalog
 
-Every install path, and which ones carry the completion gate, is walked in
-[docs/install.md](install.md); the two that a first run needs are below.
+Follow [Install](install.md#choose-an-install-path) for the path comparison and full procedure.
+The minimal selected-mission setup below runs in the **orca-fleet clone**. Keep it available;
+the links and completion hook resolve files inside it.
 
 **Symlink (recommended while evaluating).** Some missions link `../../ARCHITECTURE.md` relative
 to their own directory, and every mission resolves its playbooks by bare name against the repo
@@ -101,7 +105,7 @@ mission catalog at once; the relative references resolve inside the copied plugi
 
 ```
 /plugin marketplace add ravidsrk/orca-fleet
-/plugin install orca-fleet
+/plugin install orca-fleet@orca-fleet
 ```
 
 Confirm the install by asking your agent "which missions are available?" — the
@@ -133,12 +137,15 @@ Before any run, read the README's
 fleet does on your machine (permission-bypass workers, worktrees, PRs on your repository) and
 where to run a first one.
 
-Start with [`review-it`](missions/review-it.md), because it has **no fix authority** — the worst
-it can do is be wrong in a report. Open a Claude Code session in a repo that has an open PR or a
-feature branch, and type:
+Start with [`review-it`](missions/review-it.md): it evaluates an existing change without fixing
+project code. After the install checks, open a **fresh coding-agent session in the target
+repository**, identify a PR with a non-empty diff, and supply the issue or spec it implements.
+Replace the values in this example and paste it into the agent prompt:
 
-```
-review this PR: is it ready to merge?
+```text
+review this PR: <PR URL>
+Use <issue URL or spec path> as the acceptance criteria.
+Return a SHA-bound GO/NO-GO verdict with findings grouped by review axis.
 ```
 
 What happens, in order:
@@ -150,8 +157,13 @@ What happens, in order:
    data migration) dispatch only if the diff triggers them.
 3. Findings that cannot quote the exact line that motivated them drop to an appendix — that one
    rule removes most of the false positives you have seen from single-agent reviews.
-4. You get a GO / NO-GO verdict bound to the reviewed SHA. Any Critical finding defaults the
-   verdict to NO-GO.
+4. You get a GO / NO-GO verdict bound to the reviewed SHA. Any Critical or Required finding
+   defaults the verdict to NO-GO. A later content-changing push needs a fresh review.
+
+Check the result for the reviewed commit, all three acceptance axes, the reasons risk lenses
+ran or were skipped, and the quoted evidence behind each finding. `GO` is the review's outcome;
+the PR's checks, review requirements and merge decision still apply. The native worker profile
+and completion hook have the [documented advisory boundary](verify-gate.md#trust-boundary).
 
 The first thing the coordinator writes, before any dispatch, is the ledger header. This one is
 real, from the run [Anatomy of a run](guides/anatomy-of-a-run.md) walks:
@@ -178,8 +190,10 @@ Pick something real but small — a feature you could build by hand in an aftern
 Claude Code session opened in that repo, type:
 
 ```
-ship this: add a /healthz endpoint that reports version and DB connectivity,
-with tests, and stop at the promotion PR
+ship this: add GET /healthz through the existing router.
+Return version and DB connectivity, with 503 when the database is unavailable.
+Test both responses using the project's integration-test command.
+Stop at the promotion PR.
 ```
 
 The run in phases (the full tour is in [the ship-it guide](missions/ship-it.md)):
@@ -332,6 +346,10 @@ anchors. Rules of thumb from them:
   run, which is why the ledger, not the scrollback, is its memory.
 
 ## Troubleshooting
+
+The [troubleshooting guide](troubleshooting.md) gives concrete checks for installation, missing
+skills, completion hooks, baseline failures and blocked PRs. The frequent first-run cases are
+summarized here.
 
 **"BASE is the default branch" and the run refuses to start.** Working as intended — fixes must
 not land straight on production. Let the mission create its integration branch, or pass one that

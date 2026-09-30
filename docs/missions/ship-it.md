@@ -1,5 +1,7 @@
 # 🚢 ship-it — intent or spec → a released, verified outcome
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — coordinator plus parallel isolated builders and build-blind reviewers; you own the one-way doors (freeze, promotion, deploy).
 > **Activation load:** ~33,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 17% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — it ran ([self-run report](../runs/2026-08-28-ship-it-self-run.md),
@@ -29,6 +31,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. One worker playbook pack per worker (mattpocock/skills for grill/tdd, addyosmani for build/verify, gstack for review-army/ship) — never two routers in one worker. Deploy tooling + canary surface for the RELEASED/DEPLOYED states.
+
+## What to provide
+
+- A bounded goal or spec, acceptance criteria and the behavior to preserve.
+- The project's baseline test command and the real entry point used to verify the feature.
+- The highest authorized stop point: build, promotion PR, release or verified deployment.
 
 ## What it does
 

@@ -1,5 +1,7 @@
 # 🤝 oss-contribute — landed contributions to a repo you do not control
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel builders per upstream issue; the maintainer's merge is a gate the fleet neither owns nor fakes.
 > **Activation load:** ~33,900 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 17% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — it ran ([external-run report](../runs/2026-07-16-oss-contribute-external-run.md)), but that run's
@@ -30,6 +32,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh, a FORK you can push to, and READ on the upstream repo. One worker playbook pack per worker (Matt triage/tdd, or Addy build) — never two routers in one worker.
+
+## What to provide
+
+- The upstream repository, selected issues and a fork with contribution access.
+- Upstream contribution rules, supported test commands and known overlapping PRs.
+- Signing/DCO requirements and the identity that will answer maintainer feedback.
 
 ## What it does
 

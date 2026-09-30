@@ -1,10 +1,49 @@
 # Runtime scripts and operator config — reference
 
-The operator-facing CLIs under `runtime/scripts/` and the JSON registries under
-`runtime/` that had no guide entry: what each is, its usage, flags, and exits.
+[Documentation](README.md) · [Local development](development.md) · [Completion gate](verify-gate.md)
+
+Use this page to find the helper behind an operation, then check its usage, flags and exits.
+The helpers live in `runtime/scripts/`; operator registries live in `runtime/`.
 Every section anchors to its source file (read the implementation, not this page,
 when they disagree) and to the test that pins its behavior. Claim-checked by
 `docs/runs/campaign-2026-09-16-document-it/extractor/claimcheck.py`.
+
+Paths below are relative to the catalog clone. A helper that operates on a project must
+run with that project's working directory or its documented repository argument; a relative
+manifest or ledger path resolves in the invocation's working directory. Read the individual
+helper's defaults before running it. For catalog-only checks, use [Development](development.md).
+
+## Find a helper
+
+The verification tools have dedicated guides; start there for the required inputs and trust
+boundary rather than assembling a gate command from its flags alone.
+
+| I need to… | Helper | Guide |
+|---|---|---|
+| Check a run's base and dependencies | [`preflight.py`](../runtime/scripts/preflight.py) | [BASE in the glossary](concepts.md#glossary), plus the helper's usage header |
+| Record a test or verifier command in a manifest | [`evidence-run.py`](../runtime/scripts/evidence-run.py) | [Run submission, step by step](run-submission-guide.md#step-by-step) |
+| Verify a unit's evidence | [`verify.py`](../runtime/scripts/verify.py) | [Gate inputs](verify-gate.md#native-path--plugin-hooks-set-claude_plugin_root) and [manifest policy](../runtime/evidence-manifest.md) |
+| Connect verification to completion events | [`verify-gate.sh`](../runtime/scripts/verify-gate.sh) | [Install paths](verify-gate.md#install-paths-and-which-ones-carry-the-gate) |
+| Sign a coordinator-owned dispatch | [`dispatch-sign.py`](../runtime/scripts/dispatch-sign.py) | [Signed dispatch](verify-gate.md#signed-dispatch--what-it-binds-and-where-the-key-comes-from-135) |
+| Write or check an artifact inventory | [`inventory.py`](../runtime/scripts/inventory.py) | [Run submission](run-submission-guide.md#step-by-step); recheck history at the report's named commit |
+| Check whether a run report binds | [`run_report.py`](../runtime/scripts/run_report.py) | [What binding means](run-submission-guide.md#what-binding-means) |
+| Read the catalog's proof tiers | [`proof_status.py`](../runtime/scripts/proof_status.py) | [Proof status](concepts.md#proof-status) |
+
+The remaining reference sections cover:
+
+- **Messages and human decisions:** [check/reply](#check_replypy), [inbox parsing](#pmpy),
+  [sending](#send_msgpy), [decision log](#decisionspy), [human asks](#hitl_askpy),
+  [ask/reply loop](#hitl-looptemplatesh), [gate batches](#gate-batchpy),
+  [one-way door registry](#one-way-doorsjson).
+- **Workers and workspace operations:** [spawn](#spawn_workersh), [workers](#worker_opspy),
+  [tasks](#task_opspy), [terminals](#terminal_opspy), [worktrees](#worktree_opspy),
+  [working-tree fingerprints](#wtreesh), [session search](#search_sessionspy).
+- **Guards and sandbox checks:** [tool guard](#deny-hooksh), [visible-text guard](#guard_textpy),
+  [change scope](#diff_scopepy), [quality floor](#floor_guardpy), [sandbox doctor](#sandbox_doctorpy),
+  [egress receipts](#egresspy).
+- **Runtime compatibility and liveness:** [CLI adapter](#orca_clipy), [upstream probe](#upstream_probepy),
+  [watchdog](#watchdogpy), [watchdog registry](#watchdogjson).
+- **Signing primitive:** [Ed25519 library](#ed25519py).
 
 ## `check_reply.py`
 

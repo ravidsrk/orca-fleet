@@ -1,15 +1,47 @@
 # Mission guides
 
+[Documentation](../README.md) · [First run](../getting-started.md) · [Prompt recipes](../recipes.md)
+
 One deep-dive per mission: what it does, when to reach for it (and when not to), the pipeline
 with its phases, terminal states, human gates, convergence proof, and the failure modes it is
 built to prevent. The agent-facing contracts live in [`skills/`](../../skills/); these pages are
 for the human deciding what to run and what to expect.
 
+## Choose by task
+
+Pick the outcome you need. The guides below explain inputs, tooling, approvals and terminal
+states. Their **Proof** callout shows the mission's retained evidence tier.
+
+| Developer task | Start with | Use the neighboring mission when… |
+|---|---|---|
+| Build a feature with testable acceptance criteria | [ship-it](ship-it.md) | Use [map-it](map-it.md) while the scope or decisions are still unclear |
+| Fix a finite audit or issue backlog | [clean-sweep](clean-sweep.md) | Use [oss-contribute](oss-contribute.md) when you cannot merge upstream |
+| Assess an existing PR | [review-it](review-it.md) | Use [clean-sweep](clean-sweep.md) to implement known findings |
+| Explain one hard failure | [root-cause](root-cause.md) | Use [deflake-it](deflake-it.md) to eradicate flakes across a suite |
+| Make tests detect real regressions | [prove-it](prove-it.md) | Use [floor-it](floor-it.md) to establish and enforce the overall quality bar |
+| Refactor without changing behavior | [reshape-it](reshape-it.md) | Use [modernize-it](modernize-it.md) for dependency or framework upgrades |
+| Change persistent schema or data | [migrate-it](migrate-it.md) | Use [ship-it](ship-it.md) for feature work without a stateful migration |
+| Close the security audit loop | [harden-it](harden-it.md) | Use [review-it](review-it.md) for a bounded security lens on one diff |
+| Meet a measured performance budget | [speed-it](speed-it.md) | Use [field-test-it](field-test-it.md) to reproduce a defect on its target device |
+| Improve accessibility on defined pages or flows | [access-it](access-it.md) | Manual criteria still need the named assistive-technology reviewer |
+| Add telemetry, alerts and runbooks | [oncall-it](oncall-it.md) | Use [root-cause](root-cause.md) to diagnose an incident already happening |
+| Fill missing public documentation | [document-it](document-it.md) | Use [clean-sweep](clean-sweep.md) for existing false claims |
+| Drain incoming contributor PRs | [absorb-it](absorb-it.md) | Use [review-it](review-it.md) for a verdict on one PR |
+| Collect conformance evidence | [attest-it](attest-it.md) | Use [harden-it](harden-it.md) for exploit, fix and re-attack work |
+| Provision a cloud workspace recipe | [offload-it](offload-it.md) | An existing recipe's worker placement is runtime administration |
+| Recheck runtime doctrine after Orca changes | [pin-it](pin-it.md) | Use [modernize-it](modernize-it.md) for dependencies in your application |
+
+Start with one bounded outcome. When several missions are needed, declare a
+[sequential chain](../concepts.md#chaining-missions) and its allowed terminal states before
+starting. A parked result names work still owed; it does not count as the clean terminal.
+
+## All mission guides
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/diagrams/mission-map.jpg">
     <source media="(prefers-color-scheme: light)" srcset="../../assets/diagrams/mission-map-light.jpg">
-    <img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, absorb-it, harden-it, speed-it, modernize-it, migrate-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, oncall-it, document-it, or field-test-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="820">
+    <img src="../../assets/diagrams/mission-map-light.jpg" alt="Decision map: a goal to build routes to map-it then ship-it; known problems route to clean-sweep, oss-contribute, absorb-it, harden-it, speed-it, modernize-it, migrate-it, prove-it, deflake-it, floor-it, reshape-it, attest-it, access-it, oncall-it, document-it, field-test-it, or offload-it; a question routes to review-it or root-cause; drifted tooling routes to pin-it" width="820">
   </picture>
 </p>
 

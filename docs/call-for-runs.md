@@ -1,5 +1,7 @@
 # Call for runs
 
+[Documentation](README.md) · [Submission guide](run-submission-guide.md) · [Run archive](runs/README.md)
+
 Every mission listed below stands at `doctrine-only`: its doctrine is
 written, and no run has yet been bound to evidence the checker can
 re-derive (the missions that have earned a tier are absent from the list,
