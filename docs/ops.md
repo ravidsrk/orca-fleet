@@ -218,6 +218,16 @@ force-pushes it to the `dist` branch, the target copy installers point at
    **paused**: activate it in Codex Automations before relying on scheduled checks. It
    uses [`scripts/external-ci-monitor.py`](../scripts/external-ci-monitor.py), installed
    at `~/.codex/automations/orca-fleet-external-ci-monitor/external-ci-monitor.py`, and
+   must be refreshed from a trusted, updated `main` checkout before activation and
+   after any poller change. From that checkout, copy, compare, then query the installed copy:
+
+   ```sh
+   mkdir -p "$HOME/.codex/automations/orca-fleet-external-ci-monitor"
+   cp scripts/external-ci-monitor.py "$HOME/.codex/automations/orca-fleet-external-ci-monitor/external-ci-monitor.py"
+   cmp scripts/external-ci-monitor.py "$HOME/.codex/automations/orca-fleet-external-ci-monitor/external-ci-monitor.py" && python3 "$HOME/.codex/automations/orca-fleet-external-ci-monitor/external-ci-monitor.py"
+   ```
+
+   Record the matching script hash and result when refreshing. The heartbeat
    alerts in this chat, with a durable `ci-failure` issue when the GitHub API is reachable.
    It treats an absent run, a non-`success` conclusion, a success at least 24 hours old,
    and a failed API/authentication check as unhealthy. Healthy or unchanged results stay

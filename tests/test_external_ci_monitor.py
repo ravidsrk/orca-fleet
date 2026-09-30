@@ -38,7 +38,10 @@ class HealthVerdicts(unittest.TestCase):
 
     def test_malformed_completed_run_cannot_be_green(self):
         for change in ({'updatedAt': None}, {'updatedAt': 'yesterday'}, {'updatedAt': '2026-09-30T10:00:00'},
-                       {'updatedAt': '2026-10-01T10:00:00Z'}, {'conclusion': None}):
+                       {'updatedAt': '2026-10-01T10:00:00Z'}, {'conclusion': None},
+                       {'headSha': None}, {'headSha': 'invalid'}, {'url': None},
+                       {'url': 'https://github.com/example/repo/actions/runs/8'},
+                       {'databaseId': None}, {'databaseId': True}, {'databaseId': 0}):
             with self.subTest(change=change), self.assertRaises((ValueError, TypeError)):
                 monitor.assess({**run(), **change}, NOW)
 
@@ -74,13 +77,18 @@ class GitHubReader(unittest.TestCase):
         self.assertNotIn('private response', str(error.exception))
 
     def test_exit_contract_and_authentication_failure(self):
-        for value, expected in ((run(),0), (run('failure'),1), (None,1)):
+        for value, expected in ((run(),0), (run('failure'),1), (None,1),
+                                ({**run(), 'headSha': None},2), ({**run(), 'url': None},2),
+                                ({**run(), 'databaseId': None},2)):
             with self.subTest(expected=expected), patch.object(monitor,'fetch_run',return_value=value), contextlib.redirect_stdout(io.StringIO()) as output:
                 # Wall clock is later than the fixed fixture; recent success needs a current date.
                 if value is not None:
                     value['updatedAt'] = dt.datetime.now(dt.timezone.utc).isoformat()
                 self.assertEqual(monitor.main([]), expected)
-                self.assertIn('status', json.loads(output.getvalue()))
+                result = json.loads(output.getvalue())
+                self.assertIn('status', result)
+                if expected == 2:
+                    self.assertEqual(result['status'], 'monitor-error')
         for error in (OSError(), RuntimeError(), subprocess.TimeoutExpired('gh',45), ValueError()):
             with self.subTest(error=type(error)), patch.object(monitor,'fetch_run',side_effect=error), contextlib.redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(monitor.main([]),2)
