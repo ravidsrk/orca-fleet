@@ -1,0 +1,18 @@
+test_historical_witnesses_and_citations_survive (tests.test_release_status_docs.DispatchLifecycleNamesTheCurrentPin.test_historical_witnesses_and_citations_survive) ... ok
+test_live_probe_section_names_the_pinned_version_and_its_witness (tests.test_release_status_docs.DispatchLifecycleNamesTheCurrentPin.test_live_probe_section_names_the_pinned_version_and_its_witness) ... ok
+test_no_other_version_is_called_live_or_current (tests.test_release_status_docs.DispatchLifecycleNamesTheCurrentPin.test_no_other_version_is_called_live_or_current) ... ok
+test_parked_live_probes_survive (tests.test_release_status_docs.DispatchLifecycleNamesTheCurrentPin.test_parked_live_probes_survive) ... ok
+test_exact_cut_authorization_rule_is_intact (tests.test_release_status_docs.OpsRollbackNamesThePublishingWorkflows.test_exact_cut_authorization_rule_is_intact) ... ok
+test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (tests.test_release_status_docs.OpsRollbackNamesThePublishingWorkflows.test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent) ... ok
+test_rollback_does_not_claim_a_closed_workflow_list (tests.test_release_status_docs.OpsRollbackNamesThePublishingWorkflows.test_rollback_does_not_claim_a_closed_workflow_list) ... ok
+test_rollback_separates_merge_from_publication (tests.test_release_status_docs.OpsRollbackNamesThePublishingWorkflows.test_rollback_separates_merge_from_publication) ... ok
+test_the_repo_really_has_publishing_workflows (tests.test_release_status_docs.OpsRollbackNamesThePublishingWorkflows.test_the_repo_really_has_publishing_workflows) ... ok
+test_keeps_the_historical_review_pointer (tests.test_release_status_docs.TodosPointsAtTheFiledReadinessIssues.test_keeps_the_historical_review_pointer) ... ok
+test_links_the_live_label_query_and_the_filed_range (tests.test_release_status_docs.TodosPointsAtTheFiledReadinessIssues.test_links_the_live_label_query_and_the_filed_range) ... ok
+test_names_the_open_findings_and_the_epic_as_links (tests.test_release_status_docs.TodosPointsAtTheFiledReadinessIssues.test_names_the_open_findings_and_the_epic_as_links) ... ok
+test_no_claim_that_nothing_was_filed (tests.test_release_status_docs.TodosPointsAtTheFiledReadinessIssues.test_no_claim_that_nothing_was_filed) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.003s
+
+OK

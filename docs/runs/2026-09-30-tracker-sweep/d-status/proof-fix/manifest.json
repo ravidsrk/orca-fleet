@@ -1,0 +1,155 @@
+{
+  "unit": "D-STATUS (proof-fix amendment)",
+  "base_sha": "e65b8c66990eca9280422a28b28d6e097869e27c",
+  "base_tree": "0412bad80944259a8b451ab8ec85cd5d36c7a2d0",
+  "head_sha": "e461403b5c278cd243db39afb62ae179849f5bab",
+  "head_tree": "996248fe09181fc5ec274b5af0383098751c937b",
+  "scope": {
+    "source": "scope-amendment.txt (byte copy of /tmp/orca-fleet-sweep-20260930/dstatus-proof-fix-spec.txt)",
+    "digest": "sha256:803d79afd34b186a975165e7fd89eb4338face3704f513c3df1c85fc62b26780",
+    "contract_unchanged": "../contract.json sha256:6903dee998aa2d04d6f61a134f0526fc5936414282a03884f940a266303549b6"
+  },
+  "findings": [
+    "S4c",
+    "S5c",
+    "S3b",
+    "S6f",
+    "S1b"
+  ],
+  "source_report": "/tmp/orca-fleet-sweep-20260930/review-test-adequacy.md",
+  "changed_paths": [
+    "tests/test_release_status_docs.py",
+    "assets/badges/tests.json"
+  ],
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-30T07:01:02Z",
+      "cmd": "python3 -m unittest tests.test_release_status_docs -v",
+      "cmd_sha256": "fa4d877ad6e74fd7d10d528b782727881c5e670f8ea9f7f63db2a9b691a9c7d4",
+      "exit": 0,
+      "duration_s": 0.036,
+      "commit": "e461403b5c278cd243db39afb62ae179849f5bab",
+      "wtree": "996248fe09181fc5ec274b5af0383098751c937b",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/rec-focused.txt",
+      "artifact_sha256": "0a22374c4137b771abbc96b3acecc51b833c072c5b4a2313a7811e3e724fbb83"
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-30T07:01:04Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 1.53,
+      "commit": "e461403b5c278cd243db39afb62ae179849f5bab",
+      "wtree": "996248fe09181fc5ec274b5af0383098751c937b",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/rec-validate.txt",
+      "artifact_sha256": "1c2f37da6c969d3ee97ea3eed705e9b2914d273ba38fa6ef23bebbd30e4b7e0e"
+    },
+    {
+      "label": "badges",
+      "ts": "2026-09-30T07:01:04Z",
+      "cmd": "python3 scripts/gen-badges.py --check",
+      "cmd_sha256": "52ff19de26b8308c3900870d73647bbbf3c5593a798bf578f394d4b343d90481",
+      "exit": 0,
+      "duration_s": 0.245,
+      "commit": "e461403b5c278cd243db39afb62ae179849f5bab",
+      "wtree": "996248fe09181fc5ec274b5af0383098751c937b",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/rec-badges.txt",
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "suite-shard-1-of-4",
+      "cmd": "env -u ORCA_TERMINAL_HANDLE python3 scripts/shard-tests.py --shard 1 --of 4",
+      "exit": 0,
+      "commit": "e65b8c66990eca9280422a28b28d6e097869e27c (uncommitted worktree)",
+      "wtree_note": "run before the content commit on worktree content that became e461403b5c278cd243db39afb62ae179849f5bab unchanged (git status clean right after the commit); not wrapped by evidence-run.py",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/shard-1.txt",
+      "artifact_sha256": "c334325d1b49debabae1fe40fd16c5d04b213bc492fec8d6cb3177a6db4922cf"
+    },
+    {
+      "label": "suite-shard-2-of-4",
+      "cmd": "env -u ORCA_TERMINAL_HANDLE python3 scripts/shard-tests.py --shard 2 --of 4",
+      "exit": 0,
+      "commit": "e65b8c66990eca9280422a28b28d6e097869e27c (uncommitted worktree)",
+      "wtree_note": "run before the content commit on worktree content that became e461403b5c278cd243db39afb62ae179849f5bab unchanged (git status clean right after the commit); not wrapped by evidence-run.py",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/shard-2.txt",
+      "artifact_sha256": "d50f24cbd0f9d250d68fdc10e7164cb14311ed7216cda5d91408cf6ccd3be2d7"
+    },
+    {
+      "label": "suite-shard-3-of-4",
+      "cmd": "env -u ORCA_TERMINAL_HANDLE python3 scripts/shard-tests.py --shard 3 --of 4",
+      "exit": 0,
+      "commit": "e65b8c66990eca9280422a28b28d6e097869e27c (uncommitted worktree)",
+      "wtree_note": "run before the content commit on worktree content that became e461403b5c278cd243db39afb62ae179849f5bab unchanged (git status clean right after the commit); not wrapped by evidence-run.py",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/shard-3.txt",
+      "artifact_sha256": "c0c34103b2392970371143902f246212e4ee3809f35d874cf56d4a1d0a453c02"
+    },
+    {
+      "label": "suite-shard-4-of-4",
+      "cmd": "env -u ORCA_TERMINAL_HANDLE python3 scripts/shard-tests.py --shard 4 --of 4",
+      "exit": 0,
+      "commit": "e65b8c66990eca9280422a28b28d6e097869e27c (uncommitted worktree)",
+      "wtree_note": "run before the content commit on worktree content that became e461403b5c278cd243db39afb62ae179849f5bab unchanged (git status clean right after the commit); not wrapped by evidence-run.py",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/shard-4.txt",
+      "artifact_sha256": "f8bd5d6f52802f150173572e0bc4e25918df8ee598fb15e2380d1094181defcd"
+    }
+  ],
+  "mutants": [
+    {
+      "label": "before-five",
+      "cmd": "python3 /tmp/orca-fleet-sweep-20260930/proof-fix/harness.py <worktree> e65b8c66 five-mutants.json before-five.txt",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/before-five.txt",
+      "artifact_sha256": "d090bacd9dc64c129c900c49b680bf45c08768a0b0658f80cadd2fac53aaebbc",
+      "result": "5/5 SURVIVED (13 tests OK) — failing-first evidence"
+    },
+    {
+      "label": "after-five",
+      "cmd": "python3 /tmp/orca-fleet-sweep-20260930/proof-fix/harness.py <worktree> e65b8c66 five-mutants.json after-five.txt tests/test_release_status_docs.py",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/after-five.txt",
+      "artifact_sha256": "4455212cb3053b8bf21efaef0654b10d3f7390712fd9bf52ca90b0a49a6c8266",
+      "result": "5/5 KILLED, semantic FAIL each (guarded module overlaid pre-commit)"
+    },
+    {
+      "label": "at-content-five",
+      "cmd": "python3 /tmp/orca-fleet-sweep-20260930/proof-fix/harness.py <worktree> e461403b five-mutants.json at-content-five.txt",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/at-content-five.txt",
+      "artifact_sha256": "b70add192870d2ffff06f5c42c767ef17b4b259b114a06bbc1c4768383d8e4d1",
+      "result": "5/5 KILLED at head_sha"
+    },
+    {
+      "label": "at-content-all25",
+      "cmd": "python3 /tmp/orca-fleet-sweep-20260930/proof-fix/harness.py <worktree> e461403b all25-mutants.json at-content-all25.txt",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/at-content-all25.txt",
+      "artifact_sha256": "d4955962f020cce631268de520bb7fa3ba82b3ef9ea7f4208e787283cf71e029",
+      "result": "25/25 KILLED at head_sha, incl. S1/S3/S6 doc reverts to e7089cbf; 0 ERROR lines"
+    },
+    {
+      "label": "at-content-control",
+      "cmd": "python3 /tmp/orca-fleet-sweep-20260930/proof-fix/harness.py <worktree> e461403b control.json at-content-control.txt",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/proof-fix/at-content-control.txt",
+      "artifact_sha256": "4eab66fd9ccb6528c23e64f37c5cd49ae1234910b4b1daf40673899c069e5789",
+      "result": "unchanged source exit 0 (GREEN, 15 tests OK)"
+    }
+  ],
+  "mutant_specs": {
+    "five-mutants.json": "cc6d30fa6dedb7b6b7d2c43872c622ce5296a23b5ad4bba48accaf42e0cd3992",
+    "all25-mutants.json": "e50285948b0a0ffcbbb34545ae19a25b11543b10608359278d5d4fa2b78083f0",
+    "note": "extracted unchanged from /tmp/orca-fleet-sweep-20260930/review-test-adequacy-evidence/dstatus-mutants.json"
+  },
+  "negative_control": {
+    "tool": "mutation",
+    "did": "the reviewer's five exact survivor mutants plus the other 20 (doc reverts to e7089cbf included) applied to a git-archive copy of head_sha",
+    "result": "every mutant RED on an AssertionError from the guard at its criterion; unchanged head GREEN"
+  },
+  "intent": {
+    "goal": "Make the D-STATUS guards reject the five false paraphrases the test-adequacy review found, without touching the correct product prose.",
+    "ruled_out": "An NLP framework; a hardcoded current pin or a permanent ban on v1.4.217 (pin still derived from runtime/pins.json); editing TODOS.md, docs/ops.md or runtime/dispatch-lifecycle.md; a new test module or shard weight.",
+    "why": "String-presence checks let paraphrases of the stale claims pass; negation-aware sentence checks, positive pins of the immutable-tag and no-installed-monitor statements, and wider current-pin phrasings close them."
+  },
+  "lighting": "lit",
+  "history": "../manifest.json and the receipts beside it stay as recorded at 8b9627a0; nothing there is reassigned to head_sha.",
+  "claim": "Proof-fix BUILT at e461403b; pending the coordinator's exact-report-tip gates, the three review axes and an independent GitHub approval. Not verified-CLOSED.",
+  "reviewer_mode": "same-vendor-fresh",
+  "toolchain": "python 3.13.15 (darwin)"
+}

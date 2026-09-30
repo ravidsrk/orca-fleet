@@ -79,6 +79,7 @@ WEIGHTS = {
     "test_preflight": 7.1,
     "test_proof_status": 0.1,
     "test_release_check": 12.5,
+    "test_release_status_docs": 0.1,
     "test_repo_hygiene": 0.4,
     "test_reshape_net_validate": 0.1,
     "test_reshape_net_verify": 0.1,
