@@ -1,0 +1,239 @@
+# 2026-09-30T09:58:22Z — CF-02b plugin install on a clean Ubuntu container
+# HOME=/home/witness; fresh ubuntu:24.04 container, Python 3.12.3, Claude Code 2.1.285.
+# Prepared from the official Ubuntu image and official claude.ai installer; no host
+# Claude settings, credentials, skills, plugins or repository mounted/copied in.
+# Operator: Codex on behalf of ravidsrk; this is a maintainer install witness,
+# not an independent external mission run. Orca is absent.
+
+$ date -u +%Y-%m-%dT%H:%M:%SZ; uname -a; /home/witness/.local/bin/claude --version; python3 --version; ls -la /home/witness/.claude/skills; ls -la /home/witness/.claude/plugins; command -v orca || true; /home/witness/.local/bin/claude plugin marketplace add ravidsrk/orca-fleet
+2026-09-30T09:58:22Z
+Linux 68f4efcfed24 7.0.14-orbstack-00380-ga7e0a2dc9535 #1 SMP PREEMPT Fri Aug  7 03:48:40 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+2.1.285 (Claude Code)
+Python 3.12.3
+ls: cannot access '/home/witness/.claude/skills': No such file or directory
+ls: cannot access '/home/witness/.claude/plugins': No such file or directory
+Adding marketplace…SSH not configured, cloning via HTTPS: https://github.com/ravidsrk/orca-fleet.git
+Refreshing marketplace cache (timeout: 120s)…
+Cloning repository (timeout: 120s): https://github.com/ravidsrk/orca-fleet.git
+Clone complete, validating marketplace…
+Cleaning up old marketplace cache…
+✔ Successfully added marketplace: orca-fleet (declared in user settings)
+
+exit=0 (composite shell command; missing initial directories are shown above)
+
+$ date -u +%Y-%m-%dT%H:%M:%SZ
+2026-09-30T09:59:55Z
+
+exit=0
+
+$ cat /etc/os-release
+PRETTY_NAME="Ubuntu 24.04.4 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.4 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+
+exit=0
+
+$ /home/witness/.local/bin/claude plugin install orca-fleet@orca-fleet
+Installing plugin "orca-fleet@orca-fleet"...✔ Successfully installed plugin: orca-fleet@orca-fleet (scope: user)
+
+exit=0
+
+$ /home/witness/.local/bin/claude plugin list --json
+[
+  {
+    "id": "orca-fleet@orca-fleet",
+    "version": "0.7.0",
+    "scope": "user",
+    "enabled": true,
+    "installPath": "/home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0",
+    "installedAt": "2026-09-30T09:59:57.054Z",
+    "lastUpdated": "2026-09-30T09:59:57.054Z",
+    "projectEnabled": true
+  }
+]
+
+exit=0
+
+$ /home/witness/.local/bin/claude plugin details orca-fleet@orca-fleet --json
+error: unknown option '--json'
+
+exit=1
+
+$ /home/witness/.local/bin/claude plugin details orca-fleet@orca-fleet
+orca-fleet 0.7.0
+  Description: Outcome-named autonomous fleets for the Orca runtime: each mission is one outcome with its own state machine and an evidence-backed definition of done. One router per worker. No vendor-named fleets. MIT.
+  Source: orca-fleet@orca-fleet
+
+Component inventory
+  Skills (22)  absorb-it, access-it, attest-it, clean-sweep, deflake-it, document-it, field-test-it, floor-it, harden-it, map-it, migrate-it, modernize-it, offload-it, oncall-it, oss-contribute, pin-it, prove-it, reshape-it, review-it, root-cause, ship-it, speed-it
+  Agents (0)
+  Hooks (2)  TaskCompleted, Stop  (harness-only — no model context cost)
+  MCP servers (0)
+  LSP servers (0)
+
+Projected token cost
+  Always-on:   ~4,556 tok   added to every session
+
+Per-component (rounded)
+  component       always-on  on-invoke
+  absorb-it            ~220      ~1.9k
+  access-it            ~230      ~1.5k
+  attest-it            ~180      ~1.4k
+  clean-sweep          ~260      ~1.9k
+  deflake-it           ~160      ~1.3k
+  document-it          ~220      ~1.6k
+  field-test-it        ~210        ~2k
+  floor-it             ~230        ~2k
+  harden-it            ~200      ~1.2k
+  map-it               ~160      ~1.3k
+  migrate-it           ~240      ~1.8k
+  modernize-it         ~190      ~1.5k
+  offload-it           ~200      ~1.5k
+  oncall-it            ~230      ~1.7k
+  oss-contribute       ~230      ~1.9k
+  pin-it               ~210      ~2.1k
+  prove-it             ~240       ~950
+  reshape-it           ~220      ~1.9k
+  review-it            ~200        ~1k
+  root-cause           ~180      ~1.1k
+  ship-it              ~200      ~1.9k
+  speed-it             ~160      ~1.4k
+
+  On-invoke cost is paid each time a skill or agent fires.
+  Token counts are estimates and may differ from actual usage.
+
+exit=0
+
+$ bash -c find /home/witness/.claude/plugins/cache -name plugin.json -path "*orca-fleet*"; du -sh /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0; git -C /home/witness/.claude/plugins/marketplaces/orca-fleet rev-parse HEAD; grep -n CLAUDE_PLUGIN_ROOT /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/hooks/hooks.json; test -x /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/runtime/scripts/verify-gate.sh
+/home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/.claude-plugin/plugin.json
+66M	/home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0
+8a5211be39a681b86a872f957dbd21d2db0de181
+10:            "command": "${CLAUDE_PLUGIN_ROOT}/runtime/scripts/verify-gate.sh --event task"
+21:            "command": "${CLAUDE_PLUGIN_ROOT}/runtime/scripts/verify-gate.sh --event stop"
+
+exit=0
+
+$ bash -c cd /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0 && python3 scripts/validate.py
+ok   absorb-it
+ok   access-it
+ok   attest-it
+FAIL clean-sweep
+   - docs/runs/2026-09-14-clean-sweep-self-run.md: RUN: inventory_at=3ea810994b0297e751e348e45264414992abd25c is not a commit in this repository — an unresolvable pin verifies nothing
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+FAIL harden-it
+   - docs/runs/2026-09-21-harden-it-self-run.md: RUN: inventory_at=adc426e2d1cc4c9e96098ff162c4c3062bacba5b is not a commit in this repository — an unresolvable pin verifies nothing
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   offload-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+FAIL prove-it
+   - docs/runs/2026-09-16-prove-it-self-run.md: RUN: inventory_at=4d451d88aaea6a34a082e2724f60f93c03a2212d is not a commit in this repository — an unresolvable pin verifies nothing
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+Validation failed.
+
+exit=1
+
+$ /home/witness/.local/bin/claude -p --verbose --output-format stream-json --include-hook-events which missions are available?
+{"type":"system","subtype":"init","cwd":"/home/witness","session_id":"c4f114dc-6e34-46d0-b972-981be9f08ba0","tools":["Task","Bash","CronCreate","CronDelete","CronList","DesignSync","Edit","EnterWorktree","ExitWorktree","ListAgents","NotebookEdit","Read","ReportFindings","ScheduleWakeup","SendMessage","Skill","TaskStop","ToolSearch","WebFetch","WebSearch","Workflow","Write"],"mcp_servers":[],"model":"claude-opus-5-5","permissionMode":"auto","slash_commands":["deep-research","orca-fleet:absorb-it","orca-fleet:access-it","orca-fleet:attest-it","orca-fleet:clean-sweep","orca-fleet:deflake-it","orca-fleet:document-it","orca-fleet:field-test-it","orca-fleet:floor-it","orca-fleet:harden-it","orca-fleet:map-it","orca-fleet:migrate-it","orca-fleet:modernize-it","orca-fleet:offload-it","orca-fleet:oncall-it","orca-fleet:oss-contribute","orca-fleet:pin-it","orca-fleet:prove-it","orca-fleet:reshape-it","orca-fleet:review-it","orca-fleet:root-cause","orca-fleet:ship-it","orca-fleet:speed-it","design","design-sync","dataviz","update-config","verify","debug","code-review","simplify","batch","fewer-permission-prompts","doctor","loop","claude-api","workflow-authoring","run","run-skill-generator","agents","auto-mode-setup","autocompact","clear","color","compact","config","output-style","context","effort","fast","focus","heapdump","init","mcp","model","__remote-workflow","workflow-launch-exec","reload-plugins","reload-skills","rename","security-review","usage","insights","recap","goal","design-consent","design-revoke","list-agents","team-onboarding"],"terminal_slash_commands":["doctor","color","focus","reload-plugins"],"apiKeySource":"none","claude_code_version":"2.1.285","output_style":"default","agents":["claude","Explore","general-purpose","Plan","statusline-setup"],"skills":["deep-research","orca-fleet:absorb-it","orca-fleet:access-it","orca-fleet:attest-it","orca-fleet:clean-sweep","orca-fleet:deflake-it","orca-fleet:document-it","orca-fleet:field-test-it","orca-fleet:floor-it","orca-fleet:harden-it","orca-fleet:map-it","orca-fleet:migrate-it","orca-fleet:modernize-it","orca-fleet:offload-it","orca-fleet:oncall-it","orca-fleet:oss-contribute","orca-fleet:pin-it","orca-fleet:prove-it","orca-fleet:reshape-it","orca-fleet:review-it","orca-fleet:root-cause","orca-fleet:ship-it","orca-fleet:speed-it","design","design-sync","dataviz","update-config","verify","debug","code-review","simplify","batch","fewer-permission-prompts","doctor","loop","claude-api","workflow-authoring","run","run-skill-generator"],"plugins":[{"name":"orca-fleet","path":"/home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0","source":"orca-fleet@orca-fleet","version":"0.7.0"},{"name":"cc-plugin-agents-md","path":"builtin","source":"cc-plugin-agents-md@builtin"},{"name":"cc-plugin-telemetry","path":"builtin","source":"cc-plugin-telemetry@builtin"}],"capabilities":["interrupt_receipt_v1","interrupt_cancel_queued_v1","msg_lifecycle_v1","mcp_read_resource_v1","mcp_tool_ui_meta_v1"],"analytics_disabled":false,"product_feedback_disabled":false,"uuid":"3715552c-93b0-41b7-9144-87e95b451c0d","memory_paths":{"auto":"/home/witness/.claude/projects/-home-witness/memory/"},"messaging_socket_path":"/tmp/cc-socks/3273.sock","fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","per_turn_effort_active":true,"view_mode":"default"}
+{"type":"assistant","message":{"diagnostics":null,"id":"6ad96e28-956e-45e7-bef8-c4f524692be9","container":null,"model":"<synthetic>","role":"assistant","stop_details":null,"stop_reason":"stop_sequence","stop_sequence":"","type":"message","usage":{"output_tokens_details":null,"input_tokens":0,"output_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":null,"cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":null,"iterations":null,"speed":null,"fallback_credit":null},"content":[{"type":"text","text":"Not logged in · Please run /login"}],"context_management":null},"parent_tool_use_id":null,"session_id":"c4f114dc-6e34-46d0-b972-981be9f08ba0","uuid":"cac9e720-a12e-4ef2-8c3b-dd931c92676b","timestamp":"2026-09-30T10:02:01.168Z","error":"authentication_failed","is_api_error_message":true}
+{"duration_api_ms":0,"stop_reason":"stop_sequence","session_id":"c4f114dc-6e34-46d0-b972-981be9f08ba0","total_cost_usd":0,"usage":{"output_tokens_details":{"thinking_tokens":0},"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":"","iterations":[],"speed":"standard","fallback_credit":null},"modelUsage":{},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","subagent_stats":{"spawned":0,"requested":{"background":0,"foreground":0,"unset":0},"started_in_background":0,"max_depth":0,"spawned_by_subagents":0,"completed":0,"failed":0,"killed":{"parent":0,"user":0,"system":0},"refused":{"depth_limit":0,"concurrency_limit":0,"budget":0},"by_type":{}},"is_error":true,"num_turns":1,"subtype":"success","api_error_status":null,"result":"Not logged in · Please run /login","type":"result","duration_ms":56,"uuid":"62948ca7-ad0e-4389-84c3-36733a1d5204","queued_turn_count":0,"result_index":0}
+
+exit=1
+
+
+$ git -C /home/witness/.claude/plugins/marketplaces/orca-fleet fetch --unshallow --tags origin && cd /home/witness/.claude/plugins/marketplaces/orca-fleet && python3 scripts/validate.py
+From https://github.com/ravidsrk/orca-fleet
+ * [new tag]           v0.1.0     -> v0.1.0
+ * [new tag]           v0.1.1     -> v0.1.1
+ * [new tag]           v0.2.0     -> v0.2.0
+ * [new tag]           v0.2.1     -> v0.2.1
+ * [new tag]           v0.3.0     -> v0.3.0
+ * [new tag]           v0.4.0     -> v0.4.0
+ * [new tag]           v0.5.0     -> v0.5.0
+ * [new tag]           v0.6.0     -> v0.6.0
+ * [new tag]           v0.6.1     -> v0.6.1
+ok   absorb-it
+ok   access-it
+ok   attest-it
+ok   clean-sweep
+ok   deflake-it
+ok   document-it
+ok   field-test-it
+ok   floor-it
+ok   harden-it
+ok   map-it
+ok   migrate-it
+ok   modernize-it
+ok   offload-it
+ok   oncall-it
+ok   oss-contribute
+ok   pin-it
+ok   prove-it
+ok   reshape-it
+ok   review-it
+ok   root-cause
+ok   ship-it
+ok   speed-it
+
+All 22 missions valid; three-layer separation holds; evals valid.
+
+exit=0
+
+$ python3 /tmp/plugin-fingerprint.py
+# Script executed:
+from pathlib import Path
+import hashlib, subprocess
+cache=Path('/home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0')
+source=Path('/home/witness/.claude/plugins/marketplaces/orca-fleet')
+tracked=subprocess.check_output(['git','-C',str(source),'ls-files','-z']).decode().rstrip('\0').split('\0')
+def fingerprint(root):
+    h=hashlib.sha256()
+    for name in sorted(tracked):
+        p=root/name
+        h.update(name.encode()+b'\0'+hashlib.sha256(p.read_bytes()).hexdigest().encode()+b'\n')
+    return h.hexdigest()
+for label,root in [('cache',cache),('source',source)]:
+    extra=sorted(str(p.relative_to(root)) for p in root.rglob('*') if p.is_file() and '.git' not in p.relative_to(root).parts and str(p.relative_to(root)) not in tracked)
+    print(label+' untracked bookkeeping/generated files:', extra)
+a,b=fingerprint(cache),fingerprint(source)
+print('installed tracked-tree SHA256:',a)
+print('source tracked-tree SHA256:',b)
+assert a==b
+print('all',len(tracked),'tracked paths match commit',subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip())
+
+# Output:
+cache untracked bookkeeping/generated files: ['runtime/scripts/__pycache__/dispatch-sign.cpython-312.pyc', 'runtime/scripts/__pycache__/inventory.cpython-312.pyc', 'runtime/scripts/__pycache__/run_report.cpython-312.pyc', 'scripts/__pycache__/_countlint.cpython-312.pyc', 'scripts/__pycache__/eval.cpython-312.pyc', 'scripts/__pycache__/gen-badges.cpython-312.pyc', 'scripts/__pycache__/validate.cpython-312.pyc']
+source untracked bookkeeping/generated files: ['runtime/scripts/__pycache__/dispatch-sign.cpython-312.pyc', 'runtime/scripts/__pycache__/inventory.cpython-312.pyc', 'runtime/scripts/__pycache__/run_report.cpython-312.pyc', 'scripts/__pycache__/_countlint.cpython-312.pyc', 'scripts/__pycache__/eval.cpython-312.pyc', 'scripts/__pycache__/gen-badges.cpython-312.pyc', 'scripts/__pycache__/validate.cpython-312.pyc']
+installed tracked-tree SHA256: 4fd80f3fa386b476e24b37ae4b428e878089215507789a84ee7b5442e95a207e
+source tracked-tree SHA256: 4fd80f3fa386b476e24b37ae4b428e878089215507789a84ee7b5442e95a207e
+all 2596 tracked paths match commit 8a5211be39a681b86a872f957dbd21d2db0de181
+
+exit=0
+
+Independent parse of Claude's system/init JSON before and after uninstall:
+before uninstall: ["orca-fleet:absorb-it", "orca-fleet:access-it", "orca-fleet:attest-it", "orca-fleet:clean-sweep", "orca-fleet:deflake-it", "orca-fleet:document-it", "orca-fleet:field-test-it", "orca-fleet:floor-it", "orca-fleet:harden-it", "orca-fleet:map-it", "orca-fleet:migrate-it", "orca-fleet:modernize-it", "orca-fleet:offload-it", "orca-fleet:oncall-it", "orca-fleet:oss-contribute", "orca-fleet:pin-it", "orca-fleet:prove-it", "orca-fleet:reshape-it", "orca-fleet:review-it", "orca-fleet:root-cause", "orca-fleet:ship-it", "orca-fleet:speed-it"]
+after uninstall: []
+22 -> 0 mission registrations; no authenticated model turn claimed
+
+result: clean-machine marketplace/plugin install copied all 22 missions and both hook declarations at commit 8a5211be39a681b86a872f957dbd21d2db0de181; all 2596 tracked files fingerprint-match the source, whose full-history validator passes. Claude's inventory reports Stop and TaskCompleted and its session initialization registers all 22 missions. No authenticated model response, Orca mission run, or agent-event invocation of the gate is claimed. The cache validator failure is retained: proof provenance requires Git history, which the plugin cache does not contain.

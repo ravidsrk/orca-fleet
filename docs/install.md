@@ -12,7 +12,7 @@ clone and that target project are separate directories. Running missions has add
 | Path | Use it when | Completion gate | Status |
 |---|---|---|---|
 | [Symlink](#symlink-the-catalog) | You want to evaluate or edit the catalog from a local clone | Merge the settings snippet yourself | Retained clean-install transcript |
-| [Claude Code plugin](#claude-code-plugin) | You want the whole catalog managed as a plugin | Declared by the plugin's hooks | Whole-tree packaging; clean-machine witness still tracked |
+| [Claude Code plugin](#claude-code-plugin) | You want the whole catalog managed as a plugin | Declared by the plugin's hooks | Retained clean-container install and uninstall witness |
 | [Copy installer / bundle](#copy-installers-and-bundles) | An installer copies individual mission directories | Separate wiring required | Repo-root copy install unsupported; bundled-install witness still needed |
 
 ## Symlink the catalog
@@ -81,9 +81,26 @@ then check the reported activation status. Type `/` and look for skills such as
 `/orca-fleet:review-it`. See the upstream [plugin installation guide](https://code.claude.com/docs/en/discover-plugins)
 for host-specific scope and activation behavior.
 
-The [plugin-install witness](completion/PLUGIN-INSTALL-WITNESS.md) distinguishes this packaging
-mechanism from a retained clean-machine execution. Installing the plugin also does not supply
-Orca or the other mission run prerequisites.
+The [clean-container transcript](completion/evidence/CF-02b-plugin-install.txt) records Claude
+Code 2.1.285 installing all 22 missions and discovering `Stop` and `TaskCompleted` hooks on
+Ubuntu 24.04.4. Every tracked file matches the `v0.7.0` cut. The
+[uninstall control](completion/evidence/CF-02b-plugin-uninstall.txt) removes the mission
+registrations and checks the gate blocks a missing manifest. This witnesses packaging and
+registration; it does not claim an authenticated agent turn, an agent event invoking the gate,
+or an Orca mission run. Installing the plugin does not supply the mission run prerequisites.
+
+From your shell, the equivalent native commands are:
+
+```bash
+claude plugin marketplace add ravidsrk/orca-fleet
+claude plugin install orca-fleet@orca-fleet
+claude plugin details orca-fleet@orca-fleet
+```
+
+`details` lists the discovered skills and hook events. Follow the
+[repeatable witness procedure](completion/PLUGIN-INSTALL-WITNESS.md) when recording another
+host. The full catalog validator needs a source clone with Git history: a plugin cache is a
+file copy, so its retained proof reports cannot be re-derived there.
 
 ## Copy installers and bundles
 
@@ -98,8 +115,9 @@ What works today is the symlink path or the plugin install, both above. What mak
 CLI work is a published `dist/` for it to point at. Since #518 the `publish-dist` workflow
 (`.github/workflows/publish-dist.yml`) builds that tree with `scripts/bundle.py` on every `v*` tag
 and force-pushes it to the **`dist` branch** as one orphan commit per tag, with a
-`DIST-PROVENANCE.txt` naming the tag and commit it was built from. The branch appears with the
-first tag pushed after that workflow landed (0.7.0). Point a copy installer at the `dist` branch,
+`DIST-PROVENANCE.txt` naming the tag and commit it was built from. The branch was first populated by
+[`v0.7.0`](https://github.com/ravidsrk/orca-fleet/releases/tag/v0.7.0); its
+[publication run](https://github.com/ravidsrk/orca-fleet/actions/runs/36700658706) succeeded. Point a copy installer at the `dist` branch,
 never at the repo root — and until an install from it has been witnessed and its transcript
 recorded here, the skills CLI stays listed as unsupported
 ([#294](https://github.com/ravidsrk/orca-fleet/issues/294)).
@@ -147,11 +165,15 @@ bundle. If the matching layout check fails, reinstall from the symlink or plugin
 or from a bundled tree whose install has been verified. The
 symlink path is verified to preserve them
 ([`docs/completion/evidence/CF-02-r2-happy-symlink-install.txt`](completion/evidence/CF-02-r2-happy-symlink-install.txt));
-the plugin path preserves them by construction — the whole repo is copied — but has no recorded
-install transcript yet. The procedure that produces one, for anyone with a clean machine, is
-[the plugin-install witness](completion/PLUGIN-INSTALL-WITNESS.md); its transcript is one of three
-parts of #518, beside the first `v*` tag populating the `dist` branch and the receipt trees under
-`docs/runs/` and `docs/reports/` shrunk or relocated out of the plugin copy.
+the plugin path is witnessed by the [clean-container install](completion/evidence/CF-02b-plugin-install.txt)
+and [uninstall control](completion/evidence/CF-02b-plugin-uninstall.txt).
+
+**Packaging decision (#518):** keep the immutable run/report archives in the source tree:
+mission proof metadata and the run indexes navigate to them, and moving them would break
+retained evidence. The whole-tree plugin measured 66 MiB on this container at the `v0.7.0`
+cut; that is a measured footprint, not a claimed reduction. Use the published self-contained
+`dist` bundles when copying individual missions. A future lean plugin should be a separately
+generated distribution with preserved evidence references, rather than pruning source receipts.
 
 ## Check the install
 

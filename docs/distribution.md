@@ -194,8 +194,12 @@ Shared lead for every listing (the `proof:` framing):
 > Install: `/plugin marketplace add ravidsrk/orca-fleet`
 > Proof: https://github.com/ravidsrk/orca-fleet/tree/main/docs/runs
 
-**anthropics/claude-plugins-official** — use the plugin-directory submission form linked from
-their README's Contributing section. The catalog is already a conforming marketplace repo
+**anthropics/claude-plugins-official** — the [official submission link](https://clau.de/plugin-directory-submission)
+now redirects to [Publish to the directory](https://claude.com/docs/directory/publish)
+(rechecked 2026-09-30). Use the signed-in [developer portal](https://claude.ai/directory/manage),
+choose **Plugin bundle**, and submit the public repository's root folder. The older Console
+submission form is no longer supported. A submission still needs Anthropic's validation,
+security scan and human review before a listing goes live; submission is not approval. The catalog is already a conforming marketplace repo
 (`.claude-plugin/marketplace.json` + `plugin.json` at the root); the entry to offer:
 
 ```json
@@ -204,7 +208,7 @@ their README's Contributing section. The catalog is already a conforming marketp
   "description": "Outcome-named autonomous fleets for the Orca runtime — each mission is one outcome with a SHA-bound, independently re-derived definition of done. Three missions carry binding self-run proof reports.",
   "author": { "name": "Ravindra Kumar", "email": "ravidsrk@gmail.com", "url": "https://github.com/ravidsrk" },
   "category": "development",
-  "source": { "source": "github", "url": "https://github.com/ravidsrk/orca-fleet" },
+  "source": { "source": "github", "repo": "ravidsrk/orca-fleet" },
   "homepage": "https://github.com/ravidsrk/orca-fleet"
 }
 ```
