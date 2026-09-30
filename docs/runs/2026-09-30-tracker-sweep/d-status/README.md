@@ -31,6 +31,12 @@ proof-tier promotion, and a human release grant is still owed.
   outside the tree under `/tmp/orca-fleet-sweep-20260930/build/`; the manifest's `commands[]`
   records each one's path and sha256 (`artifact_external`, `artifact_sha256`).
 
+## Proof-fix amendment
+
+The test-adequacy review found five Required survivors (S4c, S5c, S3b, S6f, S1b). They are killed
+by `e461403b`. Receipt: [`proof-fix/README.md`](proof-fix/README.md). The receipts above stay as
+recorded at `8b9627a0`.
+
 ## Runner notes
 
 - An earlier full `unittest discover` on pre-commit content (before the coordinator's wording
