@@ -1,7 +1,7 @@
 # 2026-09-30T10:02Z — CF-02b plugin uninstall and fail-closed gate control
 # Same clean container and install as CF-02b-plugin-install.txt.
 
-$ bash -c ls /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/playbooks | head -5; ls /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/runtime | head -5; head -4 /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/skills/ship-it/SKILL.md
+$ bash -c 'ls /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/playbooks | head -5; ls /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/runtime | head -5; head -4 /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/skills/ship-it/SKILL.md'
 acceptance-review.md
 agent-brief.md
 browser-drive.md
@@ -19,7 +19,7 @@ description: >-
 
 exit=0
 
-$ bash -c ORCA_MANIFEST=/nonexistent.json /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/runtime/scripts/verify-gate.sh --event stop
+$ bash -c 'ORCA_MANIFEST=/nonexistent.json /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/runtime/scripts/verify-gate.sh --event stop'
 verify-gate: evidence manifest named but missing: /nonexistent.json — BLOCKING (fail-closed)
 
 exit=2
