@@ -4,7 +4,7 @@ The mechanics of turning a task into a worker, and the hard-won specifics that m
 
 **Anti-drift rule:** this file describes the CLI the installed binary ships. After any Orca upgrade the mechanics are re-witnessed against `orca skills get
 orchestration` / `orca skills get orca-cli` — but the compact guide is a KERNEL, not the contract: enumerate `orca skills get <topic> --references` and load
-each `--reference <name>` (`--full` prints everything at once; both are current at v1.4.203), because the worker contract, recovery, and legacy-migration rules live only there (`cli/specs/skills.ts:50-56`).
+each `--reference <name>` (`--full` prints everything at once; both witnessed at v1.4.203), because the worker contract, recovery, and legacy-migration rules live only there (`cli/specs/skills.ts:50-56`).
 pin-it owns that loop; hand-editing from memory is how it went stale twice.
 
 ## Worker unit = worktree + agent + fresh terminal (PR-per-unit)
@@ -14,7 +14,7 @@ When BASE is CREATED, record its fork-point SHA (`git rev-parse <default>`) in t
 
 The normal supervised spawn is **`orca orchestration worker-start`** with `--task --worktree --name --agent --setup run --json` (worktree → terminal →
 readiness → dispatch). It exits 0 only when the worker is **ready**, read narrowly: at v1.4.199 that meant the preamble WRITE WAS ACCEPTED, not
-that a turn started (`local-worker-start.ts:263`). **v1.4.200** flipped it to an observed turn-start (`worker-start-readiness-settlement.ts:91-129`), else `outcome_unknown`; **v1.4.203 — the live PIN (`runtime/pins.json`, `docs/runs/2026-09-16-pin-it-416`)** — keeps it, and the top-level contract is unchanged, so v5 already branches right (#302).
+that a turn started (`local-worker-start.ts:263`). **v1.4.200** flipped it to an observed turn-start (`worker-start-readiness-settlement.ts:91-129`), else `outcome_unknown`; **v1.4.203 (pinned then, `docs/runs/2026-09-16-pin-it-416`) and the current pin v1.4.215 (pin-it-500 P01/P02/P38)** keep it, and the top-level contract is unchanged, so v5 already branches right (#302).
 
 The receipt carries more than the flat four: `runId, taskId, dispatchId, state, stage, setup, launch{requested,effective}, mode, effects[],
 residualResources[]`, and on a bad start `failedStage, lastError, recovery, nextCommands` (`worker-start-receipt.ts:42-69`). The agent terminal is the
@@ -71,7 +71,7 @@ one worker per axis — never by a reviewer worker fanning out its own.
 Operational specifics: a worktree id is the composite `<repoId>::<worktreePath>` returned by `worktree create --json` — pass `path:/abs/worktree/path`
 (unambiguous) or that full id, never the bare repo id. The CLI is `orca-ide` on Linux (`bundled-cli-launcher-path.ts:4`; upstream's shared CLI-resolution stub under `skill-stubs/_shared`, lines 12-14, says why: bare `orca` there is the GNOME screen reader) — every fleet script resolves the name through `runtime/scripts/orca_cli.py` (#510), never spells it. After an accepted `worker_done`, run **`worker-release --dispatch <id>`** (Orca preserves inspectable output, then closes only the exact
 agent terminal that dispatch owned) — or `worker-retain` at the user's explicit request. Its exit contract: `retained`, `release_pending`, and
-`already_released` all exit 0 (it is idempotent); an unknown dispatch exits 1 (`dispatch_not_found`, witnessed at v1.4.204, re-verified CURRENT at v1.4.209) and needs the receipt's own recovery action
+`already_released` all exit 0 (it is idempotent); an unknown dispatch exits 1 (`dispatch_not_found`, witnessed at v1.4.204, re-verified at v1.4.209 and v1.4.215) and needs the receipt's own recovery action
 (`orchestration-worker-specs.ts:101`). The pane that outlived its `worker_done` under a new handle (the old dual-writer class) is now fenced by the runtime at
 settlement; release is still the fleet's hygiene step — never on a timeout, TUI-idle, or a heartbeat gap (those are liveness questions, liveness-resume.md,
 not completion).
@@ -151,6 +151,6 @@ ledger it as a leak, never force it.
 
 ## Live probes owed (pin-it)
 
-The live PIN is v1.4.209 (`docs/runs/2026-09-23-pin-it-488.md` — witnessed against the release bundle; the on-PATH app update is owed, `pins.json` `witness_binary`/`onpath_at_witness` carry the divergence). The 1.4.204 pin before it is `docs/runs/2026-09-20-pin-it-427.md`. Every probe the 1.4.203 session parked
+The live PIN is v1.4.215 (`docs/runs/2026-09-28-pin-it-500.md` — witnessed against the release bundle while the on-PATH app lagged at the 2026-09-28 witness; `runtime/pins.json` `witness_binary`/`onpath_at_witness` carry the divergence). Before it: 1.4.209 `docs/runs/2026-09-23-pin-it-488.md`, 1.4.204 `docs/runs/2026-09-20-pin-it-427.md`. Every probe the 1.4.203 session parked
 for want of a live Orca terminal was retired at 1.4.204 (scratch Run + workers, receipts on disk): MANUAL-host `worker-start` (no args → LAUNCHED_UNUSABLE), inject `input_accepted` (never replayed), `--types` whole-batch wake, `merge_ready --to @all` (resolution error only), bogus-dep refutation, and gate→preamble (resolution NOT injected).
-Still PARKED per that run's register: doctor verdict shapes, the legacy-takeover live replay, and the roster/remote/OS/isolated-runtime probes.
+Still PARKED per the v1.4.215 register: doctor verdict shapes, the legacy-takeover live replay, the roster/remote/OS/isolated-runtime probes, `terminal stop` execute, and the worker-list / send-no-sender re-probes.
