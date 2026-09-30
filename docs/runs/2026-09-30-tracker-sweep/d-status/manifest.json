@@ -4,7 +4,7 @@
   "head_sha": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
   "base_branch": "codex/remaining-issues-2026-09-30",
   "contract": {
-    "source": "/tmp/orca-fleet-sweep-20260930/build-contract.json (coordinator, run_fb923397d46a)",
+    "source": "docs/runs/2026-09-30-tracker-sweep/d-status/contract.json (byte copy of the coordinator's /tmp/orca-fleet-sweep-20260930/build-contract.json, run_fb923397d46a; amendments recorded in the coordinator LEDGER, not in this copy)",
     "digest": "sha256:6903dee998aa2d04d6f61a134f0526fc5936414282a03884f940a266303549b6",
     "criterion_ids": [
       "AC-1",
@@ -186,5 +186,6 @@
       "gate": "run_fb923397d46a"
     }
   ],
-  "claim": "D-STATUS built at 8b9627a0; not verified-CLOSED \u2014 no independent review or GitHub approval exists."
+  "claim": "D-STATUS built at 8b9627a0; not verified-CLOSED \u2014 no independent review or GitHub approval exists.",
+  "reviewer_mode": "same-vendor-fresh"
 }
