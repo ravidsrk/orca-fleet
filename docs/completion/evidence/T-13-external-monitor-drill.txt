@@ -1,0 +1,72 @@
+# 2026-09-30T10:01:30Z — T-13: external CI monitor no-runner drill (#528)
+
+Host: maintainer macOS machine, Codex desktop, outside GitHub Actions.
+Operator: ravidsrk via Codex. Orca runtime was not used.
+Automation: orca-fleet-external-ci-monitor (hourly heartbeat, attached to this chat).
+Observed configuration state when preparing this receipt: PAUSED.
+Do not treat a paused watch as active; activation remains a separate check.
+
+Original draft poller used for the first drill: scripts/external-ci-monitor.py
+SHA256: 465f36a480438c0aa4ff35c79c4f32a43b6065f8e46dda64bcf553ca84d87975
+
+$ python3 external-ci-monitor.py
+{"conclusion": "success", "drill": false, "runId": 36697961619, "sha": "8a5211be39a681b86a872f957dbd21d2db0de181", "status": "healthy", "updatedAt": "2026-09-30T09:49:04Z", "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/36697961619"}
+exit=0
+
+$ python3 external-ci-monitor.py --drill-run 36146072394
+{"conclusion": "failure", "drill": true, "runId": 36146072394, "sha": "f78ef91e8abaf255b1bda46924722010f73b4e34", "status": "red", "updatedAt": "2026-09-25T14:13:51Z", "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/36146072394"}
+exit=1
+
+The deliberate drill target is a real archived main validate run, not a fixture:
+https://github.com/ravidsrk/orca-fleet/actions/runs/36146072394
+The drill option checks that the run is validate, completed and unsuccessful.
+Main was not changed or made red. The default query remains the latest completed
+validate.yml push run on main; a 24-hour-old success alerts as stale.
+
+$ gh api repos/ravidsrk/orca-fleet/actions/runs/36146072394/jobs
+Observed jobs: vfbench and tests (1, 2, 3, 4) have runner_id=0 and zero steps,
+conclusion=failure. Gates is skipped, runner_id=null and zero steps.
+exit=0
+
+Alert receipt: https://github.com/ravidsrk/orca-fleet/issues/537
+createdAt: 2026-09-30T10:01:30Z
+author: ravidsrk
+state: CLOSED
+closedAt: 2026-09-30T10:02:02Z
+
+Issue body (verbatim):
+**DRILL** — external CI monitor, executed on the maintainer's macOS host through Codex, outside GitHub Actions. Main was not changed.
+
+The monitor targeted this real archived `validate` run: https://github.com/ravidsrk/orca-fleet/actions/runs/36146072394.
+
+- Observed conclusion: `failure`
+- Observed SHA: `f78ef91e8abaf255b1bda46924722010f73b4e34`
+- Updated at: `2026-09-25T14:13:51Z`
+- Detection: `red` (exit 1)
+- Jobs were independently checked through the API: `runner_id: 0`, no steps; the gates job was skipped.
+
+This issue is the durable alert receipt for #528, following the T-11 drill convention. Notification delivery to email or the desktop is not claimed. The production monitor polls the latest completed main push run and also fails closed on stale data (24 hours), no run, or an API error.
+
+
+The host filed the alert through gh issue create using the poller's observed red
+JSON, label ci-failure, and then read it back through gh issue view. It closed
+only the drill issue; the separate control query above records healthy main. This follows the
+T-11 durable-issue receipt convention: issue creation and closure were observed;
+email, desktop push delivery and a scheduled heartbeat firing are not claimed.
+The new monitor also has tests for red, stale, absent and malformed runs and
+API/authentication failures; those are checks of the poller, not scheduled-run
+or notification-delivery evidence.
+
+Negative control: replacing the 24-hour staleness guard with `elif False`
+made tests/test_external_ci_monitor.py fail at test_staleness_is_exactly_24_hours
+(exit 1). The unmodified poller passes all 9 targeted tests.
+
+Replay after timestamp-type validation at 2026-09-30T10:35:32.156069+00:00
+Current poller SHA256: 80ac671e134fc5cf558512d7861906eaceded3b435b451f468ae96692a0bff65
+$ python3 scripts/external-ci-monitor.py 
+{"conclusion": "success", "drill": false, "runId": 36701254589, "sha": "57c89caaa34dd2723e0156bd1904b39e543ffe79", "status": "healthy", "updatedAt": "2026-09-30T10:20:04Z", "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/36701254589"}
+exit=0
+
+$ python3 scripts/external-ci-monitor.py --drill-run 36146072394
+{"conclusion": "failure", "drill": true, "runId": 36146072394, "sha": "f78ef91e8abaf255b1bda46924722010f73b4e34", "status": "red", "updatedAt": "2026-09-25T14:13:51Z", "url": "https://github.com/ravidsrk/orca-fleet/actions/runs/36146072394"}
+exit=1

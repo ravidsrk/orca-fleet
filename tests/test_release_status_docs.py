@@ -150,16 +150,18 @@ class OpsRollbackNamesThePublishingWorkflows(unittest.TestCase):
                 self.assertIn(tok, step)
 
 
-    def test_no_external_monitor_is_claimed_installed(self):
+    def test_external_monitor_claims_bind_to_source_and_drill(self):
         step = self.step(1)
-        self.assertIn("No such monitor is installed yet — #528 tracks choosing one and drilling it.", step,
-                      "incident step 1 lost the no-installed-monitor statement")
-        for sentence in re.split(r"(?<=[.!?])\s+", step):
-            if re.search(r"(?i)\bmonitor", sentence) and re.search(
-                    r"(?i)\b(installed|deployed|running|in place|live|pages)\b", sentence):
-                with self.subTest(sentence=sentence):
-                    self.assertRegex(sentence, r"(?i)\b(no|not|never|yet to)\b",
-                                     "incident step 1 claims an external monitor is installed")
+        for token in ("outside Actions", "paused", "scripts/external-ci-monitor.py",
+                      "24 hours", "T-13-external-monitor-drill.txt", "#537"):
+            with self.subTest(token=token):
+                self.assertIn(token, step)
+        self.assertNotIn("No such monitor is installed yet", step)
+        self.assertTrue((ROOT / "scripts/external-ci-monitor.py").is_file())
+        receipt = read("docs/completion/evidence/T-13-external-monitor-drill.txt")
+        self.assertIn("36146072394", receipt)
+        self.assertIn("https://github.com/ravidsrk/orca-fleet/issues/537", receipt)
+        self.assertIn("scheduled heartbeat firing are not claimed", receipt)
 
 
 class DispatchLifecycleNamesTheCurrentPin(unittest.TestCase):

@@ -213,8 +213,21 @@ force-pushes it to the `dist` branch, the target copy installers point at
    (the query `main-health` runs, so an in-progress run never pages) and
    paging you when the result is absent (no completed run), stale
    (`updatedAt` older than a day), or its conclusion is not `success`
-   (#528). No such monitor is installed yet — #528 tracks choosing one
-   and drilling it.
+   (#528). An hourly **Orca fleet external CI monitor** heartbeat is configured in
+   Codex on the maintainer's macOS host, outside Actions. Its current recorded state is
+   **paused**: activate it in Codex Automations before relying on scheduled checks. It
+   uses [`scripts/external-ci-monitor.py`](../scripts/external-ci-monitor.py), installed
+   at `~/.codex/automations/orca-fleet-external-ci-monitor/external-ci-monitor.py`, and
+   alerts in this chat, with a durable `ci-failure` issue when the GitHub API is reachable.
+   It treats an absent run, a non-`success` conclusion, a success at least 24 hours old,
+   and a failed API/authentication check as unhealthy. Healthy or unchanged results stay
+   quiet; a new failure, meaningful change or recovery alerts the maintainer. The local
+   host must be awake and Codex open; this is not an always-on hosted service.
+   The [external drill](completion/evidence/T-13-external-monitor-drill.txt) detected the
+   real no-runner outage from the local host and filed/closed
+   [#537](https://github.com/ravidsrk/orca-fleet/issues/537). That receipt proves the poller
+   and durable-issue alert path; it does not claim email delivery or a scheduled heartbeat
+   firing. #528 remains open until the configured watch is activated.
 2. If a clone or plugin load is broken: `plugin.json` `version` must equal
    the latest **dated** [CHANGELOG](../CHANGELOG.md) heading
    (`## [x.y.z] - YYYY-MM-DD`), not `[Unreleased]`. Do not half-cut a

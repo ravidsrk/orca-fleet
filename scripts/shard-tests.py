@@ -60,6 +60,7 @@ WEIGHTS = {
     "test_egress": 2.5,
     "test_evals": 3.8,
     "test_evidence_run": 4.5,
+    "test_external_ci_monitor": 0.1,  # 2026-09-30: 0.126 s wall, rounded
     "test_floor_guard": 7.3,
     "test_gate_batch": 0.1,
     "test_governance_commands": 2.7,
