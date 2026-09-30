@@ -67,6 +67,7 @@ WEIGHTS = {
     "test_hitl_ask": 3.0,
     "test_hitl_loop": 0.1,
     "test_install_status": 9.9,
+    "test_install_workflow_triggers": 0.1,
     "test_inventory": 0.9,
     "test_migration_walkthrough": 0.1,
     "test_negative_control": 1.1,

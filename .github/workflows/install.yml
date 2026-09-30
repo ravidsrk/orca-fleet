@@ -2,7 +2,10 @@ name: install
 
 # #414: the documented one-command install must not rot. A from-scratch run —
 # fresh checkout, empty HOME, no credentials — on every PR that touches an
-# install path, plus on main whenever those paths land there.
+# install path, and on EVERY push to main whatever it changed: release_check.py
+# gate 4 needs an install success at the exact release HEAD, and a push path
+# filter left video-only e7089cbf with no run (last green stuck at 284a3d81).
+# workflow_dispatch re-runs a skipped or failed main SHA by hand.
 on:
   pull_request:
     paths:
@@ -20,19 +23,7 @@ on:
       - .github/workflows/install.yml
   push:
     branches: [main]
-    paths:
-      - scripts/install.sh
-      - scripts/validate.py
-      - runtime/scripts/verify-gate.sh
-      - hooks/**
-      - skills/*/SKILL.md
-      - runtime/pins.json
-      - README.md
-      - docs/install.md
-      - docs/distribution.md
-      - docs/getting-started.md
-      - .claude-plugin/**
-      - .github/workflows/install.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
