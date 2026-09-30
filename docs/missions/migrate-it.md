@@ -1,5 +1,7 @@
 # 🗄️ migrate-it — a stateful shape change landed across deploys, nothing ever invalid
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus isolated per-phase workers; phases of one table are strictly serial, and the destructive CONTRACT step is your one-way door.
 > **Activation load:** ~33,500 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 17% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. The project's own migration runner and a database the fleet can migrate and dump (a schema-dump command is the down-path oracle), plus a deploy path per phase and read/write telemetry for the zero-reader window. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
+## What to provide
+
+- The current and proposed schema, affected data, environments and approximate volume.
+- The reader/writer inventory, backfill constraints, parity probes and rollback requirements.
+- Deployment owners and the bake windows needed to verify each phase before contraction.
 
 ## What it does
 

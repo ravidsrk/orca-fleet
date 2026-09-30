@@ -1,5 +1,18 @@
 # The verify gate — native hooks, with an enterprise fallback
 
+[Documentation](README.md) · [Install](install.md) · [Troubleshooting](troubleshooting.md#the-gate-blocks-a-turn-or-task)
+
+Use this reference when configuring completion hooks or an independent verification process.
+For a first install, follow [Install](install.md#verify-the-completion-gate) first. The native
+hook checks run inside the agent's session and are advisory; the [trust boundary](#trust-boundary)
+explains what an independent process must own.
+
+On this page: [install paths](#install-paths-and-which-ones-carry-the-gate),
+[events and inputs](#native-path--plugin-hooks-set-claude_plugin_root),
+[enterprise fallback](#fallback-path--where-allowmanagedhooksonly-disables-plugin-hooks),
+[trust boundary](#trust-boundary), and
+[signed dispatch](#signed-dispatch--what-it-binds-and-where-the-key-comes-from-135).
+
 Packages the independent verifier ([`runtime/scripts/verify.py`](../runtime/scripts/verify.py)) as a
 **completion gate**: a unit cannot be marked done until its evidence manifest passes. The gate
 *mechanism* is native (Claude Code hooks); its **content** — an independent second-session verdict
@@ -19,7 +32,7 @@ it runs the same `verify.py` no matter which surface fires it.
 
 | Install | `${CLAUDE_PLUGIN_ROOT}` | Gate |
 |---|---|---|
-| `/plugin install orca-fleet` | set by Claude Code | wired by [`hooks/hooks.json`](../hooks/hooks.json) — nothing to do |
+| `/plugin install orca-fleet@orca-fleet` | set by Claude Code | declared by [`hooks/hooks.json`](../hooks/hooks.json); confirm activation in the plugin manager |
 | `ln -s … ~/.claude/skills/<mission>` | **unset** | **none until you wire it**: `sh hooks/print-settings-snippet.sh` and merge the output into `settings.json` |
 | `npx skills add …` (copy installer) | unset | **not supported today** — the copy severs the mission's bare-name lookups and its `../../ARCHITECTURE.md` link ([#294](https://github.com/ravidsrk/orca-fleet/issues/294)); see [Install](../README.md#install) |
 

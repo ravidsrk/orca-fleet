@@ -15,15 +15,27 @@
 </p>
 
 <p align="center">
-  <b>Give a mission a goal. Come back to an evidence-verified end state.</b><br/>
+  <b>Workflows for developers: give a coding agent a goal, get a result with evidence.</b><br/>
+  <a href="docs/README.md">Documentation</a> ·
   <a href="docs/getting-started.md">Getting started</a> ·
   <a href="docs/concepts.md">Concepts</a> ·
   <a href="docs/missions/">Mission guides</a> ·
   <a href="CONTRIBUTING.md">Contributing</a> ·
   <a href="SECURITY.md">Security</a> ·
   <a href="docs/install.md">Install</a> ·
+  <a href="docs/recipes.md">Examples</a> ·
+  <a href="docs/development.md">Local development</a> ·
   <a href="docs/ops.md">Ops</a>
 </p>
+
+**Choose your starting point:**
+
+| Your task | Start here |
+|---|---|
+| Run a mission on your project | [Install](docs/install.md), then [your first review](docs/getting-started.md#your-first-mission-a-review-it-dry-run) |
+| Find the workflow for a development task | [Mission selector](docs/missions/README.md#choose-by-task) and [prompt recipes](docs/recipes.md) |
+| Improve this catalog or its docs | [Local development](docs/development.md) — Git and Python; no live Orca session needed |
+| Understand what a result proves | [Read a run result](docs/concepts.md#read-a-run-result) and [proof status](#proof-status) |
 
 **Install — one command** (needs `git` + Python ≥ 3.11; to *run* missions add Orca ≥ v1.4.215, `gh`, Claude Code — [pinned list](docs/distribution.md#prerequisites-pinned)):
 
@@ -38,11 +50,13 @@ The installer validates the catalog, links every mission into `~/.claude/skills`
 **orca-fleet** is a catalog of missions for the [Orca](https://github.com/stablyai/orca) runtime.
 It is an independent, community-maintained project, not affiliated with or endorsed by Stably,
 the maker of Orca ([third-party notices](THIRD_PARTY_NOTICES.md)).
-Each mission is a complete autonomous fleet: a coordinator that decomposes a goal, dispatches
-isolated workers, and stops at a named end state whose claims an independent verifier re-derives
-from git. You give it a goal in plain words. You get back a verified end state, or the exact place
-it stopped and why. The vocabulary this page leans on is one line each in the
-[glossary](docs/concepts.md#glossary).
+Use it to build a feature, address known defects, improve tests, or review a PR. A **mission** is
+one workflow: a coordinator breaks the goal into tasks, dispatches workers, checks their evidence
+and reports the outcome or the remaining blockers. Provide a bounded goal in your coding-agent
+session in the repository you want worked on; [the recipes](docs/recipes.md) show concrete inputs.
+Most missions are still declared `doctrine-only`; inspect the [Proof column](#the-mission-catalog)
+and [retained runs](docs/runs/README.md) before choosing one. The
+[glossary](docs/concepts.md#glossary) explains the terms used below.
 
 <p align="center">
   <picture>
@@ -159,10 +173,11 @@ in [Getting started](docs/getting-started.md#prerequisites).
 git clone https://github.com/ravidsrk/orca-fleet.git
 cd orca-fleet
 
-# 2. Link one mission into Claude Code — link, don't copy. A mission names its
+# 2. Link the review and build missions into Claude Code — link, don't copy. A mission names its
 #    playbooks and runtime policies by bare name and finds them in playbooks/ and
 #    runtime/ two levels above its own directory; a symlink keeps that tree intact.
 mkdir -p ~/.claude/skills
+ln -s "$(pwd)/skills/review-it" ~/.claude/skills/review-it
 ln -s "$(pwd)/skills/ship-it" ~/.claude/skills/ship-it
 
 # 3. A symlink install loads NO plugin, so nothing fires the completion gate. Wire it:
@@ -170,19 +185,24 @@ sh hooks/print-settings-snippet.sh   # merge the output into ~/.claude/settings.
 
 # 4. Open a Claude Code session in the repository you want worked on (Orca app
 #    running, both Orca skills installed) and type:
-#    "ship this: <your goal>"   — then approve the freeze when asked.
+#    "review this PR: <PR URL>; use <issue or spec path> as the spec"
+#    For new work: "ship this: <your goal>; stop at the promotion PR"
 ```
 
 > **Step 3 is not optional if you want the gate.** `hooks/hooks.json` wires the verifier through
 > `${CLAUDE_PLUGIN_ROOT}`, which Claude Code sets only for **plugin** installs. A `ln -s` into
 > `~/.claude/skills/` loads no plugin, so without the snippet above the missions run with
 > no completion gate at all ([#262](https://github.com/ravidsrk/orca-fleet/issues/262)).
-> The plugin install needs nothing extra.
+> A plugin install declares these hooks itself; confirm activation in the plugin manager.
 
 [Getting started](docs/getting-started.md) walks a first run end to end: what the coordinator
 does, what the workers do, where the evidence lands, and what the two human gates look like from
 your side of the terminal. [Install](docs/install.md) covers every install path and which ones
 carry the gate.
+
+The shell commands above run in the **catalog clone**. The mission prompt runs in the
+**target project**. Keep the clone available: symlinks and the settings snippet point back to it.
+For install checks, updates and removal, use [the install guide](docs/install.md).
 
 ## The mission catalog
 
@@ -465,11 +485,12 @@ Two paths work today and a third does not yet; each is walked step by step in
   `ln -s` per mission as in the Quick start above — then wire the completion gate with
   `sh hooks/print-settings-snippet.sh`.
 - **Claude Code plugin** (whole catalog): `/plugin marketplace add ravidsrk/orca-fleet`, then
-  `/plugin install orca-fleet`. The gate wires itself.
+  `/plugin install orca-fleet@orca-fleet`. The plugin declares the gate hooks; confirm activation
+  as described in [Install](docs/install.md#claude-code-plugin).
 - **skills CLI**: not from this repository, today. A copy installer severs the tree a mission
-  resolves its playbooks against; what would fix it is a published `dist/` for the CLI to point
-  at ([#294](https://github.com/ravidsrk/orca-fleet/issues/294)), and
-  `python3 scripts/bundle.py --check` already builds that self-contained tree.
+  resolves its playbooks against. It needs a published `dist/` bundle; publication and
+  install-witness status are covered in [Install](docs/install.md#copy-installers-and-bundles).
+  `python3 scripts/bundle.py --check` validates a temporary bundle without publishing it.
 
 ## Repository layout
 
@@ -489,6 +510,10 @@ assets/          banners, diagrams (dark + light), generated badges, and the ima
 ```
 
 ## Validate and test
+
+These are local contributor commands from the catalog root. They use Python's standard library
+and do not need a running Orca app. [The development guide](docs/development.md) covers focused
+tests, CI shards, generated content and the difference between local checks and CI.
 
 ```bash
 python3 scripts/validate.py                # agentskills.io spec + three-layer separation
@@ -566,6 +591,10 @@ If a fleet touches your default branch, that is a bug — file it. The full trus
 
 ## Further reading
 
+- [Documentation index](docs/README.md) — tutorials, procedures, explanations and reference by task.
+- [Prompt recipes](docs/recipes.md) — requests with concrete inputs and stop conditions.
+- [Troubleshooting](docs/troubleshooting.md) — installation, gates, stopped runs and PR blockers.
+- [Local development](docs/development.md) — work on this repo and run its checks.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — the three-layer design, the mission-identity test, and the
   proof-over-doctrine guards.
 - [docs/install.md](docs/install.md) — every install path and which ones carry the completion gate.
@@ -612,4 +641,3 @@ Upstream notices are collected in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.m
 ## License
 
 MIT — see [LICENSE](LICENSE).
-

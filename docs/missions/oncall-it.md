@@ -1,5 +1,7 @@
 # 📟 oncall-it — the surface is operable, proven by someone who cannot read the source
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus parallel per-path workers, and a second, deliberately source-blind worker as the oracle; freezing the questions and any cost decision are your gates.
 > **Activation load:** ~33,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 17% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh. The target's own logging/metrics/tracing libraries and a backend that can be queried, a staging environment whose failures can be induced, and an alert destination the fleet can observe receiving a test fire. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
+## What to provide
+
+- The paths to cover and the questions an on-call developer must answer for each.
+- A staging environment, current telemetry, alert destination and runbooks.
+- Privacy/cardinality constraints and an owner for the delivered-alert and induced-failure drills.
 
 ## What it does
 

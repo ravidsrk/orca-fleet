@@ -1,6 +1,12 @@
 # Distribution, discoverability & trust
 
+[Documentation](README.md) · [Install](install.md) · [Maintainer ops](ops.md)
+
 *How orca-fleet reaches users, and what its proof records establish.*
+
+For setup commands, updates and removal, use [Install](install.md). This page records
+packaging mechanisms, evidence limits and dated directory checks for maintainers. Each
+index check describes its recorded date; it does not establish today's listing status.
 
 > Trust guidance checked 2026-09-12. Historical index check 2026-09-01 (issue #210).
 > Submissions that need a human account remain [H-02](completion/HUMAN_ACTIONS.md).
@@ -33,7 +39,7 @@ these specific guarantees and their limits, alongside the available run evidence
 
 | Path | For | Mechanism |
 |---|---|---|
-| Plugin marketplace | try the whole catalog | `/plugin marketplace add ravidsrk/orca-fleet` → `/plugin install orca-fleet` (`.claude-plugin/`) |
+| Plugin marketplace | try the whole catalog | `/plugin marketplace add ravidsrk/orca-fleet` → `/plugin install orca-fleet@orca-fleet` (`.claude-plugin/`); see [Install](install.md#claude-code-plugin) for activation and witness status |
 | Symlink the catalog | fork/adapt, or evaluate | `git clone https://github.com/ravidsrk/orca-fleet.git && cd orca-fleet && sh scripts/install.sh` (validates + links every mission; preserves the relative `playbooks/`/`runtime/` refs) |
 | Skill bundle link | a subset on this or a paired host | open the maintainer's unlisted Skills → Share skills link: inspect the exact version, pick all or a subset of its skills, choose global or workspace scope (this computer, a paired runtime, WSL, an SSH host); update, roll back, or remove via Skills → Manage installs |
 

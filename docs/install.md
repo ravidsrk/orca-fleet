@@ -1,14 +1,23 @@
 # Installing orca-fleet
 
-Two install paths work today and a third does not yet. Which one you pick decides whether the
-[completion gate](verify-gate.md) fires by itself: a symlink loads no plugin, so the gate must be
-wired by hand; the plugin install wires it by construction. The
-[prerequisites](getting-started.md#prerequisites) are the same for every path.
+[Documentation](README.md) · [First run](getting-started.md) · [Troubleshooting](troubleshooting.md)
 
-<details>
-<summary><b>Symlink the catalog (recommended for trying it out)</b></summary>
+Install the catalog once, then invoke missions in the project you want worked on. The catalog
+clone and that target project are separate directories. Running missions has additional
+[prerequisites](getting-started.md#prerequisites); editing the catalog uses the
+[local development setup](development.md#local-setup).
 
-One command — it validates the catalog, links every mission, and checks the gate
+## Choose an install path
+
+| Path | Use it when | Completion gate | Status |
+|---|---|---|---|
+| [Symlink](#symlink-the-catalog) | You want to evaluate or edit the catalog from a local clone | Merge the settings snippet yourself | Retained clean-install transcript |
+| [Claude Code plugin](#claude-code-plugin) | You want the whole catalog managed as a plugin | Declared by the plugin's hooks | Whole-tree packaging; clean-machine witness still tracked |
+| [Copy installer / bundle](#copy-installers-and-bundles) | An installer copies individual mission directories | Separate wiring required | Repo-root copy install unsupported; bundled-install witness still needed |
+
+## Symlink the catalog
+
+The installer validates the catalog, links every mission, and checks the gate
 snippet is available (prerequisites: `git` + Python ≥ 3.11; the
 [pinned table](distribution.md#prerequisites-pinned) names the run substrate too):
 
@@ -16,9 +25,12 @@ snippet is available (prerequisites: `git` + Python ≥ 3.11; the
 git clone https://github.com/ravidsrk/orca-fleet.git
 cd orca-fleet
 sh scripts/install.sh
+sh scripts/install.sh --check
 ```
 
-The installer also warns (never fails) when `orca status` shows the app down,
+The final command rechecks the symlink install without changing it. Expect a line beginning
+`verified` confirming links, skills and the protocol directories are in reach. It does not
+confirm your completion-hook settings. The installer also warns (never fails) when `orca status` shows the app down,
 unreachable, or unready — start Orca before running missions. The warn stays soft
 because headless installs have no app to be ready; hardening it into a gate is a
 parked policy decision, not a missing check.
@@ -30,8 +42,8 @@ playbooks/ and runtime/ two levels above its own directory (and links
 
 ```bash
 mkdir -p ~/.claude/skills
-ln -s "$(pwd)/skills/ship-it"     ~/.claude/skills/ship-it
-ln -s "$(pwd)/skills/clean-sweep" ~/.claude/skills/clean-sweep
+ln -s "$(pwd)/skills/ship-it"   ~/.claude/skills/ship-it
+ln -s "$(pwd)/skills/review-it" ~/.claude/skills/review-it
 ```
 
 Then wire the completion gate — a symlink install loads no plugin, so
@@ -46,26 +58,34 @@ Without that snippet this install has **no completion gate**: missions still run
 blocks a unit from being marked done on an unverified manifest. See
 [docs/verify-gate.md](verify-gate.md#install-paths-and-which-ones-carry-the-gate).
 
-</details>
+Keep the clone at this path. Moving or deleting it breaks both the links and any hook command
+that points to it. The installer replaces symlinks but refuses to overwrite real mission
+directories; [troubleshooting](troubleshooting.md#installation-refuses-an-existing-mission-directory)
+covers that case.
 
-<details>
-<summary><b>Claude Code plugin (whole catalog)</b></summary>
+## Claude Code plugin
 
 The repo ships a plugin manifest at [`.claude-plugin/plugin.json`](../.claude-plugin/plugin.json):
 
-```
+Run these inside a Claude Code session:
+
+```text
 /plugin marketplace add ravidsrk/orca-fleet
-/plugin install orca-fleet
+/plugin install orca-fleet@orca-fleet
 ```
 
 A plugin install copies the whole repo, so the bare-name lookups and the `../../ARCHITECTURE.md`
 link resolve inside the plugin directory — and it is the one path where the completion gate wires itself, because
-`${CLAUDE_PLUGIN_ROOT}` is set. Nothing else to configure.
+`${CLAUDE_PLUGIN_ROOT}` resolves the plugin directory. Follow the install UI to choose a scope,
+then check the reported activation status. Type `/` and look for skills such as
+`/orca-fleet:review-it`. See the upstream [plugin installation guide](https://code.claude.com/docs/en/discover-plugins)
+for host-specific scope and activation behavior.
 
-</details>
+The [plugin-install witness](completion/PLUGIN-INSTALL-WITNESS.md) distinguishes this packaging
+mechanism from a retained clean-machine execution. Installing the plugin also does not supply
+Orca or the other mission run prerequisites.
 
-<details>
-<summary><b>skills CLI (any agent) — with a caveat</b></summary>
+## Copy installers and bundles
 
 The open [skills CLI](https://github.com/vercel-labs/skills) installs into Claude Code, Cursor,
 Codex, and 70+ other agents — but **not from this repository, today.** `npx skills add
@@ -102,8 +122,15 @@ can be pointed at a local `dist/` over the network, which is why the tree is pub
 gitignored: committing a copy of the doctrine tree per mission would make every runtime edit a many-file diff
 and the copies would rot between edits.
 
-To check an existing copy install instead, confirm `playbooks/` and `runtime/` sit two levels above
-the mission:
+The installed layout depends on the packaging:
+
+- **Source symlink or whole-tree plugin:** the mission resolves `playbooks/` and `runtime/`
+  two levels above its real directory.
+- **Bundled copy:** the mission carries `references/README.md`, the composed Markdown files,
+  and its own `runtime/scripts/`. Follow that generated README to set `ORCA_FLEET_ROOT` and
+  invoke the helpers from the target project.
+
+For a source symlink, check the resolved tree from the shell:
 
 ```bash
 shipit=$(python3 -c 'import os; print(os.path.realpath(os.path.expanduser("~/.claude/skills/ship-it")))')
@@ -114,7 +141,10 @@ ls "$(dirname "$(dirname "$shipit")")/playbooks"
 reporting a correct install as broken. `os.path.realpath` is the portable resolver, and python3 is
 already a hard requirement of this repo.)
 
-If that fails, the references are broken — bundle, or use the symlink or plugin path above. The
+For a bundled copy, inspect the installed mission's `references/README.md` and
+`runtime/scripts/verify.py` instead. A directory containing only `SKILL.md` is not a complete
+bundle. If the matching layout check fails, reinstall from the symlink or plugin path above,
+or from a bundled tree whose install has been verified. The
 symlink path is verified to preserve them
 ([`docs/completion/evidence/CF-02-r2-happy-symlink-install.txt`](completion/evidence/CF-02-r2-happy-symlink-install.txt));
 the plugin path preserves them by construction — the whole repo is copied — but has no recorded
@@ -123,10 +153,47 @@ install transcript yet. The procedure that produces one, for anyone with a clean
 parts of #518, beside the first `v*` tag populating the `dist` branch and the receipt trees under
 `docs/runs/` and `docs/reports/` shrunk or relocated out of the plugin copy.
 
-</details>
-
 ## Check the install
 
 Ask your agent "which missions are available?" — the outcome-named skills should list; with the
-two symlinks above you get `ship-it` and `clean-sweep`. If a mission is visible but stops on start
+two symlinks above you get `ship-it` and `review-it`. If a mission is visible but stops on start
 saying it cannot find a playbook, it was copied rather than linked.
+
+## Verify the completion gate
+
+For a symlink install, merge the snippet's `Stop` and `TaskCompleted` entries into your existing
+settings; preserve other hooks. `print-settings-snippet.sh --check` only checks the clone's files.
+Review the registered paths and exercise the gate itself from the catalog root:
+
+```bash
+ORCA_MANIFEST=/nonexistent.json sh runtime/scripts/verify-gate.sh --event stop
+```
+
+Expected: `BLOCKING (fail-closed)` and exit status 2, because the named manifest is missing.
+This tests the gate's failure path; it does not prove an agent event called that gate. Check
+the agent's hook registration as well. The [gate reference](verify-gate.md) explains event
+behavior and the native advisory trust boundary.
+
+## Update or remove an install
+
+**Symlink install:** update the clone with `git pull --ff-only` once its working tree is clean,
+then run `sh scripts/install.sh --check`. If the catalog gained missions, rerun
+`sh scripts/install.sh` to link them too. Local edits should be reviewed and committed on their
+own branch before you update; use [Development](development.md) for that workflow.
+
+To remove a selected mission, first inspect its symlink target, then unlink only that entry in
+`~/.claude/skills/`. For example, after confirming it points to this clone:
+
+```bash
+unlink ~/.claude/skills/review-it
+```
+
+When removing the catalog entirely, also remove the two completion-hook entries that point to
+this clone, preserving unrelated settings. Keeping them after deleting the clone leaves hook
+commands that cannot resolve.
+
+**Plugin install:** manage updates and removal through Claude Code's plugin manager; consult
+the [upstream instructions](https://code.claude.com/docs/en/discover-plugins#manage-installed-plugins).
+
+Next: [run your first review](getting-started.md#your-first-mission-a-review-it-dry-run), or use
+[a developer recipe](recipes.md) for your task.

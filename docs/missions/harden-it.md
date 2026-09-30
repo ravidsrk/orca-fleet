@@ -1,5 +1,7 @@
 # 🛡️ harden-it — a threat model closed by a clean re-audit
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel audit, PoC, and fix workers on isolated findings; PoC routing and the promotion are your one-way gates.
 > **Activation load:** ~32,500 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 16% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** self-run — the 2026-09-21 run against the catalog's own verification stack (#409) closed CLEAN: six rounds, 11 confirmed findings (3 P0, 1 CI-caught P0-class, 1 P1, residual classes), final re-audit zero unrefuted P0/P1; binding report [`docs/runs/2026-09-21-harden-it-self-run.md`](../runs/2026-09-21-harden-it-self-run.md).
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; gitleaks. A security worker playbook (addyosmani security-and-hardening or gstack /cso) — one router per worker. An ephemeral per-workspace sandbox (sandbox-policy) for exploit PoCs that can't run safely on the host.
+
+## What to provide
+
+- The system, assets, trust boundaries and attack surface to include.
+- A disposable environment for exploit reproductions and the relevant test commands.
+- Owners for secret rotation, production configuration or other actions requiring human authority.
 
 ## What it does
 

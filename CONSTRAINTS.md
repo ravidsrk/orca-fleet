@@ -1,9 +1,11 @@
 # CONSTRAINTS — the orca-fleet quality bar (frozen)
 
-Status: **FROZEN by the human; CI wiring (WIRE) not yet landed.**
-This file is the freeze product of the floor-it self-test unpark (phase 1:
-CONSTRAINTS). No threshold below moves without a one-way human decision
-recorded in docs/DECISIONS.md; the GUARD phase will enforce that mechanically.
+Status: **FROZEN by the human.** This table retains the phase-1 freeze and its baseline
+measurements. Its WIRE targets and measured values describe that checkpoint; current job
+wiring lives in [validate CI](.github/workflows/validate.yml), and changes to the guarded
+surface are checked by [floor-guard CI](.github/workflows/guard.yml).
+This file is the freeze product of the floor-it self-test unpark (phase 1: CONSTRAINTS).
+No threshold below moves without a one-way human decision recorded in docs/DECISIONS.md.
 
 - Frozen by: Ravindra (maintainer), 2026-09-16, interactive gate session.
 - Freeze source: `campaign/floor-it-selftest` commit `9e574c0b`

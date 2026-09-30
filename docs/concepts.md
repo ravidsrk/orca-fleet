@@ -1,5 +1,7 @@
 # Concepts — the mental model behind orca-fleet
 
+[Documentation](README.md) · [First run](getting-started.md) · [Mission guides](missions/README.md)
+
 The files in [`runtime/`](../runtime/) are written for agents: terse, imperative, load-bearing.
 This page is the same material written for humans — why each mechanism exists, what failure it
 prevents, and how the pieces fit together. Nothing here overrides the runtime policies; when in
@@ -8,6 +10,7 @@ doubt, the policy file is the source of truth.
 ## Contents
 
 - [Glossary](#glossary)
+- [Read a run result](#read-a-run-result)
 - [A fleet is an outcome, not an ingredient](#a-fleet-is-an-outcome-not-an-ingredient)
 - [Coordinators and workers](#coordinators-and-workers)
 - [The evidence manifest](#the-evidence-manifest)
@@ -81,6 +84,27 @@ define them. Each is one line here and explained in full in its own section or r
   exactly one pack per worker.
 - **Proof tier** — `doctrine-only`, `self-run` or `external-run`; advancing needs a run report that
   binds at a named commit.
+
+## Read a run result
+
+Suppose you ask for a tested `/healthz` endpoint and a promotion PR. The fleet builds and reviews
+the change on an integration branch (**BASE**), then reports `PROMOTION_READY`. For you, that means
+there is a PR to assess before merging to the default branch. It does not mean the endpoint is
+deployed. The [ship-it states](missions/ship-it.md#terminal-states) distinguish those steps.
+
+Read the result in this order:
+
+1. **Outcome:** which terminal state was reached, and does it match the stop point you authorized?
+2. **Scope:** which acceptance criteria or findings were accounted for? A parked item stays
+   visible with the action or owner it needs.
+3. **Revision:** which commit was tested and reviewed? Does the PR still have that reviewed content?
+4. **Checks:** which commands ran, what did they return, and where are the artifacts? A negative
+   control shows the test detects a changed behavior, such as removing the route registration.
+5. **Next action:** merge the promotion PR, resolve a named blocker, or authorize the next stage.
+
+A terminal state describes **this run**. A proof tier describes **retained evidence for the mission
+protocol**. A `GO` review, a green test result, a merged PR and a deployment are different facts.
+The sections below explain how each is checked.
 
 ## A fleet is an outcome, not an ingredient
 

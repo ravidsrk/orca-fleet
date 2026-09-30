@@ -1,5 +1,7 @@
 # 📥 absorb-it — every inbound contribution landed with credit, refuted with receipts, or parked
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — a coordinator plus parallel per-PR workers; closing someone's contribution without landing it is your one-way batch gate.
 > **Activation load:** ~33,900 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 17% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh with MERGE rights on the target repo and permission to comment on and close inbound PRs. A runnable test suite (the receipt oracle) and the repo's DCO/CLA policy. One worker playbook pack per worker (matt or addy) — never two routers in one worker.
+
+## What to provide
+
+- Target repository, inbound PR filter and the branch contributors target.
+- Contribution rules, including tests, DCO or signing requirements, and authorship conventions.
+- Merge authority and the owner for PRs that need contributor or maintainer action.
 
 ## What it does
 

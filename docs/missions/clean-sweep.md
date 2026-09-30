@@ -1,5 +1,7 @@
 # 🧹 clean-sweep — a finite backlog exhausted to zero, with evidence
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — coordinator plus parallel isolated fix workers, one finding each; you own the one-way doors.
 > **Activation load:** ~33,800 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 17% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** self-run — the 2026-09-14 tracker run closed DRY-WITH-PARKED with artifacts in
@@ -31,6 +33,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + the orchestration skill (Orca CLI). git + gh (or a tracker via orca linear). One worker playbook pack per worker (Matt triage/tdd, or Addy debug/build) — never two routers in one worker.
+
+## What to provide
+
+- A tracker query or audit path that defines the finite backlog.
+- The affected repository, integration scope and runnable baseline test command.
+- Owners for policy, credentials or external actions that a code fix cannot complete.
 
 ## What it does
 

@@ -1,5 +1,7 @@
 # 📋 attest-it — evidence-bound conformance to a frozen standard
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel evidence workers, one obligation each, re-derived independently; the human/legal owner's disposition of gaps and the conformance verdict are one-way gates, not a lower rung.
 > **Activation load:** ~23,100 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 12% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a FROZEN standard catalog (standard@version) as the denominator. A review/verify worker playbook (addyosmani specialists, mattpocock code-review, gstack review army) — one router per worker.
+
+## What to provide
+
+- The standard and version, applicability boundary, and assessment window.
+- The repositories, controls and existing evidence the assessment can inspect.
+- The human or legal owner who accepts the attestation and owns any evidence gaps.
 
 ## What it does
 

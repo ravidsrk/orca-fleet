@@ -1,5 +1,7 @@
 # Ops — account inventory and incident process
 
+[Documentation](README.md) · [Contributor setup](development.md) · [Release checklist](release-1.0-checklist.md)
+
 Bus factor 1: Ravindra Kumar ([`ravidsrk`](https://github.com/ravidsrk),
 `ravidsrk@gmail.com`). This page is the inventory of surfaces that can
 break the catalog, and what to do at 2 a.m. It is not a product runbook —
@@ -10,13 +12,14 @@ missions already have those.
 | Surface | Account / handle | Lives in | Notes |
 |---|---|---|---|
 | GitHub | `ravidsrk` | [ravidsrk/orca-fleet](https://github.com/ravidsrk/orca-fleet) | source of truth, Actions (`validate` gates + `negative-control-demo` pinned-demo gate; `alert-on-failure` files a `ci-failure` issue when either fails on `main`), private vulnerability reporting |
-| Claude plugin marketplace | GitHub self-host + buildwithclaude auto-index | [`.claude-plugin/`](../.claude-plugin/plugin.json) | `/plugin marketplace add ravidsrk/orca-fleet`; official directory + skills.sh still [H-02](completion/HUMAN_ACTIONS.md) |
+| Claude plugin marketplace | GitHub self-host + buildwithclaude auto-index | [`.claude-plugin/`](../.claude-plugin/plugin.json) | `/plugin marketplace add ravidsrk/orca-fleet`; external listing history and submission status are in [distribution](distribution.md) |
 | greptile | maintainer CLI | [greptile.com](https://greptile.com/) | pre-push review on the maintainer machine; GitHub check on PRs |
-| agentskills.io listing | not submitted | local `uvx --from skills-ref agentskills validate` | extra frontmatter (`proof`, `autonomy`, `proof_evidence`) is intentional — [CONTRIBUTING](../CONTRIBUTING.md) |
+| agentskills.io listing | not submitted | local `uvx --from skills-ref agentskills validate` | repository claims (`proof`, `autonomy`, `proof_evidence`) live under `metadata:` — [CONTRIBUTING](../CONTRIBUTING.md) |
 | Maintainer email | `ravidsrk@gmail.com` | [SECURITY.md](../SECURITY.md) | security reports (72h ack) and ops contact |
 
-No other cloud accounts, registries, or production hosts. "Deploy" is merge
-to `main` plus the plugin copy in `.claude-plugin/`.
+This inventory records no separate production host for the catalog. A source change lands on
+`main`; immutable release publication is a separate step. A `v*` tag triggers the dist and
+GitHub Release publishers described under [Publishing Releases](#publishing-releases).
 
 ## Release cut
 

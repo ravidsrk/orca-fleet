@@ -1,5 +1,7 @@
 # ♿ access-it — WCAG 2.2 conformance over a frozen surface
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel fix workers on isolated violation units against a deterministic axe oracle; the residual human-AT park and the promotion are gate classes you own.
 > **Activation load:** ~28,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 14% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -28,6 +30,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; a deterministic a11y oracle (axe-core / Lighthouse) and a runnable surface. A fix worker playbook (addyosmani, mattpocock, gstack) — one router per worker.
+
+## What to provide
+
+- The pages, components or flows to cover, their URLs and a usable test environment.
+- The WCAG target and the states to exercise, including authenticated and error states.
+- A named reviewer for keyboard, screen-reader and other criteria the automated oracle cannot establish.
 
 ## What it does
 

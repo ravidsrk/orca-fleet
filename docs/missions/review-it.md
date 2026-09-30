@@ -1,5 +1,7 @@
 # 🔍 review-it — a trusted, read-only, SHA-bound GO/NO-GO verdict
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel axis reviewers on the same pinned SHA; the GO/NO-GO verdict is yours to act on — a gate class, not a lower rung.
 > **Activation load:** ~23,300 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 12% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — it ran ([external-run report](../runs/2026-07-13-review-it-external-run.md)), but that run's
@@ -29,6 +31,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh. Review worker playbooks (mattpocock code-review, addyosmani specialists, gstack review army) — one router per worker.
+
+## What to provide
+
+- A PR URL or branch with a non-empty diff, and its intended base.
+- The issue, frozen spec or acceptance criteria the change implements.
+- Repository standards and test commands; the verdict will name the exact reviewed revision.
 
 ## What it does
 

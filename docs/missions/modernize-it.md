@@ -1,5 +1,7 @@
 # 📦 modernize-it — every major current or pinned with a reason
 
+[Documentation](../README.md) · [Mission selector](README.md#choose-by-task) · [Prompt recipes](../recipes.md)
+
 > **Autonomy:** L4 (Osmani L0-L5, parallel delegation) — parallel migration workers per dependency group under a compatibility graph; you own the one-way doors.
 > **Activation load:** ~32,200 tokens — this SKILL.md plus every playbook and runtime doc its Composes/rides clause makes mandatory, about 16% of a 200k-token context before the first dispatch ([why it is measured](../../ARCHITECTURE.md#instruction-budget))
 > **Proof:** doctrine-only — no recorded run yet; the protocol is mechanism, not yet field-proven.
@@ -27,6 +29,12 @@
 ```
 
 **Needs** (the skill's `compatibility` field, verbatim): HARD dependency: Orca runtime + orchestration skill (Orca CLI). git + gh; the package manager + a green CI baseline. addyosmani deprecation-and-migration playbook — one router per worker.
+
+## What to provide
+
+- Package manifests, lockfiles, package manager and supported runtime targets.
+- The baseline test command, CI history and any advisory inventory.
+- Compatibility constraints and an owner for dependencies that may need a justified pin.
 
 ## What it does
 
