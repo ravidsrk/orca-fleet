@@ -24,3 +24,9 @@ Things only Ravindra can do (R15). Agent will verify after you confirm.
 ## Run 3 (2026-09-09)
 
 H-07 was executed **agent-side** on this machine (A-30): Orca was startable via `orca open` (as in run 1), and the dry run's human component in the cloud container was the absent substrate, not a privilege boundary (R15 does not list local read-only reviews). H-04, H-05, H-02 remain open and human (A-20/A-23); none gates launch. Claude re-login (`/login`, OAuth expired machine-wide) and codex credits (usage-limited until 2026-09-15) are new maintainer-side facts discovered this run — they gate nothing, but future fleet work on this machine needs one of them restored.
+
+## Install witness (2026-09-30)
+
+| id | instruction | unblocks | gates launch | verification | status |
+|---|---|---|---|---|---|
+| **H-08** | Install the Claude Code marketplace/plugin in a clean container; record its commit, file fingerprint, component inventory and uninstall control. | CF-02 plugin packaging / #518 | no | [CF-02b-plugin-install.txt](evidence/CF-02b-plugin-install.txt) and [CF-02b-plugin-uninstall.txt](evidence/CF-02b-plugin-uninstall.txt): 22 missions registered, then zero after uninstall; Stop/TaskCompleted discovered; missing-manifest control exits 2. No authenticated model turn or Orca run claimed. | done 2026-09-30 |

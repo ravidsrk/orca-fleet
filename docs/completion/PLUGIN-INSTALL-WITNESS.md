@@ -1,217 +1,153 @@
 # Plugin-install witness — the procedure
 
-The Claude Code plugin is the one install path that wires the completion gate by construction
-(`hooks/hooks.json` resolves through `${CLAUDE_PLUGIN_ROOT}`, which Claude Code sets only for
-plugin installs), and it has never been witnessed: [install.md](../install.md) says so, and the
-2026-09-28 review filed the gap as [#518](https://github.com/ravidsrk/orca-fleet/issues/518).
-This page is the procedure a second person runs on a clean machine to produce the transcript
-that closes it. It mirrors the symlink witness,
-[`evidence/CF-02-r2-happy-symlink-install.txt`](evidence/CF-02-r2-happy-symlink-install.txt):
-commands as typed, output as printed, exit codes, one `result:` line, nothing narrated.
+The [install transcript](evidence/CF-02b-plugin-install.txt) and
+[uninstall control](evidence/CF-02b-plugin-uninstall.txt) record a clean Ubuntu 24.04.4
+container with Claude Code 2.1.285, bound to the `v0.7.0` cut. This is a packaging and
+registration witness: all 22 missions are discovered, the two hook events are present, the
+copied source files match, and uninstall removes the mission registrations. It is not an
+Orca mission run or proof that a real agent event invoked the completion gate.
+
+Use this procedure to repeat it. Record commands, output and exit codes; finish with a
+`result:` stating exactly what was observed. Retain failures too. Do not edit the frozen
+[DEFINITION](DEFINITION.md) to record a later witness.
 
 ## Who and where
 
-- Anyone but the maintainer's daily machine: a VM, a fresh user account, or a container with
-  Claude Code installed. The point is a machine that has never held this repository.
-- Claude Code at a recorded version; `git`; Python 3.11 or newer for the gate check. The Orca
-  app is not needed for the install witness (the gate wiring is static), but record whether it
-  is present so the transcript says which claims it can carry.
-- Time: about twenty minutes, plus the plugin download.
+Use a fresh VM, user account or container that has no catalog install. Install Claude Code
+from its official source, plus Git and Python 3.11 or newer. Record whether Orca is present;
+it is not required for these install checks. An authenticated Claude account is needed for
+model responses, but native plugin management and component inventory do not require one.
 
-## Preconditions to record
-
-Before the first install command, prove the machine is clean and say what it is:
+Before installing, retain:
 
 ```bash
 date -u +%Y-%m-%dT%H:%M:%SZ
 uname -a
 claude --version
 python3 --version
-ls -la ~/.claude/skills 2>/dev/null || echo "no ~/.claude/skills"
-ls ~/.claude/plugins 2>/dev/null || echo "no ~/.claude/plugins"
+ls -la ~/.claude/skills
+ls -la ~/.claude/plugins
 ```
 
-Every line goes into the transcript with its exit code. A machine that already has an
-`orca-fleet` symlink or plugin is not clean; remove it and start again, and say so.
+Missing directories are expected on a clean account: record their nonzero exits. A prior
+orca-fleet plugin or symlink means this is not a clean first install.
 
-## Steps
+## Install and inspect the host's inventory
 
-Each step is one command (or one Claude Code slash command), its output, and `exit=N`. Where
-the output is long, keep the first and last ten lines and say how many were cut.
+Run the native CLI, or the equivalent `/plugin` commands in a Claude session:
 
-1. **Add the marketplace and install.** In a Claude Code session:
+```bash
+claude plugin marketplace add ravidsrk/orca-fleet
+claude plugin install orca-fleet@orca-fleet
+claude plugin list --json
+claude plugin details orca-fleet@orca-fleet
+```
 
-   ```
-   /plugin marketplace add ravidsrk/orca-fleet
-   /plugin install orca-fleet
-   ```
+Retain install output, version, scope, enabled status and `installPath`. In 2.1.285, `details`
+prints a component inventory with 22 skills and `TaskCompleted`/`Stop` hooks; it does not
+accept `--json`. This inventory is a host observation, rather than a model's description
+of files. In a session, `/hooks` can additionally show the registered commands.
 
-   Capture both outputs verbatim, including any prompt Claude Code shows and what you answered.
+Find the one installed manifest under the cache, not the marketplace's source checkout:
 
-2. **Find the plugin root and record what was copied.** The review measured the copy at
-   tens of megabytes because the receipt trees under `docs/` ride along; record the size so the
-   number stops being hearsay.
+```bash
+find ~/.claude/plugins/cache -name plugin.json -path '*orca-fleet*'
+```
 
-   ```bash
-   matches="$(find ~/.claude/plugins -name plugin.json -path '*orca-fleet*' 2>/dev/null)"
-   printf '%s\n' "$matches"
-   test "$(printf '%s\n' "$matches" | grep -c .)" = 1 || echo "STOP: expected exactly one orca-fleet manifest"
-   ROOT="$(dirname "$(dirname "$matches")")"
-   grep -q '"name": "orca-fleet"' "$ROOT/.claude-plugin/plugin.json" && echo "root verified: $ROOT"
-   du -sh "$ROOT"
-   python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/.claude-plugin/plugin.json"
-   ```
+Require exactly one matching installed manifest. Set `PLUGIN_ROOT` to its grandparent only
+after confirming its `.claude-plugin/plugin.json` names `orca-fleet`. Record:
 
-   The search has no depth limit and must find exactly one manifest: zero means the install
-   did not land where Claude Code keeps plugins (record the `/plugin` output and stop), more
-   than one means a stale copy is present (remove it, or name the one you verify and say why).
-   `ROOT` is only used once its manifest names `orca-fleet`. The version printed must equal
-   the version of the tag you meant to install, and a version is not an identity: two copies
-   can both say `0.7.0` and differ in every receipt tree. Every transcript therefore records
-   the commit its copy came from, established one of three ways, tried in order:
+```bash
+du -sh "$PLUGIN_ROOT"
+python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$PLUGIN_ROOT/.claude-plugin/plugin.json"
+ls "$PLUGIN_ROOT/playbooks" | head -5
+ls "$PLUGIN_ROOT/runtime" | head -5
+head -4 "$PLUGIN_ROOT/skills/ship-it/SKILL.md"
+grep -n 'CLAUDE_PLUGIN_ROOT' "$PLUGIN_ROOT/hooks/hooks.json"
+test -x "$PLUGIN_ROOT/runtime/scripts/verify-gate.sh"
+```
 
-   ```bash
-   git -C "$ROOT" rev-parse HEAD 2>/dev/null                       # the copy is a checkout
-   for d in $(find ~/.claude/plugins -maxdepth 3 -name .git -type d 2>/dev/null); do
-     echo "$d: $(git -C "$(dirname "$d")" rev-parse HEAD)"; done       # the marketplace clone that fed it
-   ```
+The hooks must name the executable gate through `${CLAUDE_PLUGIN_ROOT}` on both events.
+Inventory plus path checks establish discovery and wiring; do not describe them as an
+observed event invoking the gate.
 
-   When neither prints a commit, fingerprint the copy's tree and match it against the tree of
-   the tag being witnessed, extracted from a clone of the repository into a scratch directory.
-   `TAG` is the tag under witness: `v0.7.0` today, or the announced tag if the receipt-tree
-   shrink moved the release past it (the announcement draft's gate list says which). The hash
-   is computed by the Python this procedure already requires, so it runs the same on stock
-   macOS, which ships no `sha256sum`, and on Linux:
+## Bind the copy to source and validate the source
 
-   ```bash
-   TAG=v0.7.0
-   SCRATCH="${TMPDIR:-/tmp}/orca-fleet-witness"; mkdir -p "$SCRATCH"
-   fp() { python3 - "$1" <<'PY'
-   import hashlib, os, sys
-   root, h = sys.argv[1], hashlib.sha256()
-   for dp, dn, fn in os.walk(root):
-       dn[:] = sorted(d for d in dn if d != ".git")
-       for f in sorted(fn):
-           p = os.path.join(dp, f)
-           h.update(os.path.relpath(p, root).encode() + b"\0")
-           h.update(hashlib.sha256(open(p, "rb").read()).hexdigest().encode() + b"\n")
-   print(h.hexdigest())
-   PY
-   }
-   fp "$ROOT"
-   git clone -q https://github.com/ravidsrk/orca-fleet "$SCRATCH/src"
-   mkdir -p "$SCRATCH/tag" && git -C "$SCRATCH/src" archive "$TAG" | tar -x -C "$SCRATCH/tag"
-   fp "$SCRATCH/tag"
-   ```
+A version string is not a commit identity. First record the marketplace checkout's HEAD:
 
-   Equal fingerprints identify the copy as that tag's tree; unequal ones mean the install came
-   from another commit or carries files the archive does not, so list both trees
-   (`find . -type f | sort` in each) and record the difference before naming the closest commit
-   the transcript can (the default-branch tip at install time, from the clone's
-   `git rev-parse origin/HEAD`). The `du -sh` above is a measurement of the copy this commit
-   identity names, and of nothing else.
+```bash
+git -C ~/.claude/plugins/marketplaces/orca-fleet rev-parse HEAD
+```
 
-3. **Verify the three layers resolve inside the copy** (the symlink witness's own check, run
-   against the plugin root instead):
+If that layout differs, find the marketplace checkout through the plugin manager and
+record its actual path. Call the observed commit `INSTALL_COMMIT`. Clone full history into
+a separate scratch directory and check out that commit:
 
-   ```bash
-   ls "$ROOT/playbooks" | head -5
-   ls "$ROOT/runtime" | head -5
-   head -4 "$ROOT/skills/ship-it/SKILL.md"
-   ```
+```bash
+INSTALL_COMMIT="$(git -C ~/.claude/plugins/marketplaces/orca-fleet rev-parse HEAD)"
+SOURCE_ROOT="$(mktemp -d)/source"
+git clone https://github.com/ravidsrk/orca-fleet.git "$SOURCE_ROOT"
+git -C "$SOURCE_ROOT" checkout --detach "$INSTALL_COMMIT"
+cd "$SOURCE_ROOT"
+python3 scripts/validate.py
+```
 
-4. **Verify the gate is wired, not merely present.** The hook file must name the gate script
-   through the variable Claude Code sets for plugins, and the script must be there and
-   executable:
+**Run the validator in the full-history source checkout, not in the plugin cache.** Claude
+copies files into its cache and shallow-clones marketplaces. The validator checks bound
+proof reports against historical Git objects; a cache or shallow checkout cannot provide
+those objects. The retained transcript shows that failure and the successful full-history
+check. Do not disable the proof checker or downgrade metadata to make a cache pass.
 
-   ```bash
-   grep -n 'CLAUDE_PLUGIN_ROOT' "$ROOT/hooks/hooks.json"
-   test -x "$ROOT/runtime/scripts/verify-gate.sh" && echo "gate script executable"
-   ```
+Fingerprint every tracked source path in both trees. The retained transcript includes the
+complete Python fingerprint command: sorted paths, a NUL separator and each file's SHA256,
+then SHA256 of that inventory. Require identical fingerprints and list any untracked files
+separately; host bookkeeping or Python bytecode is not part of the source inventory.
+Missing or changed source paths fail the copy check. Combined with the source validator,
+this proves the copied mission/protocol files resolve to the validated tree.
 
-   Then, in the Claude Code session, run `/hooks` (or the equivalent that lists registered
-   hooks in your version) and capture the lines that name `verify-gate.sh` on the `Stop` and
-   `TaskCompleted` events. This is the claim install.md makes and nothing else has ever shown.
+If witnessing an immutable release, also require `INSTALL_COMMIT` to equal that tag's
+peeled commit. A marketplace install normally follows its tracked branch, so a later install
+may contain post-release commits while showing the same version: name the observed commit,
+not a tag it does not match. A size reduction requires two measurements, each bound to its
+own source commit. One `du` output is only a footprint.
 
-5. **Verify the missions load.** In the session, ask exactly:
+## Session discovery and negative control
 
-   ```
-   which missions are available?
-   ```
+For session-level evidence, retain Claude's initialization inventory as well as its response:
 
-   Capture the answer. The outcome-named missions must list. Then prove the bare-name lookups
-   resolve inside the copy, which needs no Orca and no repository. First the machine check:
-   the catalog validator, run from the plugin root, resolves every playbook and runtime
-   policy a mission composes:
+```bash
+claude -p --verbose --output-format stream-json --include-hook-events 'which missions are available?'
+```
 
-   ```bash
-   cd "$ROOT" && python3 scripts/validate.py; echo "exit=$?"
-   ```
+The `system/init` event lists loaded skills and plugins. An unauthenticated session may
+emit that event, then fail with `authentication_failed`: record exit 1 and do not claim a
+model response. Our witness compares these actual initialization events before and after
+uninstall. Optional authenticated prompts can ask the agent to read map-it's composed
+playbooks and quote their first headings; retain the file paths it actually read.
 
-   Record the whole output (first and last ten lines if it is long) and the exit line: the
-   validator's own exit code is the verdict, and a failure's detail lines are the evidence,
-   so nothing is piped through `tail`. A pass ends with "three-layer separation holds; evals
-   valid." and `exit=0`. Then the in-session check:
-   ask exactly
+Exercise the gate's missing-manifest control and require exit 2:
 
-   ```
-   read the playbooks that map-it composes and list their first headings
-   ```
+```bash
+ORCA_MANIFEST=/nonexistent.json "$PLUGIN_ROOT/runtime/scripts/verify-gate.sh" --event stop
+```
 
-   and capture the answer: it must quote headings from files under the plugin's `playbooks/`
-   directory, not report a missing file. A mission run is not part of this witness: every
-   mission needs the Orca app and a target repository, and `review-it` has no human gate
-   inside its run. If Orca is running and you want the extra evidence, start `review-it` on a
-   pull request the session did not author and capture its first turn as a separate file
-   named for what it shows; it neither adds to nor substitutes for the checks above.
+Then uninstall through the native plugin manager:
 
-6. **Negative control: uninstall and confirm the missions came from the plugin.** The repo's
-   habit is a paired failure transcript; here it proves the skills were not a stray symlink.
+```bash
+claude plugin uninstall orca-fleet@orca-fleet
+claude plugin list --json
+claude -p --verbose --output-format stream-json --include-hook-events 'which missions are available?'
+```
 
-   ```
-   /plugin uninstall orca-fleet
-   ```
+The installed plugin must be absent and the next initialization must contain no
+`orca-fleet:` skills. Keep the control separate from the install transcript. Reinstall only
+if you intend to retain the catalog.
 
-   Then ask "which missions are available?" again and capture the answer: the outcome-named
-   missions must be gone. Reinstall afterwards only if you intend to keep using the catalog.
+## Landing the witness
 
-## The transcript file
-
-- Path: `docs/completion/evidence/CF-02-r3-happy-plugin-install.txt`, and the control as
-  `docs/completion/evidence/CF-02-r3-failure-plugin-uninstall.txt`.
-- First line: the UTC timestamp, then `CF-02 plugin install on a clean machine (README Install
-  → "Claude Code plugin"), HOME=<what it was>`, as the symlink witness does.
-- Body: `$ command`, the output, `exit=N`, in the order run. Slash commands go in as
-  `> /plugin install orca-fleet` with their output beneath.
-- Last line: `result: <one sentence stating what the transcript shows>`. The sentence for a
-  passing witness is: "plugin install copies the catalog, its `../../playbooks` and
-  `../../runtime` references resolve inside the plugin root, and the completion gate is
-  registered on Stop and TaskCompleted through `${CLAUDE_PLUGIN_ROOT}`."
-- Redact nothing but tokens; a path that names your user is fine.
-
-## Landing it
-
-One pull request, from anyone:
-
-1. Add the two transcript files.
-2. In [install.md](../install.md), replace the sentence that says the plugin path "has no
-   recorded install transcript yet" with a link to the transcript, keeping the sentence about
-   the symlink path as it is.
-3. Do not edit [DEFINITION.md](DEFINITION.md): its binding text is frozen (R6 / R13), and the
-   CF-02 row there stays as written. Record the witness outside the frozen block, as a new
-   row in [HUMAN_ACTIONS.md](HUMAN_ACTIONS.md) in that page's H-row format (id, instruction,
-   what it unblocks, whether it gates launch, verification naming the two transcript files,
-   status), the way H-07 records the CF-05 re-witness.
-4. Reference #518 in the PR body. The transcript is one part of #518; the others, the first
-   `v*` tag populating the `dist` branch and the receipt trees under `docs/runs/` and
-   `docs/reports/` shrunk or relocated out of the plugin copy (review P1-5), are the
-   maintainer's and are checked separately. The `du -sh` in step 2 measures the copy at the
-   one commit the transcript identifies (by checkout, by the marketplace clone, or by the tree
-   fingerprint matched against the intended tag); a shrink is shown by running step 2 again on
-   a clean machine with the copy identified as the shrunk tag's tree, so the two transcripts
-   carry the before and after sizes, each tied to a commit and never only to a version string.
-   One measurement is a size, not a reduction; two measurements without commit identities are
-   two sizes of unknown things.
-
-If any step fails, the transcript still lands, as a failure transcript with the failing step's
-output, and the PR says so in its title. A failed witness is evidence; a skipped one is not.
+Add the transcript and control under `docs/completion/evidence/`, link them from
+[install.md](../install.md), and add an H-row to [HUMAN_ACTIONS](HUMAN_ACTIONS.md) with the
+observed limits. Reference #518. Its other acceptance checks are the published `dist`
+target and an explicit receipt-packaging decision; [install.md](../install.md#copy-installers-and-bundles)
+records both. No install witness changes mission proof tiers or substitutes for the Linux
+Orca-runtime run required by #527.

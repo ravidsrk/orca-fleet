@@ -1,0 +1,50 @@
+# 2026-09-30T10:02Z — CF-02b plugin uninstall and fail-closed gate control
+# Same clean container and install as CF-02b-plugin-install.txt.
+
+$ bash -c 'ls /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/playbooks | head -5; ls /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/runtime | head -5; head -4 /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/skills/ship-it/SKILL.md'
+acceptance-review.md
+agent-brief.md
+browser-drive.md
+build-change.md
+characterize.md
+attention-budget.md
+dispatch-lifecycle.md
+evidence-manifest.md
+gate-classification.md
+ledger-contract.md
+---
+name: ship-it
+description: >-
+  Turn intent or a frozen spec into a released, verified outcome on Orca. Entry is either a frozen
+
+exit=0
+
+$ bash -c 'ORCA_MANIFEST=/nonexistent.json /home/witness/.claude/plugins/cache/orca-fleet/orca-fleet/0.7.0/runtime/scripts/verify-gate.sh --event stop'
+verify-gate: evidence manifest named but missing: /nonexistent.json — BLOCKING (fail-closed)
+
+exit=2
+
+$ /home/witness/.local/bin/claude plugin uninstall orca-fleet@orca-fleet
+✔ Successfully uninstalled plugin: orca-fleet (scope: user)
+
+exit=0
+
+$ /home/witness/.local/bin/claude plugin list --json
+[]
+
+exit=0
+
+$ /home/witness/.local/bin/claude -p --verbose --output-format stream-json --include-hook-events which missions are available?
+{"type":"system","subtype":"init","cwd":"/home/witness","session_id":"490bc9c0-8901-455b-887e-e72ca5c1c636","tools":["Task","Bash","CronCreate","CronDelete","CronList","DesignSync","Edit","EnterWorktree","ExitWorktree","ListAgents","NotebookEdit","Read","ReportFindings","ScheduleWakeup","SendMessage","Skill","TaskStop","ToolSearch","WebFetch","WebSearch","Workflow","Write"],"mcp_servers":[],"model":"claude-opus-5-5","permissionMode":"auto","slash_commands":["deep-research","design","design-sync","dataviz","update-config","verify","debug","code-review","simplify","batch","fewer-permission-prompts","doctor","loop","claude-api","workflow-authoring","run","run-skill-generator","agents","auto-mode-setup","autocompact","clear","color","compact","config","output-style","context","effort","fast","focus","heapdump","init","mcp","model","__remote-workflow","workflow-launch-exec","reload-plugins","reload-skills","rename","security-review","usage","insights","recap","goal","design-consent","design-revoke","list-agents","team-onboarding"],"terminal_slash_commands":["doctor","color","focus","reload-plugins"],"apiKeySource":"none","claude_code_version":"2.1.285","output_style":"default","agents":["claude","Explore","general-purpose","Plan","statusline-setup"],"skills":["deep-research","design","design-sync","dataviz","update-config","verify","debug","code-review","simplify","batch","fewer-permission-prompts","doctor","loop","claude-api","workflow-authoring","run","run-skill-generator"],"plugins":[{"name":"cc-plugin-agents-md","path":"builtin","source":"cc-plugin-agents-md@builtin"},{"name":"cc-plugin-telemetry","path":"builtin","source":"cc-plugin-telemetry@builtin"}],"capabilities":["interrupt_receipt_v1","interrupt_cancel_queued_v1","msg_lifecycle_v1","mcp_read_resource_v1","mcp_tool_ui_meta_v1"],"analytics_disabled":false,"product_feedback_disabled":false,"uuid":"f7562b35-2409-4dba-9cf9-44b245850836","memory_paths":{"auto":"/home/witness/.claude/projects/-home-witness/memory/"},"messaging_socket_path":"/tmp/cc-socks/3538.sock","fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","per_turn_effort_active":true,"view_mode":"default"}
+{"type":"assistant","message":{"diagnostics":null,"id":"0ae0453d-0546-434b-9dfd-f795e37c26d4","container":null,"model":"<synthetic>","role":"assistant","stop_details":null,"stop_reason":"stop_sequence","stop_sequence":"","type":"message","usage":{"output_tokens_details":null,"input_tokens":0,"output_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":null,"cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":null,"iterations":null,"speed":null,"fallback_credit":null},"content":[{"type":"text","text":"Not logged in · Please run /login"}],"context_management":null},"parent_tool_use_id":null,"session_id":"490bc9c0-8901-455b-887e-e72ca5c1c636","uuid":"d6414b89-f866-4178-8397-aaa6b358ea52","timestamp":"2026-09-30T10:05:57.220Z","error":"authentication_failed","is_api_error_message":true}
+{"duration_api_ms":0,"stop_reason":"stop_sequence","session_id":"490bc9c0-8901-455b-887e-e72ca5c1c636","total_cost_usd":0,"usage":{"output_tokens_details":{"thinking_tokens":0},"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":"","iterations":[],"speed":"standard","fallback_credit":null},"modelUsage":{},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","subagent_stats":{"spawned":0,"requested":{"background":0,"foreground":0,"unset":0},"started_in_background":0,"max_depth":0,"spawned_by_subagents":0,"completed":0,"failed":0,"killed":{"parent":0,"user":0,"system":0},"refused":{"depth_limit":0,"concurrency_limit":0,"budget":0},"by_type":{}},"is_error":true,"num_turns":1,"subtype":"success","api_error_status":null,"result":"Not logged in · Please run /login","type":"result","duration_ms":63,"uuid":"56c5d074-59aa-4a5b-83c9-887a5873e6d8","queued_turn_count":0,"result_index":0}
+
+exit=1
+
+
+Independent parse of system/init JSON:
+before uninstall: ["orca-fleet:absorb-it", "orca-fleet:access-it", "orca-fleet:attest-it", "orca-fleet:clean-sweep", "orca-fleet:deflake-it", "orca-fleet:document-it", "orca-fleet:field-test-it", "orca-fleet:floor-it", "orca-fleet:harden-it", "orca-fleet:map-it", "orca-fleet:migrate-it", "orca-fleet:modernize-it", "orca-fleet:offload-it", "orca-fleet:oncall-it", "orca-fleet:oss-contribute", "orca-fleet:pin-it", "orca-fleet:prove-it", "orca-fleet:reshape-it", "orca-fleet:review-it", "orca-fleet:root-cause", "orca-fleet:ship-it", "orca-fleet:speed-it"]
+after uninstall: []
+22 -> 0 mission registrations; no authenticated model turn claimed
+
+result: the installed gate blocks a missing explicit manifest with exit 2; after native plugin uninstall, plugin list is empty and Claude initialization contains zero orca-fleet missions. Authentication remains absent and no model answer is claimed.
