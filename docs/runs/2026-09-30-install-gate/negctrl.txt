@@ -1,0 +1,56 @@
+# Negative control — head 6092315 test file against a mutated install.yml
+## revert: git show e7089cbf:.github/workflows/install.yml > .github/workflows/install.yml
+## command: python3 -m unittest tests.test_install_workflow_triggers  -> exit 1
+FAIL: test_a_manual_dispatch_exists_for_retry_and_backfill (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_a_manual_dispatch_exists_for_retry_and_backfill)
+AssertionError: None != {} : workflow_dispatch lets a skipped or failed main SHA be re-run by hand
+FAIL: test_every_main_push_starts_install_whatever_it_changed (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_every_main_push_starts_install_whatever_it_changed) (changed=['assets/orca-fleet-reel.mp4'])
+AssertionError: False is not true : a main push touching only ['assets/orca-fleet-reel.mp4'] does not start install — gate 4 can never be green at that HEAD
+FAIL: test_every_main_push_starts_install_whatever_it_changed (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_every_main_push_starts_install_whatever_it_changed) (changed=['docs/runs/README.md'])
+AssertionError: False is not true : a main push touching only ['docs/runs/README.md'] does not start install — gate 4 can never be green at that HEAD
+FAIL: test_every_main_push_starts_install_whatever_it_changed (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_every_main_push_starts_install_whatever_it_changed) (changed=['assets/badges/tests.json', 'docs/runs/2026-09-30-install-gate/REPORT.md'])
+AssertionError: False is not true : a main push touching only ['assets/badges/tests.json', 'docs/runs/2026-09-30-install-gate/REPORT.md'] does not start install — gate 4 can never be green at that HEAD
+FAIL: test_no_other_trigger_widens_the_workflow (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_no_other_trigger_widens_the_workflow)
+AssertionError: Lists differ: ['pull_request', 'push'] != ['pull_request', 'push', 'workflow_dispatch']
+FAIL: test_the_push_trigger_is_main_only_with_no_path_filter (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_the_push_trigger_is_main_only_with_no_path_filter)
+AssertionError: 'paths' unexpectedly found in {'branches': ['main'], 'paths': ['scripts/install.sh', 'scripts/validate.py', 'runtime/scripts/verify-gate.sh', 'hooks/**', 'skills/*/SKILL.md', 'runtime/pins.json', 'README.md', 'docs/install.md', 'docs/distribution.md', 'docs/getting-started.md', '.claude-plugin/**', '.github/workflows/install.yml']} : a push.paths filter skips main SHAs gate 4 must bind to
+Ran 7 tests in 0.002s
+FAILED (failures=6)
+
+## hand mutant: reinstate ONLY push.paths (workflow_dispatch kept); diff:
+diff --git a/.github/workflows/install.yml b/.github/workflows/install.yml
+index 9d4a6938..b712f165 100644
+--- a/.github/workflows/install.yml
++++ b/.github/workflows/install.yml
+@@ -23,6 +23,19 @@ on:
+       - .github/workflows/install.yml
+   push:
+     branches: [main]
++    paths:
++      - scripts/install.sh
++      - scripts/validate.py
++      - runtime/scripts/verify-gate.sh
++      - hooks/**
++      - skills/*/SKILL.md
++      - runtime/pins.json
++      - README.md
++      - docs/install.md
++      - docs/distribution.md
++      - docs/getting-started.md
++      - .claude-plugin/**
++      - .github/workflows/install.yml
+   workflow_dispatch:
+ 
+ permissions:
+## command: python3 -m unittest tests.test_install_workflow_triggers  -> exit 1
+FAIL: test_every_main_push_starts_install_whatever_it_changed (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_every_main_push_starts_install_whatever_it_changed) (changed=['assets/orca-fleet-reel.mp4'])
+AssertionError: False is not true : a main push touching only ['assets/orca-fleet-reel.mp4'] does not start install — gate 4 can never be green at that HEAD
+FAIL: test_every_main_push_starts_install_whatever_it_changed (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_every_main_push_starts_install_whatever_it_changed) (changed=['docs/runs/README.md'])
+AssertionError: False is not true : a main push touching only ['docs/runs/README.md'] does not start install — gate 4 can never be green at that HEAD
+FAIL: test_every_main_push_starts_install_whatever_it_changed (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_every_main_push_starts_install_whatever_it_changed) (changed=['assets/badges/tests.json', 'docs/runs/2026-09-30-install-gate/REPORT.md'])
+AssertionError: False is not true : a main push touching only ['assets/badges/tests.json', 'docs/runs/2026-09-30-install-gate/REPORT.md'] does not start install — gate 4 can never be green at that HEAD
+FAIL: test_the_push_trigger_is_main_only_with_no_path_filter (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_the_push_trigger_is_main_only_with_no_path_filter)
+AssertionError: 'paths' unexpectedly found in {'branches': ['main'], 'paths': ['scripts/install.sh', 'scripts/validate.py', 'runtime/scripts/verify-gate.sh', 'hooks/**', 'skills/*/SKILL.md', 'runtime/pins.json', 'README.md', 'docs/install.md', 'docs/distribution.md', 'docs/getting-started.md', '.claude-plugin/**', '.github/workflows/install.yml']} : a push.paths filter skips main SHAs gate 4 must bind to
+Ran 7 tests in 0.001s
+FAILED (failures=4)
+
+## restored head file -> exit 0 (Ran 7 tests, OK)

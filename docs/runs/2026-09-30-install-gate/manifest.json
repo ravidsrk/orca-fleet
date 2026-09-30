@@ -1,0 +1,125 @@
+{
+  "unit": "D-CI (clean-sweep run_fb923397d46a, task_359fd36a5993, dispatch ctx_6efe391a4af1)",
+  "base_sha": "e7089cbfef02d4b6187875be3985c201334b01c9",
+  "head_sha": "6092315219eed426c440c939d4d1f9cc1c47af62",
+  "base_branch": "main",
+  "contract": {
+    "source": "docs/runs/2026-09-30-install-gate/contract.json",
+    "digest": "sha256:570e3db9ea3ced39695c4b20db68acfeee735ba42de041aecc31627b81aa3e4e",
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "text": "Every push to main can start install.yml regardless of changed paths: remove only push.paths, retain push.branches [main]; preserve pull_request.paths and jobs/permissions entirely; add workflow_dispatch.",
+      "addressed": true
+    },
+    {
+      "id": "AC-2",
+      "text": "Failing-first contract test re-derives trigger scope, proves an unrelated-path main push is accepted and PR path behaviour unchanged; exact-SHA checker still rejects a stale success; negative control fails when the push path filter is reinstated.",
+      "addressed": true
+    },
+    {
+      "id": "AC-3",
+      "text": "Focused tests, validate.py and the full suite (4 CI-equivalent shards, all exit 0) before commit; badges regenerated; clean commit, no trailers; manifest with intent and lighting lit; stop at BUILT.",
+      "addressed": true
+    }
+  ],
+  "commands": [
+    {
+      "label": "tests",
+      "ts": "2026-09-30T06:35:15Z",
+      "cmd": "python3 -m unittest tests.test_install_workflow_triggers",
+      "cmd_sha256": "fab1d564d28ee020b33eac5ed11cb125b176fcaf6293bbefdd95b0fc1e04e492",
+      "exit": 0,
+      "duration_s": 0.073,
+      "commit": "6092315219eed426c440c939d4d1f9cc1c47af62",
+      "wtree": "3ed9d94d6548ab2c4396ef10ef2db272c74e434c",
+      "artifact": null
+    },
+    {
+      "label": "stale-checker",
+      "ts": "2026-09-30T06:35:15Z",
+      "cmd": "python3 -m unittest tests.test_release_check.TestGithubChecks.test_a_workflow_run_is_green_only_at_this_head",
+      "cmd_sha256": "9de92cfa837bcc139f1546ef1b2fdca2e03c7e4de9a0789f911574755469a44b",
+      "exit": 1,
+      "duration_s": 0.058,
+      "commit": "6092315219eed426c440c939d4d1f9cc1c47af62",
+      "wtree": "3ed9d94d6548ab2c4396ef10ef2db272c74e434c",
+      "artifact": null
+    },
+    {
+      "label": "validate",
+      "ts": "2026-09-30T06:35:18Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 2.278,
+      "commit": "6092315219eed426c440c939d4d1f9cc1c47af62",
+      "wtree": "3ed9d94d6548ab2c4396ef10ef2db272c74e434c",
+      "artifact": null
+    },
+    {
+      "label": "stale-checker",
+      "ts": "2026-09-30T06:35:28Z",
+      "cmd": "python3 -m unittest tests.test_release_check.GitHubAnswersAreVerdicts.test_a_workflow_run_is_green_only_at_this_head",
+      "cmd_sha256": "a856967bb82f9605c9375fa3af157a9810e7f49f952edb1ec29772c5d10e6847",
+      "exit": 0,
+      "duration_s": 0.268,
+      "commit": "6092315219eed426c440c939d4d1f9cc1c47af62",
+      "wtree": "3ed9d94d6548ab2c4396ef10ef2db272c74e434c",
+      "artifact": null
+    }
+  ],
+  "negative_control": {
+    "did": "restored .github/workflows/install.yml from base_sha (push.paths back, no workflow_dispatch); separately a hand mutant re-adding ONLY push.paths (diff quoted in artifact)",
+    "tool": "revert",
+    "result": "criterion-bound test RED: revert 6 failures, hand mutant 4 failures (all unrelated-path main pushes rejected, push.paths present); GREEN at head",
+    "artifact": "docs/runs/2026-09-30-install-gate/negctrl.txt",
+    "command": "python3 -m unittest tests.test_install_workflow_triggers",
+    "paths": [
+      ".github/workflows/install.yml"
+    ]
+  },
+  "binding_audit": {
+    "coverage": "AC-1..AC-3 (3/3)",
+    "method": "AC-1 -> test_every_main_push_starts_install_whatever_it_changed, test_the_push_trigger_is_main_only_with_no_path_filter, test_the_pull_request_path_gate_is_unchanged, test_a_manual_dispatch_exists_for_retry_and_backfill, test_permissions_and_job_stay_read_only_from_scratch; AC-2 -> same module + existing tests/test_release_check.py GitHubAnswersAreVerdicts.test_a_workflow_run_is_green_only_at_this_head (stale headSha -> FAIL); reinstating push.paths went RED; AC-3 -> tests.txt shard receipts + validate record in commands[]"
+  },
+  "intent": {
+    "goal": "Let every main SHA start the install workflow so release_check gate 4 can find an install success at the exact release HEAD.",
+    "ruled_out": "Weakening check_workflow_green_at_head to accept the latest success on any SHA; adding unrelated paths (assets/**) to the push filter, which would still skip future unlisted paths; changing the PR path gate or the job.",
+    "why": "GitHub runs a push workflow only when branches AND paths both match; video-only e7089cbf matched no path, so no run exists at that HEAD and the newest install success is stale at 284a3d81 \u2014 gate 4 is unsatisfiable by construction until the filter goes."
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-30-install-gate/negctrl.txt",
+      "sha256": "67704d8508bff0b412b8ad7bce54269fa05e2e808b781f4f387c95e471711cf4"
+    },
+    {
+      "path": "docs/runs/2026-09-30-install-gate/tests.txt",
+      "sha256": "9eb06ba33b88b40a751b5e58ff54b6db418280987a0eb3da7ac6a96320fc1647"
+    }
+  ],
+  "reviewer_mode": "same-vendor-fresh",
+  "toolchain": "python 3 (host python3), stdlib unittest",
+  "provenance": {
+    "spec_version": "GitHub workflow syntax https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax (read 2026-09-30)",
+    "model": "claude-opus-5-5",
+    "reviewer": "",
+    "retention": "",
+    "standard": "none"
+  },
+  "parked": [
+    {
+      "item": "Live main evidence: an install run at a post-merge main HEAD and gate 4 green",
+      "reason": "needs-human \u2014 merge is out of this worker's scope; no push/PR/merge performed",
+      "gate": "human merge"
+    }
+  ],
+  "claim": "BUILT: push.paths removed, workflow_dispatch added, contract test red-first and red under reverted filter; not CLOSED, main Actions not observed after this fix."
+}

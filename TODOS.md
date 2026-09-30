@@ -8,8 +8,15 @@ issue-tracked, so this surface cannot drift into "nothing open" while gaps stand
   four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the
   published version is 1,372 commits behind with no GitHub Releases; five stale hand-typed pin
   and proof sentences; a schema line the 2026-09-28 re-pin missed), eight P1 findings, and a
-  three-tier release path (0.7.0 → public beta → 1.0). **Open**: none of its findings is filed
-  as an issue yet; filing them is the maintainer's next round.
+  three-tier release path (0.7.0 → public beta → 1.0). Its findings are filed as #510–#525
+  under label
+  [`release-readiness-2026-09-28`](https://github.com/ravidsrk/orca-fleet/issues?q=label%3Arelease-readiness-2026-09-28)
+  — that query, not this line, is the live open set. At the 2026-09-30 sweep
+  [#511](https://github.com/ravidsrk/orca-fleet/issues/511),
+  [#515](https://github.com/ravidsrk/orca-fleet/issues/515) and
+  [#518](https://github.com/ravidsrk/orca-fleet/issues/518) were still open; the ordered path
+  past the 0.7.0 cut is the road-to-1.0 epic
+  [#526](https://github.com/ravidsrk/orca-fleet/issues/526).
 - **Standing gaps** — [`docs/completion/GAPS.md`](docs/completion/GAPS.md): every finding
   between HEAD and the completion definition with a FINISH / CUT / DEFER decision. G-09
   (field proof) and G-19 (ops-step precision) are the open DEFER rows. Their tracking ISSUES

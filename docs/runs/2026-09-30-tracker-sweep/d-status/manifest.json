@@ -1,0 +1,179 @@
+{
+  "unit": "D-STATUS",
+  "base_sha": "e7089cbfef02d4b6187875be3985c201334b01c9",
+  "head_sha": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
+  "base_branch": "codex/remaining-issues-2026-09-30",
+  "contract": {
+    "source": "docs/runs/2026-09-30-tracker-sweep/d-status/contract.json (byte copy of the coordinator's /tmp/orca-fleet-sweep-20260930/build-contract.json, run_fb923397d46a; amendments recorded in the coordinator LEDGER, not in this copy)",
+    "digest": "sha256:6903dee998aa2d04d6f61a134f0526fc5936414282a03884f940a266303549b6",
+    "criterion_ids": [
+      "AC-1",
+      "AC-2",
+      "AC-3"
+    ]
+  },
+  "criteria": [
+    {
+      "id": "AC-1",
+      "text": "TODOS.md accurately links the filed 2026-09-28 release-readiness issues (#510-#525, only #511/#515/#518 remain open as of T0), and the road-to-1.0 epic #526. Remove the false claim no findings have been filed. Prefer live tracker links over hand-maintained counts; preserve historical review pointers.",
+      "addressed": true
+    },
+    {
+      "id": "AC-2",
+      "text": "docs/ops.md rollback guidance distinguishes default-branch merge from release and dist publication through the existing release.yml and publish-dist.yml. It must not claim the workflow directory contains only validate, negative-control and alert workflows. Do not weaken the exact-cut maintainer authorization rule. Tighten incident step 1's suggested external polling query to main push runs and explicitly require stale/absent/non-success handling per #528; this does not install a monitor or claim alert delivery.",
+      "addressed": true
+    },
+    {
+      "id": "AC-3",
+      "text": "runtime/dispatch-lifecycle.md names the current pin v1.4.215 and its actual witness report docs/runs/2026-09-28-pin-it-500.md consistently with runtime/pins.json. Older v1.4.203/v1.4.209 witness claims are historical, never called current/live. Preserve the historical code citations and all parked live probes. Do not advance to the on-path app v1.4.217 or pretend that app was pinned. If edits change activation loads, run scripts/gen-badges.py and include only required generated changes.",
+      "addressed": true
+    }
+  ],
+  "commands": [
+    {
+      "label": "validate",
+      "ts": "2026-09-30T06:29:00Z",
+      "cmd": "python3 scripts/validate.py",
+      "cmd_sha256": "2646f2f931912fb1bb633d749ec5f4ff0948033953dcbefb42cd6f5e05c63446",
+      "exit": 0,
+      "duration_s": 1.375,
+      "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
+      "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
+      "artifact": "docs/runs/2026-09-30-tracker-sweep/d-status/validate.txt"
+    },
+    {
+      "label": "tests",
+      "ts": "2026-09-30T06:29:00Z",
+      "cmd": "python3 -m unittest tests.test_release_status_docs -v",
+      "cmd_sha256": "fa4d877ad6e74fd7d10d528b782727881c5e670f8ea9f7f63db2a9b691a9c7d4",
+      "exit": 0,
+      "duration_s": 0.03,
+      "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
+      "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
+      "artifact": "docs/runs/2026-09-30-tracker-sweep/d-status/focused-tests.txt"
+    },
+    {
+      "label": "badges",
+      "ts": "2026-09-30T06:29:01Z",
+      "cmd": "python3 scripts/gen-badges.py --check",
+      "cmd_sha256": "52ff19de26b8308c3900870d73647bbbf3c5593a798bf578f394d4b343d90481",
+      "exit": 0,
+      "duration_s": 0.223,
+      "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
+      "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
+      "artifact": "docs/runs/2026-09-30-tracker-sweep/d-status/gen-badges-check.txt"
+    },
+    {
+      "label": "suite-shard-1-of-4",
+      "ts": "2026-09-30T06:31:12Z",
+      "cmd": "env -u ORCA_TERMINAL_HANDLE python3 scripts/shard-tests.py --shard 1 --of 4",
+      "cmd_sha256": "6671f0d5d95612b039b0351e153cc2c5aac9713520386eed02dbc45b0d7f97ad",
+      "exit": 0,
+      "duration_s": 126.733,
+      "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
+      "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/build/shard-1.txt",
+      "artifact_sha256": "e69eaed080f9ea858cac5564d74c5bd03ad2d5688c37d0ca25e48495f536d54a"
+    },
+    {
+      "label": "suite-shard-2-of-4",
+      "ts": "2026-09-30T06:33:21Z",
+      "cmd": "env -u ORCA_TERMINAL_HANDLE python3 scripts/shard-tests.py --shard 2 --of 4",
+      "cmd_sha256": "d852b692a724bb34dcef87b1cefbd6cdc6f97e4f44b9682f25fcf18d7fef440d",
+      "exit": 0,
+      "duration_s": 255.135,
+      "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
+      "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/build/shard-2.txt",
+      "artifact_sha256": "89561849bfe7089db3f55120416f6b1d964588704b63439074167eea89750846"
+    },
+    {
+      "label": "suite-shard-3-of-4",
+      "ts": "2026-09-30T06:32:30Z",
+      "cmd": "env -u ORCA_TERMINAL_HANDLE python3 scripts/shard-tests.py --shard 3 --of 4",
+      "cmd_sha256": "028b105cce786df28cefb35ba9ff6f2d2f61039b884f17a7a2fccce5b0f7dde8",
+      "exit": 0,
+      "duration_s": 204.741,
+      "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
+      "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/build/shard-3.txt",
+      "artifact_sha256": "a3187a5cda44d6f8d055eddfc8b75577a9f28c187b57ddd5b0af29fc04a1c3fb"
+    },
+    {
+      "label": "suite-shard-4-of-4",
+      "ts": "2026-09-30T06:32:02Z",
+      "cmd": "env -u ORCA_TERMINAL_HANDLE python3 scripts/shard-tests.py --shard 4 --of 4",
+      "cmd_sha256": "3baa173e7b0b45de78bd2516a40e66815fb1e304d7ea69288f181637db1a14c6",
+      "exit": 0,
+      "duration_s": 176.38,
+      "commit": "8b9627a0ab7e66a88a06df4cfb82b884ddbfd1e0",
+      "wtree": "7c7f93a2177f860e32685df9dbbdc9a0b91cb608",
+      "artifact_external": "/tmp/orca-fleet-sweep-20260930/build/shard-4.txt",
+      "artifact_sha256": "f968643ee4bbacb8b4fa6f2ce17e08e9971c82310241eddcc6370b3857cb983e"
+    }
+  ],
+  "negative_control": {
+    "did": "restored TODOS.md, docs/ops.md, runtime/dispatch-lifecycle.md from base_sha one at a time and together in a throwaway worktree at head_sha; then 7 hand mutants (exact-cut rule, --status completed, 'publishes nothing', live PIN 1.4.217, dropped park, CURRENT at 1.4.209, unlinked #515)",
+    "tool": "revert",
+    "result": "the criterion-bound test went RED with assertion failures for every revert (6/10/5/21 failures) and every hand mutant (all KILLED); clean head_sha GREEN (13 tests OK)",
+    "artifact": "docs/runs/2026-09-30-tracker-sweep/d-status/negative-control.txt",
+    "command": "python3 -m unittest tests.test_release_status_docs -v",
+    "paths": [
+      "TODOS.md",
+      "docs/ops.md",
+      "runtime/dispatch-lifecycle.md"
+    ]
+  },
+  "binding_audit": {
+    "coverage": "AC-1..AC-3 (3/3)",
+    "method": "AC-1: TodosPointsAtTheFiledReadinessIssues (frozen T0 tracker snapshot, label query, #511/#515/#518/#526 links); AC-2: OpsRollbackNamesThePublishingWorkflows (publishing set derived from .github/workflows tag triggers + contents: write; poll filter derived from main-health.yml; exact-cut sentence); AC-3: DispatchLifecycleNamesTheCurrentPin (pin from runtime/pins.json, witness record found by its '\u2192 <pin>' title in docs/runs). Each went RED on revert of its file and on a criterion-violating hand mutant."
+  },
+  "intent": {
+    "goal": "Make the three current-status surfaces agree with the tracker, the workflow files and runtime/pins.json, and keep them from drifting silently again.",
+    "ruled_out": "Hand-maintained open counts in TODOS.md; a blanket ban on naming 1.4.217 (would block a legitimate future pin); editing workflows, pins.json, releases or issues; installing or claiming an external monitor (#528 stays open, needs-human).",
+    "why": "The stale claims were prose copies of state that lives elsewhere; tests that derive the expectation from pins.json, the workflow triggers and main-health's own query go red when either side moves, while the tracker (which the tree cannot read) is pointed at by live query and frozen only as a dated T0 snapshot."
+  },
+  "lighting": "lit",
+  "artifacts": [
+    {
+      "path": "docs/runs/2026-09-30-tracker-sweep/d-status/focused-tests.txt",
+      "sha256": "f2e71d866b06e17fa2a324191e2745a27fbcd3690bf87ee26d6f7f50ef123452"
+    },
+    {
+      "path": "docs/runs/2026-09-30-tracker-sweep/d-status/gen-badges-check.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/runs/2026-09-30-tracker-sweep/d-status/negative-control.txt",
+      "sha256": "5b718834554de9d8d2ad9de52db4be934495bbb40c5b6f8d43053f1bf4947ad0"
+    },
+    {
+      "path": "docs/runs/2026-09-30-tracker-sweep/d-status/red-before-fix.txt",
+      "sha256": "1a22abbb6b805811aa02a428d8e2ed5f80c368dca1d6f97bbfbcf182676fa224"
+    },
+    {
+      "path": "docs/runs/2026-09-30-tracker-sweep/d-status/validate.txt",
+      "sha256": "1c2f37da6c969d3ee97ea3eed705e9b2914d273ba38fa6ef23bebbd30e4b7e0e"
+    }
+  ],
+  "toolchain": "python 3.13.15 (darwin)",
+  "parked": [
+    {
+      "item": "independent build-blind review + PR (pr.reviewed_sha, review)",
+      "reason": "needs-human / integrator: this unit does not open PRs or push",
+      "gate": "integrator"
+    },
+    {
+      "item": "#528 external Actions monitor and its drill",
+      "reason": "needs-human (account outside the repo)",
+      "gate": "#528"
+    },
+    {
+      "item": "tracker acceptance of #511/#515/#518/#526",
+      "reason": "out of scope for D-STATUS; tracker criteria stay open",
+      "gate": "run_fb923397d46a"
+    }
+  ],
+  "claim": "D-STATUS built at 8b9627a0; not verified-CLOSED \u2014 no independent review or GitHub approval exists.",
+  "reviewer_mode": "same-vendor-fresh"
+}

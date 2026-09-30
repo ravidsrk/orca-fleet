@@ -1,0 +1,22 @@
+# Failing-first: new test vs base install.yml (before the fix) -> exit 1
+FAIL: test_a_manual_dispatch_exists_for_retry_and_backfill (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_a_manual_dispatch_exists_for_retry_and_backfill)
+AssertionError: None != {} : workflow_dispatch lets a skipped or failed main SHA be re-run by hand
+FAIL: test_every_main_push_starts_install_whatever_it_changed (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_every_main_push_starts_install_whatever_it_changed) (changed=['assets/orca-fleet-reel.mp4'])
+AssertionError: False is not true : a main push touching only ['assets/orca-fleet-reel.mp4'] does not start install — gate 4 can never be green at that HEAD
+FAIL: test_every_main_push_starts_install_whatever_it_changed (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_every_main_push_starts_install_whatever_it_changed) (changed=['docs/runs/README.md'])
+AssertionError: False is not true : a main push touching only ['docs/runs/README.md'] does not start install — gate 4 can never be green at that HEAD
+FAIL: test_every_main_push_starts_install_whatever_it_changed (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_every_main_push_starts_install_whatever_it_changed) (changed=['assets/badges/tests.json', 'docs/runs/2026-09-30-install-gate/REPORT.md'])
+AssertionError: False is not true : a main push touching only ['assets/badges/tests.json', 'docs/runs/2026-09-30-install-gate/REPORT.md'] does not start install — gate 4 can never be green at that HEAD
+FAIL: test_no_other_trigger_widens_the_workflow (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_no_other_trigger_widens_the_workflow)
+AssertionError: Lists differ: ['pull_request', 'push'] != ['pull_request', 'push', 'workflow_dispatch']
+FAIL: test_the_push_trigger_is_main_only_with_no_path_filter (tests.test_install_workflow_triggers.InstallWorkflowTriggers.test_the_push_trigger_is_main_only_with_no_path_filter)
+AssertionError: 'paths' unexpectedly found in {'branches': ['main'], 'paths': ['scripts/install.sh', 'scripts/validate.py', 'runtime/scripts/verify-gate.sh', 'hooks/**', 'skills/*/SKILL.md', 'runtime/pins.json', 'README.md', 'docs/install.md', 'docs/distribution.md', 'docs/getting-started.md', '.claude-plugin/**', '.github/workflows/install.yml']} : a push.paths filter skips main SHAs gate 4 must bind to
+Ran 7 tests in 0.001s
+FAILED (failures=6)
+
+# CI-equivalent full suite, 4 concurrent shards, env -u ORCA_TERMINAL_HANDLE, pre-commit tree == 6092315 content
+shard 1/4 exit 0: Ran 447 tests in 131.061s OK
+shard 2/4 exit 0: Ran 760 tests in 257.562s OK
+shard 3/4 exit 0: Ran 646 tests in 182.322s OK
+shard 4/4 exit 0: Ran 560 tests in 207.696s OK
+validate: exit 0 — All 22 missions valid; three-layer separation holds; evals valid.

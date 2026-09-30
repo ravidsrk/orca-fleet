@@ -1,0 +1,163 @@
+Negative control at head 8b9627a0 in a throwaway detached worktree (tool: revert, then hand mutants). Every revert/mutant RED with assertion failures (mutants KILLED); clean head GREEN.
+full log: /tmp/orca-fleet-sweep-20260930/build/negctrl-final.txt sha256:3fac827f895bd3e0cbae891d02c0f525a9247ae924be0d42f861b2b31f923aeb (118435 bytes, kept outside the tree)
+
+=== clean head 8b9627a0
+$ python3 -m unittest tests.test_release_status_docs -v
+Ran 13 tests in 0.003s
+OK
+exit=0
+=== revert: git checkout e7089cbfef02d4b6187875be3985c201334b01c9 -- TODOS.md
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_links_the_live_label_query_and_the_filed_range
+AssertionError: 'https://github.com/ravidsrk/orca-fleet/issues?q=label%3Arelease-readiness-2026-09-28' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits be
+FAIL: test_names_the_open_findings_and_the_epic_as_links (issue=511)
+AssertionError: '](https://github.com/ravidsrk/orca-fleet/issues/511)' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; fi
+FAIL: test_names_the_open_findings_and_the_epic_as_links (issue=515)
+AssertionError: '](https://github.com/ravidsrk/orca-fleet/issues/515)' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; fi
+FAIL: test_names_the_open_findings_and_the_epic_as_links (issue=518)
+AssertionError: '](https://github.com/ravidsrk/orca-fleet/issues/518)' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; fi
+FAIL: test_names_the_open_findings_and_the_epic_as_links (issue=526)
+AssertionError: '](https://github.com/ravidsrk/orca-fleet/issues/526)' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; fi
+FAIL: test_no_claim_that_nothing_was_filed
+AssertionError: 'none of its findings is filed' unexpectedly found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; five stale hand-
+Ran 13 tests in 0.004s
+FAILED (failures=6)
+exit=1
+=== revert: git checkout e7089cbfef02d4b6187875be3985c201334b01c9 -- docs/ops.md
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (token='--event push')
+AssertionError: '--event push' not found in 'gh run list --workflow validate.yml --branch main --limit 1 --json conclusion'
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (token='--status completed')
+AssertionError: '--status completed' not found in 'gh run list --workflow validate.yml --branch main --limit 1 --json conclusion'
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (token='updatedAt')
+AssertionError: 'updatedAt' not found in 'gh run list --workflow validate.yml --branch main --limit 1 --json conclusion'
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (handling='stale')
+AssertionError: 'stale' not found in '1. A red `validate` or `negative-control-demo` run on `main` files (or updates) an issue labeled [`ci-failure`](https://github.com/ravidsrk/orca-fleet/issues?q=label%3Aci-failure) — that issue is the alert; it arrives through normal issue notifications, not the opt-in Actions setting. Open the run it links — catalog gates (`scripts/validate.py`, `tests/`, `pro
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (handling='absent')
+AssertionError: 'absent' not found in '1. A red `validate` or `negative-control-demo` run on `main` files (or updates) an issue labeled [`ci-failure`](https://github.com/ravidsrk/orca-fleet/issues?q=label%3Aci-failure) — that issue is the alert; it arrives through normal issue notifications, not the opt-in Actions setting. Open the run it links — catalog gates (`scripts/validate.py`, `tests/`, `pr
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (handling='#528')
+AssertionError: '#528' not found in '1. A red `validate` or `negative-control-demo` run on `main` files (or updates) an issue labeled [`ci-failure`](https://github.com/ravidsrk/orca-fleet/issues?q=label%3Aci-failure) — that issue is the alert; it arrives through normal issue notifications, not the opt-in Actions setting. Open the run it links — catalog gates (`scripts/validate.py`, `tests/`, `proo
+FAIL: test_rollback_does_not_claim_a_closed_workflow_list
+AssertionError: 'contains only' unexpectedly found in '4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR through the normal gates — never a force-push or a history rewrite on `main`. There is no hosted service, staging, or deploy target to roll back: `.github/workflows/` contains only `validate.yml`, `negative-control.yml`, and `alert-on-failure.yml` (no deploy job); "deploy" is m
+FAIL: test_rollback_separates_merge_from_publication (workflow='publish-dist.yml')
+AssertionError: 'publish-dist.yml' not found in '4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR through the normal gates — never a force-push or a history rewrite on `main`. There is no hosted service, staging, or deploy target to roll back: `.github/workflows/` contains only `validate.yml`, `negative-control.yml`, and `alert-on-failure.yml` (no deploy job); "deploy" is merge t
+FAIL: test_rollback_separates_merge_from_publication (workflow='release.yml')
+AssertionError: 'release.yml' not found in '4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR through the normal gates — never a force-push or a history rewrite on `main`. There is no hosted service, staging, or deploy target to roll back: `.github/workflows/` contains only `validate.yml`, `negative-control.yml`, and `alert-on-failure.yml` (no deploy job); "deploy" is merge to `ma
+FAIL: test_rollback_separates_merge_from_publication
+AssertionError: 'marketplace' not found in '4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR through the normal gates — never a force-push or a history rewrite on `main`. There is no hosted service, staging, or deploy target to roll back: `.github/workflows/` contains only `validate.yml`, `negative-control.yml`, and `alert-on-failure.yml` (no deploy job); "deploy" is merge to `ma
+Ran 13 tests in 0.004s
+FAILED (failures=10)
+exit=1
+=== revert: git checkout e7089cbfef02d4b6187875be3985c201334b01c9 -- runtime/dispatch-lifecycle.md
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_live_probe_section_names_the_pinned_version_and_its_witness
+AssertionError: 'The live PIN is v1.4.215 (`docs/runs/2026-09-28-pin-it-500.md`' not found in "The live PIN is v1.4.209 (`docs/runs/2026-09-23-pin-it-488.md` — witnessed against the release bundle; the on-PATH app update is owed, `pins.json` `witness_binary`/`onpath_at_witness` carry the divergence). The 1.4.204 pin before it is `docs/runs/2026-09-20-pin-it-427.md`. Every probe the 1.4.203 session
+FAIL: test_no_other_version_is_called_live_or_current (claim='current at v1.4.203')
+AssertionError: '1.4.203' != '1.4.215'
+FAIL: test_no_other_version_is_called_live_or_current (claim='CURRENT at v1.4.209')
+AssertionError: '1.4.209' != '1.4.215'
+FAIL: test_no_other_version_is_called_live_or_current (claim='PIN is v1.4.209')
+AssertionError: '1.4.209' != '1.4.215'
+FAIL: test_no_other_version_is_called_live_or_current (claim='v1.4.203 — the live PIN')
+AssertionError: '1.4.203' != '1.4.215'
+Ran 13 tests in 0.004s
+FAILED (failures=5)
+exit=1
+=== revert all three production paths
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_live_probe_section_names_the_pinned_version_and_its_witness
+AssertionError: 'The live PIN is v1.4.215 (`docs/runs/2026-09-28-pin-it-500.md`' not found in "The live PIN is v1.4.209 (`docs/runs/2026-09-23-pin-it-488.md` — witnessed against the release bundle; the on-PATH app update is owed, `pins.json` `witness_binary`/`onpath_at_witness` carry the divergence). The 1.4.204 pin before it is `docs/runs/2026-09-20-pin-it-427.md`. Every probe the 1.4.203 session
+FAIL: test_no_other_version_is_called_live_or_current (claim='current at v1.4.203')
+AssertionError: '1.4.203' != '1.4.215'
+FAIL: test_no_other_version_is_called_live_or_current (claim='CURRENT at v1.4.209')
+AssertionError: '1.4.209' != '1.4.215'
+FAIL: test_no_other_version_is_called_live_or_current (claim='PIN is v1.4.209')
+AssertionError: '1.4.209' != '1.4.215'
+FAIL: test_no_other_version_is_called_live_or_current (claim='v1.4.203 — the live PIN')
+AssertionError: '1.4.203' != '1.4.215'
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (token='--event push')
+AssertionError: '--event push' not found in 'gh run list --workflow validate.yml --branch main --limit 1 --json conclusion'
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (token='--status completed')
+AssertionError: '--status completed' not found in 'gh run list --workflow validate.yml --branch main --limit 1 --json conclusion'
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (token='updatedAt')
+AssertionError: 'updatedAt' not found in 'gh run list --workflow validate.yml --branch main --limit 1 --json conclusion'
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (handling='stale')
+AssertionError: 'stale' not found in '1. A red `validate` or `negative-control-demo` run on `main` files (or updates) an issue labeled [`ci-failure`](https://github.com/ravidsrk/orca-fleet/issues?q=label%3Aci-failure) — that issue is the alert; it arrives through normal issue notifications, not the opt-in Actions setting. Open the run it links — catalog gates (`scripts/validate.py`, `tests/`, `pro
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (handling='absent')
+AssertionError: 'absent' not found in '1. A red `validate` or `negative-control-demo` run on `main` files (or updates) an issue labeled [`ci-failure`](https://github.com/ravidsrk/orca-fleet/issues?q=label%3Aci-failure) — that issue is the alert; it arrives through normal issue notifications, not the opt-in Actions setting. Open the run it links — catalog gates (`scripts/validate.py`, `tests/`, `pr
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (handling='#528')
+AssertionError: '#528' not found in '1. A red `validate` or `negative-control-demo` run on `main` files (or updates) an issue labeled [`ci-failure`](https://github.com/ravidsrk/orca-fleet/issues?q=label%3Aci-failure) — that issue is the alert; it arrives through normal issue notifications, not the opt-in Actions setting. Open the run it links — catalog gates (`scripts/validate.py`, `tests/`, `proo
+FAIL: test_rollback_does_not_claim_a_closed_workflow_list
+AssertionError: 'contains only' unexpectedly found in '4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR through the normal gates — never a force-push or a history rewrite on `main`. There is no hosted service, staging, or deploy target to roll back: `.github/workflows/` contains only `validate.yml`, `negative-control.yml`, and `alert-on-failure.yml` (no deploy job); "deploy" is m
+FAIL: test_rollback_separates_merge_from_publication (workflow='publish-dist.yml')
+AssertionError: 'publish-dist.yml' not found in '4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR through the normal gates — never a force-push or a history rewrite on `main`. There is no hosted service, staging, or deploy target to roll back: `.github/workflows/` contains only `validate.yml`, `negative-control.yml`, and `alert-on-failure.yml` (no deploy job); "deploy" is merge t
+FAIL: test_rollback_separates_merge_from_publication (workflow='release.yml')
+AssertionError: 'release.yml' not found in '4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR through the normal gates — never a force-push or a history rewrite on `main`. There is no hosted service, staging, or deploy target to roll back: `.github/workflows/` contains only `validate.yml`, `negative-control.yml`, and `alert-on-failure.yml` (no deploy job); "deploy" is merge to `ma
+FAIL: test_rollback_separates_merge_from_publication
+AssertionError: 'marketplace' not found in '4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR through the normal gates — never a force-push or a history rewrite on `main`. There is no hosted service, staging, or deploy target to roll back: `.github/workflows/` contains only `validate.yml`, `negative-control.yml`, and `alert-on-failure.yml` (no deploy job); "deploy" is merge to `ma
+FAIL: test_links_the_live_label_query_and_the_filed_range
+AssertionError: 'https://github.com/ravidsrk/orca-fleet/issues?q=label%3Arelease-readiness-2026-09-28' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits be
+FAIL: test_names_the_open_findings_and_the_epic_as_links (issue=511)
+AssertionError: '](https://github.com/ravidsrk/orca-fleet/issues/511)' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; fi
+FAIL: test_names_the_open_findings_and_the_epic_as_links (issue=515)
+AssertionError: '](https://github.com/ravidsrk/orca-fleet/issues/515)' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; fi
+FAIL: test_names_the_open_findings_and_the_epic_as_links (issue=518)
+AssertionError: '](https://github.com/ravidsrk/orca-fleet/issues/518)' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; fi
+FAIL: test_names_the_open_findings_and_the_epic_as_links (issue=526)
+AssertionError: '](https://github.com/ravidsrk/orca-fleet/issues/526)' not found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; fi
+FAIL: test_no_claim_that_nothing_was_filed
+AssertionError: 'none of its findings is filed' unexpectedly found in "- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; five stale hand-
+Ran 13 tests in 0.005s
+FAILED (failures=21)
+exit=1
+=== hand mutant docs/ops.md: 'must authorize the exact cut SHA' -> 'should approve the cut'
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_exact_cut_authorization_rule_is_intact
+AssertionError: 'The maintainer must authorize the exact cut SHA and version before creating or publishing its tag.' not found in '# Ops — account inventory and incident process Bus factor 1: Ravindra Kumar ([`ravidsrk`](https://github.com/ravidsrk), `ravidsrk@gmail.com`). This page is the inventory of surfaces that can break the catalog, and what to do at 2 a.m. It is not a product runbook — miss
+Ran 13 tests in 0.004s
+FAILED (failures=1)
+exit=1
+=== hand mutant docs/ops.md: '--event push --status completed' -> '--event push'
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_incident_poll_targets_main_push_runs_and_handles_stale_or_absent (token='--status completed')
+AssertionError: '--status completed' not found in 'gh run list --workflow validate.yml --branch main --event push --limit 1 --json conclusion,updatedAt'
+Ran 13 tests in 0.003s
+FAILED (failures=1)
+exit=1
+=== hand mutant docs/ops.md: 'is the "deploy" above: it changes the default-branch tree' -> 'publishes nothing: it changes the default-branch tree'
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_rollback_separates_merge_from_publication
+AssertionError: 'publishes nothing' unexpectedly found in '4. Rollback = `git revert -m 1 <merge-sha>` on a branch, then a PR through the normal gates — never a force-push or a history rewrite on `main`. There is no hosted service or staging environment. A merge to `main` publishes nothing: it changes the default-branch tree that clones and the marketplace (`source: "./"`) install. Versioned publi
+Ran 13 tests in 0.004s
+FAILED (failures=1)
+exit=1
+=== hand mutant runtime/dispatch-lifecycle.md: 'The live PIN is v1.4.215' -> 'The live PIN is v1.4.217'
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_live_probe_section_names_the_pinned_version_and_its_witness
+AssertionError: 'The live PIN is v1.4.215 (`docs/runs/2026-09-28-pin-it-500.md`' not found in 'The live PIN is v1.4.217 (`docs/runs/2026-09-28-pin-it-500.md` — witnessed against the release bundle while the on-PATH app lagged at the 2026-09-28 witness; `runtime/pins.json` `witness_binary`/`onpath_at_witness` carry the divergence). Before it: 1.4.209 `docs/runs/2026-09-23-pin-it-488.md`, 1.4.204 `d
+FAIL: test_no_other_version_is_called_live_or_current (claim='PIN is v1.4.217')
+AssertionError: '1.4.217' != '1.4.215'
+Ran 13 tests in 0.003s
+FAILED (failures=2)
+exit=1
+=== hand mutant runtime/dispatch-lifecycle.md: 'doctor verdict shapes, ' -> ''
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_parked_live_probes_survive (probe='doctor verdict shapes')
+AssertionError: 'doctor verdict shapes' not found in 'The live PIN is v1.4.215 (`docs/runs/2026-09-28-pin-it-500.md` — witnessed against the release bundle while the on-PATH app lagged at the 2026-09-28 witness; `runtime/pins.json` `witness_binary`/`onpath_at_witness` carry the divergence). Before it: 1.4.209 `docs/runs/2026-09-23-pin-it-488.md`, 1.4.204 `docs/runs/2026-09-20-pin-it-427.md`. Every
+Ran 13 tests in 0.004s
+FAILED (failures=1)
+exit=1
+=== hand mutant runtime/dispatch-lifecycle.md: 're-verified at v1.4.209 and v1.4.215' -> 're-verified CURRENT at v1.4.209'
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_no_other_version_is_called_live_or_current (claim='CURRENT at v1.4.209')
+AssertionError: '1.4.209' != '1.4.215'
+Ran 13 tests in 0.003s
+FAILED (failures=1)
+exit=1
+=== hand mutant TODOS.md: '[#515](https://github.com/ravidsrk/orca-fleet/issues/515)' -> '#515'
+$ python3 -m unittest tests.test_release_status_docs -v
+FAIL: test_names_the_open_findings_and_the_epic_as_links (issue=515)
+AssertionError: '](https://github.com/ravidsrk/orca-fleet/issues/515)' not found in '- **The 2026-09-28 release-readiness review** — [`docs/reviews/2026-09-28-release-readiness-review.md`](docs/reviews/2026-09-28-release-readiness-review.md): four P0 findings (the runtime scripts hardcode `orca` where Linux ships `orca-ide`; the published version is 1,372 commits behind with no GitHub Releases; fi
+Ran 13 tests in 0.003s
+FAILED (failures=1)
+exit=1
