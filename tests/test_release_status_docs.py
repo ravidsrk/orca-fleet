@@ -46,6 +46,13 @@ class TodosPointsAtTheFiledReadinessIssues(unittest.TestCase):
         entry = self.entry()
         for stale in ("none of its findings is filed", "not filed", "filing them is"):
             self.assertNotIn(stale, entry, f"TODOS.md still says {stale!r} after #510-#525 were filed")
+        # Paraphrases of the same stale claim: a finding with no issue, or filing still to come.
+        for pattern in (r"(?i)\b(no|none of (its|the|these))\s+findings?\b[^.]{0,40}\b(filed|issues?|tracked)\b",
+                        r"(?i)\b(not|never|yet to be)\s+(yet\s+)?(filed|tracked)\b", r"(?i)\bunfiled\b"):
+            with self.subTest(pattern=pattern):
+                self.assertNotRegex(entry, pattern, "TODOS.md says a 2026-09-28 finding has no issue")
+        lo, hi = READINESS_FILED
+        self.assertRegex(entry, rf"findings are filed as #{lo}[–-]#?{hi}")
 
     def test_links_the_live_label_query_and_the_filed_range(self):
         entry = self.entry()
@@ -88,6 +95,11 @@ class OpsRollbackNamesThePublishingWorkflows(unittest.TestCase):
         step = self.step(4)
         self.assertNotIn("contains only", step)
         self.assertNotIn("no deploy job", step)
+        # Paraphrases of a closed list: "the only workflows are …", "no other workflow", "no publishing job".
+        for pattern in (r"(?i)\b(only|sole)\b[^.]{0,30}\bworkflows?\b", r"(?i)\bworkflows?\b[^.]{0,30}\b(are|is) (only|just)\b",
+                        r"(?i)\bno other workflows?\b", r"(?i)\bno (publishing|release|deploy)\w* (job|workflow)s?\b"):
+            with self.subTest(pattern=pattern):
+                self.assertNotRegex(step, pattern, "rollback claims a closed workflow list")
         for name in re.findall(r"[\w.-]+\.yml", step):
             with self.subTest(workflow=name):
                 self.assertTrue((self.WORKFLOWS / name).is_file(), f"rollback names absent {name}")
@@ -103,6 +115,15 @@ class OpsRollbackNamesThePublishingWorkflows(unittest.TestCase):
         self.assertIn("marketplace", step)
         self.assertIn("new version", step, "a bad release is corrected with a new version, not a re-tag")
         self.assertIn("exact cut", step, "rollback must route re-publication through the cut authorization")
+
+    def test_a_published_release_is_never_retagged(self):
+        step = self.step(4)
+        self.assertIn("a published bad release is never re-tagged or deleted", step,
+                      "rollback lost the immutable-tag promise")
+        for m in re.finditer(r"(?i)\bre-?tag\w*", step):
+            with self.subTest(claim=step[max(0, m.start() - 40):m.end()]):
+                self.assertRegex(step[max(0, m.start() - 40):m.start()], r"(?i)\b(never|not|no)\b",
+                                 "rollback permits re-tagging a published release")
 
     def test_exact_cut_authorization_rule_is_intact(self):
         self.assertIn(
@@ -127,6 +148,18 @@ class OpsRollbackNamesThePublishingWorkflows(unittest.TestCase):
                 self.assertIn(tok, step)
 
 
+    def test_no_external_monitor_is_claimed_installed(self):
+        step = self.step(1)
+        self.assertIn("No such monitor is installed yet — #528 tracks choosing one and drilling it.", step,
+                      "incident step 1 lost the no-installed-monitor statement")
+        for sentence in re.split(r"(?<=[.!?])\s+", step):
+            if re.search(r"(?i)\bmonitor", sentence) and re.search(
+                    r"(?i)\b(installed|deployed|running|in place|live|pages)\b", sentence):
+                with self.subTest(sentence=sentence):
+                    self.assertRegex(sentence, r"(?i)\b(no|not|never|yet to)\b",
+                                     "incident step 1 claims an external monitor is installed")
+
+
 class DispatchLifecycleNamesTheCurrentPin(unittest.TestCase):
     TEXT = read("runtime/dispatch-lifecycle.md")
     PIN = json.loads(read("runtime/pins.json"))["orca"]["version"]
@@ -144,12 +177,14 @@ class DispatchLifecycleNamesTheCurrentPin(unittest.TestCase):
 
     def test_no_other_version_is_called_live_or_current(self):
         text = flat(self.TEXT)
-        for m in re.finditer(r"(?i)(live pin|current pin|current at|CURRENT at|pin is)\W{0,4}(v?1\.4\.\d+)", text):
+        for m in re.finditer(r"(?i)(live pin|current pin|current at|CURRENT at|pin is|currently pins?|currently pinned(?: at| to)?"
+                             r"|now pins?|pins? currently|pinned version is)\W{0,4}(v?1\.4\.\d+)", text):
             with self.subTest(claim=m.group(0)):
                 self.assertEqual(m.group(2).lstrip("v"), self.PIN.lstrip("v"))
-        for m in re.finditer(r"(v?1\.4\.\d+)[^.;()]{0,12}the (live|current) PIN", text):
+        for m in re.finditer(r"(?i)(v?1\.4\.\d+)[^.;()]{0,12}the (live|current) PIN"
+                             r"|(v?1\.4\.\d+) is (?:what|the version) [^;()]{0,20}\b(?:currently|now) pins?", text):
             with self.subTest(claim=m.group(0)):
-                self.assertEqual(m.group(1).lstrip("v"), self.PIN.lstrip("v"))
+                self.assertEqual((m.group(1) or m.group(3)).lstrip("v"), self.PIN.lstrip("v"))
 
     def test_historical_witnesses_and_citations_survive(self):
         for token in ("docs/runs/2026-09-16-pin-it-416", "docs/runs/2026-09-23-pin-it-488.md",
