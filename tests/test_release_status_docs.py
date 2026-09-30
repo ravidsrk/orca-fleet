@@ -89,7 +89,9 @@ class OpsRollbackNamesThePublishingWorkflows(unittest.TestCase):
         return out
 
     def test_the_repo_really_has_publishing_workflows(self):
-        self.assertEqual(self.publishing_workflows(), {"release.yml", "publish-dist.yml"})
+        # The two documented publishers must stay; a further tag publisher is legitimate and
+        # test_rollback_separates_merge_from_publication already requires step 4 to name it.
+        self.assertLessEqual({"release.yml", "publish-dist.yml"}, self.publishing_workflows())
 
     def test_rollback_does_not_claim_a_closed_workflow_list(self):
         step = self.step(4)
