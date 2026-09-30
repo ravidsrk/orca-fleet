@@ -31,8 +31,9 @@ those decisions.
 
 `agentsalpha` is the designated second maintainer for ordinary code review and protected
 merges. A write invitation was sent on 2026-09-30 (GitHub invitation `335422854`);
-it must be accepted and access verified before the ownership change lands. The proposed
-CODEOWNERS entries cover `runtime/`, `scripts/`, `.github/` and this page. Each maintainer
+it must be accepted and access verified before peer ownership becomes effective. Ravindra
+authorized preparing the ownership entries in #541 while acceptance remains pending.
+CODEOWNERS covers `runtime/`, `scripts/`, `.github/` and this page. Each maintainer
 reviews the other's changes on these paths. Approval does not permit bypassing the required
 checks, changing an immutable tag, or treating a review from the author as an independent
 review. #530 closes only after a PR actually merges with the second maintainer's approving
