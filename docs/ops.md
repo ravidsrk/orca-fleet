@@ -12,6 +12,7 @@ missions already have those.
 | Surface | Account / handle | Lives in | Notes |
 |---|---|---|---|
 | GitHub | `ravidsrk` | [ravidsrk/orca-fleet](https://github.com/ravidsrk/orca-fleet) | source of truth, Actions (`validate` gates + `negative-control-demo` pinned-demo gate; `alert-on-failure` files a `ci-failure` issue when either fails on `main`), private vulnerability reporting |
+| GitHub peer review | `agentsalpha` (designated second maintainer) | [Repository invitations](https://github.com/ravidsrk/orca-fleet/invitations) | write invitation `335422854` sent 2026-09-30; acceptance and an actual approving review still pending; role boundaries below |
 | Claude plugin marketplace | GitHub self-host + buildwithclaude auto-index | [`.claude-plugin/`](../.claude-plugin/plugin.json) | `/plugin marketplace add ravidsrk/orca-fleet`; external listing history and submission status are in [distribution](distribution.md) |
 | greptile | maintainer CLI | [greptile.com](https://greptile.com/) | pre-push review on the maintainer machine; GitHub check on PRs |
 | agentskills.io listing | not submitted | local `uvx --from skills-ref agentskills validate` | repository claims (`proof`, `autonomy`, `proof_evidence`) live under `metadata:` — [CONTRIBUTING](../CONTRIBUTING.md) |
@@ -20,6 +21,22 @@ missions already have those.
 This inventory records no separate production host for the catalog. A source change lands on
 `main`; immutable release publication is a separate step. A `v*` tag triggers the dist and
 GitHub Release publishers described under [Publishing Releases](#publishing-releases).
+
+## Maintainer roles
+
+`ravidsrk` remains the release maintainer: only Ravindra authorizes the exact version and
+cut SHA before tagging, answers this catalog's one-way gates, and approves floor-guard
+waivers through the existing recorded-waiver process. Write access alone does not delegate
+those decisions.
+
+`agentsalpha` is the designated second maintainer for ordinary code review and protected
+merges. A write invitation was sent on 2026-09-30 (GitHub invitation `335422854`);
+it must be accepted and access verified before the ownership change lands. The proposed
+CODEOWNERS entries cover `runtime/`, `scripts/`, `.github/` and this page. Each maintainer
+reviews the other's changes on these paths. Approval does not permit bypassing the required
+checks, changing an immutable tag, or treating a review from the author as an independent
+review. #530 closes only after a PR actually merges with the second maintainer's approving
+review, recorded in HUMAN_ACTIONS.
 
 ## Release cut
 
