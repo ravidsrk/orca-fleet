@@ -176,12 +176,18 @@ behavior and the native advisory trust boundary.
 
 ## Update or remove an install
 
-**Symlink install:** update the clone with `git pull --ff-only` once its working tree is clean,
+**Whole-catalog symlink install:** update the clone with `git pull --ff-only` once its working tree is clean,
 then run `sh scripts/install.sh --check`. If the catalog gained missions, rerun
 `sh scripts/install.sh` to link them too. Local edits should be reviewed and committed on their
 own branch before you update; use [Development](development.md) for that workflow.
 
-To remove a selected mission, first inspect its symlink target, then unlink only that entry in
+**Selected subset managed by hand:** update the clone, then inspect each selected link as
+described in [Troubleshooting](troubleshooting.md#the-mission-is-missing-from-the-agent).
+The installer and its `--check` mode expect every catalog mission: unlinking one makes
+`--check` fail, and running the installer again recreates it. Maintain a subset with the
+individual links above rather than rerunning the whole-catalog installer.
+
+To remove a mission from that subset, first inspect its symlink target, then unlink only that entry in
 `~/.claude/skills/`. For example, after confirming it points to this clone:
 
 ```bash
