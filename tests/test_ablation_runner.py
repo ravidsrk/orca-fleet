@@ -49,11 +49,11 @@ SAFETY = {}
 # never an environment variable or flag): these tests are about the runner, not this machine. The
 # probe's own tests, and the refusal tests, put the real one back (PR #668 review).
 REAL_PROBE, REAL_TABLE = runner.containment_problem, runner.process_table
-# The live tier's refusal (PR #668: disabled until the container-based live harness lands). These
+# The live tier's refusal (PR #668: disabled outside the container-based live harness). These
 # tests drive the live machinery, so setUpModule lifts it in this process the same Python-level
 # way; TheLiveTierIsDisabled puts the real one back, and runs the CLI as its own process too.
 REAL_LIVE_GATE = runner.live_disabled
-DISABLED = "live runs are disabled until the container-based live harness lands"
+DISABLED = "live runs are disabled outside the container-based live harness"
 
 def _fixture(name):
     spec = importlib.util.spec_from_file_location(f"fixture_{name}", ROOT / "tests" / "fixtures" / f"{name}.py")
@@ -1392,9 +1392,9 @@ class TestTheContainmentProbeCoversASystemBinary(unittest.TestCase):
 
 
 class TheLiveTierIsDisabled(SafetyNet):
-    """PR #668, the owner's decision: `ablation.py run --tier live` is refused on every host, exit 2,
-    before the registration is read or anything reserved, until the container-based live harness
-    lands. The registration still records an AUTHORISED cap; that changes nothing."""
+    """PR #668, the owner's decision: `ablation.py run --tier live` is refused on every host but the
+    live harness's container (scripts/live_container.py), exit 2, before the registration is read or
+    anything reserved. The registration still records an AUTHORISED cap; that changes nothing."""
 
     def live_argv(self, prereg, out):
         return ["--prereg", str(prereg), "run", "--tier", "live", "--cost-cap-usd", "5",

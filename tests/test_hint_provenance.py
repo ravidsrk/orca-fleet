@@ -36,7 +36,7 @@ def _load(name, rel):
 replay_mod = _load("hint_replay", "scripts/hint_replay.py")
 ss = replay_mod.search_sessions
 hp = replay_mod.hp
-# The live tier's refusal (PR #668: disabled until the container-based live harness lands). The live
+# The live tier's refusal (PR #668: disabled outside the container-based live harness). The live
 # arm's own refusals are tested here through main(), so setUpModule lifts it in this process, the
 # Python-level seam tests/test_hint_replay_spend.py uses; that suite pins the refusal itself.
 SEAMS = {}

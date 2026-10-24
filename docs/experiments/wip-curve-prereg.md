@@ -27,7 +27,7 @@ on it. Its tests are in [`tests/test_wip_curve.py`](../../tests/test_wip_curve.p
 | Verification: independent recomputation, git and review authority for every terminal outcome, and detection of an altered metric row | **Implemented** and pinned by tamper tests. |
 | Dry run of the whole pipeline with an inert stand-in | **Implemented.** All 12 scheduled runs complete and verify (fixture tier: no evidence). |
 | Cost cap | **AUTHORISED.** The owner authorised 150.00 USD on 2026-10-24, billed to their Claude subscription. The runner still refuses to start without an explicit cap. |
-| At least three protocol-compliant **live** runs at differing WIP settings, retained with raw observations | **REMAINING.** The owner authorised the spend on 2026-10-24; no live run is retained yet, and the live tier is disabled until the container-based live harness lands (PR #668; see [Running it](#running-it)). |
+| At least three protocol-compliant **live** runs at differing WIP settings, retained with raw observations | **REMAINING.** The owner authorised the spend on 2026-10-24; no live run is retained yet. The live tier runs only inside the container-based live harness (PR #668; see [Running it](#running-it)). |
 | A published recommendation to keep or change the caps, with evidence links | **REMAINING.** It follows the live runs. A cap change is a separate human-reviewed policy change. |
 
 Until the live runs are retained, the caps in `attention-budget.md` stay ASSERTED.
@@ -385,11 +385,12 @@ changes (T1), so the dry run exercises rework as well as conflicts and closes.
 `--inert-script` and `--inert-cost-usd` change that script and the synthetic cost the stand-in
 reports. The synthetic cost is not a spend. It lets the cost cap be exercised.
 
-**Live run.** Disabled until the container-based live harness lands (PR #668): `--worker live` is
-refused, exit 2, before anything is read or reserved, on every host
-([`containment.py`](../runtime-scripts.md#containmentpy) lists the harness's entry criteria). The
-command stays as the protocol the harness will run. It spends; the owner authorised the cap on
-2026-10-24 (see [Cost cap](#cost-cap)):
+**Live run.** Only inside the container-based live harness (PR #668). Run directly on a host,
+`--worker live` is refused, exit 2, before anything is read or reserved
+([`containment.py`](../runtime-scripts.md#containmentpy) lists the harness's entry criteria, now
+met). The command below is the protocol: the [live harness guide](../guides/live-harness.md#3-run-one-arm)
+runs it inside a fresh container, with every path under `/results`. It spends; the owner
+authorised the cap on 2026-10-24 (see [Cost cap](#cost-cap)):
 
 ```bash
 python3 scripts/wip_curve.py run --results <dir> --worker live --agent claude \

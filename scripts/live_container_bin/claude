@@ -1,0 +1,48 @@
+#!/usr/local/bin/python3 -I
+"""`claude` inside the open-fleet live harness's container (scripts/live_container.py).
+
+The launcher mounts the operator's subscription token read-only at SECRET. It is never in the
+container's environment, so `docker inspect` cannot show it. This wrapper is first on the
+container's PATH: it reads the token and execs the pinned Claude Code with CLAUDE_CODE_OAUTH_TOKEN
+set in that one process's environment, and CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 so the agent's own
+Bash tool does not inherit it (the host's isolation wrapper does the same). A version query needs
+no token. A missing, unreadable or malformed secret refuses, exit 2, naming the path and never a
+byte of it.
+"""
+import os
+import sys
+
+SECRET = "/run/secrets/claude_token"
+REAL = "/home/runner/.local/share/claude/versions/2.1.304"  # pinned: never the auto-updated symlink
+TOKEN_ENV = "CLAUDE_CODE_OAUTH_TOKEN"
+
+
+def refuse(why):
+    sys.stderr.write(f"claude (open-fleet live harness): {why}\n")
+    return 2
+
+
+def main(argv):
+    env = {k: v for k, v in os.environ.items() if k != TOKEN_ENV}
+    if argv[:1] in (["--version"], ["-v"]):
+        os.execve(REAL, [REAL, *argv], env)
+    try:
+        with open(SECRET, "rb") as fh:
+            raw = fh.read()
+    except FileNotFoundError:
+        return refuse(f"no subscription token at {SECRET}: run this arm through scripts/live_container.py, "
+                      "which mounts it read-only")
+    except OSError as err:
+        return refuse(f"cannot read the subscription token at {SECRET} ({type(err).__name__})")
+    try:
+        token = raw.decode("ascii").strip()
+    except UnicodeDecodeError:
+        return refuse(f"the subscription token at {SECRET} is not one ASCII line")
+    if not token or any(c.isspace() for c in token):
+        return refuse(f"the subscription token at {SECRET} must hold the token alone, on one line")
+    env.update({TOKEN_ENV: token, "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"})
+    os.execve(REAL, [REAL, *argv], env)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

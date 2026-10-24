@@ -1237,11 +1237,11 @@ live_mod = _load("trajectory_live_under_test", "scripts/_trajectory_live.py")
 # The host probe, as the live runner's guard has it. setUpModule injects a proven host in its place
 # (Python-level, never an environment variable or flag); the refusal tests put the real one back.
 REAL_PROBE, REAL_TABLE = live_mod.guard().containment_problem, live_mod.guard().process_table
-# The live tier's refusal (PR #668: disabled until the container-based live harness lands). These
+# The live tier's refusal (PR #668: disabled outside the container-based live harness). These
 # tests drive the live machinery, so setUpModule lifts it in this process the same Python-level
 # way; TheLiveTierIsDisabled puts the real one back, and runs the CLI as its own process too.
 REAL_LIVE_GATE = live_mod.guard().live_disabled
-DISABLED = "live runs are disabled until the container-based live harness lands"
+DISABLED = "live runs are disabled outside the container-based live harness"
 TABLES = _load("fixture_containment_tables", "tests/fixtures/containment_tables.py")  # PR #668 review
 
 
@@ -1731,8 +1731,8 @@ class LiveRunner(SafetyNet):
 # ---------------------------------------------------------------------------
 class TheLiveTierIsDisabled(SafetyNet):
     """PR #668, the owner's decision: `eval.py run --suite trajectories --tier live` is refused on
-    every host, exit 2, before the suite is read or anything reserved, until the container-based
-    live harness lands. The fixture tier, the pinned replay, is untouched."""
+    every host but the live harness's container (scripts/live_container.py), exit 2, before the
+    suite is read or anything reserved. The fixture tier, the pinned replay, is untouched."""
 
     def argv(self, out):
         return ["run", "--suite", "trajectories", "--tier", "live", "--all-live",

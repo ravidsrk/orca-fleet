@@ -62,6 +62,8 @@ local tests requires Git and Python; see [local setup](development.md#local-setu
   [validate CI](../.github/workflows/validate.yml) holds the current job wiring.
 - [Security](../SECURITY.md) — private vulnerability reporting and secret handling.
 - [Maintainer ops](ops.md) — account inventory, release commands and incident response.
+- [Live harness](guides/live-harness.md) — run a paid live experiment arm in a disposable
+  container, and read its receipt.
 - [Release checklist](release-1.0-checklist.md) — evidence needed before a 1.0 release.
 - [Product roadmap](roadmap.md) — current priorities, dependencies and research-backed issues.
 - [Repository description](about.md) — the canonical text for the GitHub About setting.

@@ -42,11 +42,47 @@ NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,78}\.md$")
 # link resolves from CHANGELOG.md at the root.
 LINK_RE = re.compile(r"\]\((?!https?:|mailto:|#)([^)\s]+)\)")
 # An HTML href/src is not rewritten when the cut moves the entry to the root CHANGELOG.md, so a
-# relative one would break there (PR #670): fragments carry Markdown links only.
-HTML_LINK_RE = re.compile(r"""<[a-z][a-z0-9-]*\b(?:[^>"']|"[^"]*"|'[^']*')*?\b(?:href|src)\s*=""",
-                          re.IGNORECASE)  # quote-aware: a ">" inside a value does not end the tag
+# relative one would break there (PR #670): fragments carry Markdown links only. Raw HTML is read
+# as CommonMark reads it (spec 0.31, "Raw HTML"): a COMPLETE open tag whose attributes are
+# whitespace-separated, quote-aware (a ">" inside a value does not end the tag), and may span
+# lines. Only an attribute named exactly href or src, with a value, is a link (Codex at 54fe725bee:
+# `data-href`, and `x<a` with `href=value` lines later and no tag ever closed, were refused).
+_TAG_NAME_RE = re.compile(r"<[a-z][a-z0-9-]*", re.IGNORECASE)
+_TAG_ATTR_RE = re.compile(r"""\s+([a-z_:][a-z0-9_.:-]*)(?:\s*=\s*([^\s"'=<>`]+|'[^']*'|"[^"]*"))?""",
+                          re.IGNORECASE)
+_TAG_END_RE = re.compile(r"\s*/?>")
 UNRELEASED = "## [Unreleased]"
 VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
+
+
+def html_link(text):
+    """The first HTML tag in Markdown `text` that carries an href or src attribute, or None.
+
+    Scanned left to right as a renderer does: a backslash escape is text, a code span (a run of
+    N backticks closed by the next run of exactly N) renders literally, so a tag inside one is no
+    link, and an unclosed run is plain backticks. scripts/run_index.py keeps an identical copy:
+    it is loaded alone, so it cannot import this one (tests/test_changelog.py holds them equal).
+    """
+    i = 0
+    while i < len(text):
+        if text[i] == "\\":
+            i += 2
+        elif text[i] == "`":
+            run = len(text) - i - len(text[i:].lstrip("`"))
+            close = re.compile(f"(?<!`){'`' * run}(?!`)").search(text, i + run)
+            i = close.end() if close else i + run
+        elif text[i] == "<" and (name := _TAG_NAME_RE.match(text, i)):
+            pos, link = name.end(), False
+            while attr := _TAG_ATTR_RE.match(text, pos):
+                link = link or (attr.group(1).lower() in ("href", "src") and attr.group(2) is not None)
+                pos = attr.end()
+            end = _TAG_END_RE.match(text, pos)
+            if end and link:
+                return text[i:end.end()]
+            i = end.end() if end else i + 1
+        else:
+            i += 1
+    return None
 
 
 def fragment_paths(directory=FRAGMENTS_DIR):
@@ -74,7 +110,7 @@ def fragment_errors(path):
         return errors + [f"{where}: empty — a fragment holds the entry text"]
     if not text.endswith("\n"):
         errors.append(f"{where}: does not end with a newline")
-    if HTML_LINK_RE.search(text):  # the whole fragment: a tag may span lines (PR #670 review)
+    if html_link(text):  # the whole fragment: a tag may span lines (PR #670 review)
         errors.append(f"{where}: write each link as a Markdown link ([text](../path)); an HTML "
                       "href or src is not rewritten for CHANGELOG.md")
     lines = text.rstrip("\n").split("\n")

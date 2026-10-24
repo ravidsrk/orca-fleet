@@ -367,5 +367,56 @@ class ValidateRunsTheShapeCheck(unittest.TestCase):
                               validate.check_changelog_fragments()[0])
 
 
+class OnlyACompleteLinkTagIsRefused(unittest.TestCase):
+    """Codex at 54fe725bee: the HTML check over-blocked. `x<a` on one line and the words
+    `href=value` on a later one, with no tag ever closed, were refused, and so was
+    `<span data-href=...>`, which has no link attribute. The check now reads raw HTML as CommonMark
+    does: a COMPLETE open tag carrying an attribute named exactly href or src, outside a code span."""
+
+    ACCEPTED = (
+        "- **Change** x<a\n  and later the words href=value appear in prose.\n",
+        '- **Change** <span data-href="identifier">plain</span>.\n',
+        '- **Change** the check now names `<a href="../docs/ops.md">` as code, not a link.\n',
+        '- **Change** a double span ``<img src="../x.png">`` is code too.\n',
+        '- **Change** `x` and `<a href="../docs/ops.md">ops</a>` are both spans.\n',
+        '- **Change** <a name="anchor">no link attribute</a>.\n',
+        '- **Change** an escaped \\<a href="../docs/ops.md"> is text.\n',
+    )
+    REFUSED = (
+        '- **Change** <a\n  title="x"\n  href="../docs/ops.md">ops</a>.\n',
+        '- **Change** <A HREF=../docs/ops.md>ops</A>.\n',
+        '- **Change** <img src="../assets/x.png"/>.\n',
+        '- **Change** an unclosed `span, then <a href="../docs/ops.md">ops</a>.\n',
+        '- **Change** `code` then <a href="../docs/ops.md">ops</a>.\n',
+    )
+
+    def errors(self, text):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            (d / "README.md").write_text("x\n", encoding="utf-8")
+            (d / "entry.md").write_text(text, encoding="utf-8")
+            return [e for e in cl.check_fragments(d) if "Markdown link" in e]
+
+    def test_what_renders_as_no_link_is_accepted(self):
+        for text in self.ACCEPTED:
+            with self.subTest(text=text):
+                self.assertEqual(self.errors(text), [])
+
+    def test_a_complete_link_tag_outside_code_is_refused(self):
+        for text in self.REFUSED:
+            with self.subTest(text=text):
+                self.assertEqual(len(self.errors(text)), 1, text)
+
+    def test_the_run_index_check_reads_html_the_same_way(self):
+        # scripts/run_index.py carries its own copy (it runs alone: tests copy it into a bare root).
+        spec = importlib.util.spec_from_file_location("_run_index_for_changelog",
+                                                      ROOT / "scripts" / "run_index.py")
+        ri = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ri)
+        for text in self.ACCEPTED + self.REFUSED:
+            with self.subTest(text=text):
+                self.assertEqual(ri.html_link(text), cl.html_link(text))
+
+
 if __name__ == "__main__":
     unittest.main()

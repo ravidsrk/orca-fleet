@@ -282,10 +282,10 @@ python3 runtime/scripts/first_run.py --profile rw
 python3 runtime/scripts/first_run.py probes
 ```
 
-Live is disabled until the container-based live harness lands (PR #668): `--worker live` is
-refused, exit 2, before anything is read or created
-([`containment.py`](runtime-scripts.md#containmentpy)). What follows is how the live cells were
-bound. Live: the real harness reviews the change, so **it spends**. Put the harness you mean first on
+Live runs only inside the container-based live harness (PR #668;
+[live harness guide](guides/live-harness.md)): run directly on a host, `--worker live` is refused,
+exit 2, before anything is read or created ([`containment.py`](runtime-scripts.md#containmentpy)).
+What follows is how the live cells were bound. Live: the real harness reviews the change, so **it spends**. Put the harness you mean first on
 `PATH` (an isolation wrapper, say). The run refuses to start when the interpreter's own
 directory holds another binary of that name (`step=prereqs`), because the sandbox puts that
 directory first. `--keep` keeps the sandbox, whose transcript and verifier manifest the record

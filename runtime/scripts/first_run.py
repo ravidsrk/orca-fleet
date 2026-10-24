@@ -23,9 +23,9 @@ ONE code path, two kinds of worker:
       spec and the change file it names, and answers in the harness's own result shape. No model
       is called and nothing is spent. A GO here is a FIXTURE result: it proves the fleet's
       route, never the harness.
-  --worker live             DISABLED (PR #668): refused, before anything is read or created,
-      until the container-based live harness lands (containment.py). The machinery stays: the
-      operator's real harness on PATH does the review, and the receipt is labelled
+  --worker live             only inside the container-based live harness (PR #668;
+      scripts/live_container.py): anywhere else refused, before anything is read or created
+      (containment.py). The operator's real harness on PATH does the review, and the receipt is labelled
       `live-unreviewed`: it becomes certification evidence only once a maintainer binds it into
       docs/runs/ (runtime/providers/certification.json says which cells hold).
 
@@ -1002,7 +1002,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     ap.add_argument("--profile", default="ro", choices=("ro", "rw"))
     ap.add_argument("--agent", default="claude")
     ap.add_argument("--worker", default="inert", choices=("inert", "live"),
-                    help="live is disabled until the container-based live harness lands (PR #668)")
+                    help="live runs only inside the container-based live harness (PR #668)")
     ap.add_argument("--target", default=None, help="git repository to review (cloned; never modified)")
     ap.add_argument("--base", default="HEAD~1")
     ap.add_argument("--head", default="HEAD")

@@ -22,9 +22,9 @@ counts attempts that fail with the recorded pitfall. It never runs unless asked,
 than ``--max-runs``, and labels its report with the tier the operator declared -- a stub agent is
 tier ``stub``, never ``live``.
 
-A ``live`` tier is DISABLED (PR #668): ``--live --tier live`` is refused, before the corpus is
-read or anything reserved, until the container-based live harness lands
-(runtime/scripts/containment.py). The machinery stays, and is what follows.
+A ``live`` tier runs only inside the container-based live harness (PR #668;
+scripts/live_container.py): anywhere else ``--live --tier live`` is refused, before the corpus is
+read or anything reserved (runtime/scripts/containment.py). What follows is that tier.
 
 A ``live`` tier spends model budget, under the spend guard #606's runner uses
 (scripts/_ablation_run.py, whose ledger it shares). It is refused without a declared model, an

@@ -335,5 +335,29 @@ class TheCommandLine(unittest.TestCase):
             self.assertIn("2026-01-07-demo-it-x.md has no row", errors[0])
 
 
+class OnlyACompleteLinkTagIsRefusedInACell(unittest.TestCase):
+    """Codex at 54fe725bee: `x<a ... href=value` with no tag closed, and `<span data-href=...>`,
+    were refused as HTML links. A cell is refused only for a complete open tag carrying an
+    attribute named exactly href or src, outside a Markdown code span."""
+
+    def errors(self, text):
+        report = "2026-01-02-demo-it-self-run.md"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = make_root(tmp)
+            write_row(root, row(report, outcome=text))
+            return [e for e in ri.check_rows(root) if "HTML link" in e]
+
+    def test_what_renders_as_no_link_is_accepted(self):
+        for text in ("x<a and later the words href=value in prose", '<span data-href="identifier">plain</span>',
+                     'the check names `<a href="missing.md">` as code', '<a name="top">no link</a>'):
+            with self.subTest(text=text):
+                self.assertEqual(self.errors(text), [])
+
+    def test_a_complete_link_tag_outside_code_is_still_refused(self):
+        for text in ('<A HREF=missing.md>notes</A>', '`code` then <img src="x.png"/>'):
+            with self.subTest(text=text):
+                self.assertEqual(len(self.errors(text)), 1, text)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -7,8 +7,9 @@ every member of the given groups and every descendant of any of them, until a fr
 none; it fails closed when one survives or when the process table cannot be read.
 `containment_problem` is the host check a paid live run makes before it reserves anything: probes
 in sessions of their own, carrying a marker, must show up in the process table by that marker.
-`live_disabled` is the refusal every paid live entry point gives first: the live tier is disabled
-until the container-based live harness lands (PR #668).
+`live_disabled` is the refusal every paid live entry point gives first: the live tier runs only
+inside a container the live harness started (scripts/live_container.py; PR #668), which
+`harness_problem` recognises by a container marker, the launcher's attestation and the strong probe.
 
 One helper, shared: scripts/_ablation_run.py (#606/#657, its watchdog and contained_run),
 first_run.py and the WIP-curve runner use this module. It ships in the runtime bundle, which
@@ -22,6 +23,7 @@ this user owns; elsewhere `ps -E`, which on macOS cannot read an Apple system bi
 from __future__ import annotations
 
 import contextlib
+import json
 import os
 import secrets
 import shutil
@@ -38,21 +40,32 @@ CALL_MARKER = "OF_CALL_ID"
 # dispatch left behind can be found and ended before its call is settled (PR #668 review).
 DISPATCH_MARKER = "OF_DISPATCH_TAG"
 
-# The paid live tier is DISABLED (PR #668, the owner's decision). Every paid entry point refuses a
-# live run with this one message, exit 2, before it reads or reserves anything, on every host,
-# until the container-based live harness lands: wip_curve.py run --worker live, ablation.py run
-# --tier live, hint_replay.py --live --tier live, eval.py run --suite trajectories --tier live and
-# first_run.py --worker live. No flag, environment variable or argument re-enables it. The
-# marker, the sweep and the probe stay as they are: the harness will build on them.
-LIVE_DISABLED = ("live runs are disabled until the container-based live harness lands (PR #668): "
-                 "nothing was read, reserved or run")
+# The paid live tier runs only inside the container-based live harness (PR #668, the owner's
+# decision; scripts/live_container.py). Every paid entry point asks live_disabled() first, before
+# it reads or reserves anything: wip_curve.py run --worker live, ablation.py run --tier live,
+# hint_replay.py --live --tier live, eval.py run --suite trajectories --tier live and
+# first_run.py --worker live. Outside a container the launcher started each refuses, exit 2, with
+# this message and the reason. No flag, environment variable or argument lifts it on a plain host.
+LIVE_DISABLED = ("live runs are disabled outside the container-based live harness (PR #668; "
+                 "scripts/live_container.py): nothing was read, reserved or run")
+# How a container shows it is the harness's (scripts/live_container.py writes what this reads): a
+# container runtime's marker; the launcher's attestation, mounted read-only, holding a fresh nonce
+# the launch receipt records; and the container's hostname, which the launcher sets to
+# HARNESS_HOSTNAME + that nonce. The nonce ties a container to its launch: an attestation left from
+# another launch, or copied into another container, names a nonce that is not this hostname's.
+CONTAINER_MARKERS = ("/.dockerenv", "/run/.containerenv")
+ATTESTATION = "/run/open-fleet/live-attestation.json"
+ATTESTATION_SCHEMA = "open-fleet.live-attestation/1"
+HARNESS_HOSTNAME = "of-live-"
 
 
 def live_disabled():
-    """Why a paid live run does not start: LIVE_DISABLED, always. Each entry point asks this
-    function rather than read the constant so that the live machinery's own tests can replace it
-    in their process (the Python-level seam the host probe uses); nothing in production can."""
-    return LIVE_DISABLED
+    """Why a paid live run does not start here, or None inside the live harness's container
+    (harness_problem). Each entry point asks this function rather than read the constant so that
+    the live machinery's own tests can replace it in their process (the Python-level seam the host
+    probe uses); nothing in production can."""
+    why = harness_problem()
+    return None if why is None else f"{LIVE_DISABLED}; here: {why}"
 
 
 def environ_of(pid):
@@ -189,3 +202,33 @@ def containment_problem(system_binary=True, table=None):
         for probe in probes:
             probe.kill()
             probe.wait()
+
+
+def harness_problem(root="/", hostname=None, probe=None):
+    """Why this process is not inside a container the live harness started, or None when it is.
+
+    All three must hold, checked in this order so that a plain host refuses having read two paths
+    and launched nothing: a container marker (CONTAINER_MARKERS); the launcher's attestation at
+    ATTESTATION, whose 32-hex nonce makes this container's hostname HARNESS_HOSTNAME + nonce; and
+    the strong probe (containment_problem) passing, which it does on Linux. `root`, `hostname` and
+    `probe` are the Python-level seam for its tests: the file system root, the UTS hostname
+    (os.uname) and the probe. This guards against accidents on a host, not against an operator who
+    fakes a container: with root, anyone can write a marker, an attestation and a hostname."""
+    base = Path(root)
+    if not any((base / marker.lstrip("/")).exists() for marker in CONTAINER_MARKERS):
+        return "no container marker (/.dockerenv or /run/.containerenv): this is no container"
+    try:
+        doc = json.loads((base / ATTESTATION.lstrip("/")).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return f"no live-harness attestation at {ATTESTATION}: scripts/live_container.py did not start this container"
+    except (OSError, ValueError) as err:
+        return f"the live-harness attestation at {ATTESTATION} cannot be read ({type(err).__name__})"
+    nonce = doc.get("nonce") if isinstance(doc, dict) else None
+    if not isinstance(doc, dict) or doc.get("schema") != ATTESTATION_SCHEMA or not isinstance(nonce, str) \
+            or len(nonce) != 32 or nonce.strip("0123456789abcdef"):
+        return f"the attestation at {ATTESTATION} names no nonce"
+    name = os.uname().nodename if hostname is None else hostname
+    if name != HARNESS_HOSTNAME + nonce:
+        return "the attestation's nonce is not this container's (its hostname): it is from another launch"
+    why = (probe or containment_problem)()
+    return f"the strong containment probe fails: {why}" if why else None

@@ -38,14 +38,44 @@ CELLS = ("mission", "target", "ran_as", "binds", "outcome")
 REQUIRED = ("date", "report") + CELLS
 OPTIONAL = ("summary", "order")
 _LINK_RE = re.compile(r"\]\((?!https?:|mailto:|#)([^)\s]+)\)")  # relative Markdown links
-_HTML_LINK_RE = re.compile(r"""<[a-z][a-z0-9-]*\b(?:[^>"']|"[^"]*"|'[^']*')*?\b(?:href|src)\s*=""",
-                           re.IGNORECASE)  # quote-aware: a ">" inside a value does not end the tag
+# Raw HTML read as CommonMark reads it: a COMPLETE open tag, quote-aware, carrying an attribute
+# named exactly href or src (Codex at 54fe725bee: `data-href` and an unclosed `x<a` were refused).
+_TAG_NAME_RE = re.compile(r"<[a-z][a-z0-9-]*", re.IGNORECASE)
+_TAG_ATTR_RE = re.compile(r"""\s+([a-z_:][a-z0-9_.:-]*)(?:\s*=\s*([^\s"'=<>`]+|'[^']*'|"[^"]*"))?""",
+                          re.IGNORECASE)
+_TAG_END_RE = re.compile(r"\s*/?>")
 BEGIN = "<!-- BEGIN GENERATED: run-index — scripts/run_index.py -->"
 END = "<!-- END GENERATED: run-index -->"
 BLOCK_RE = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END), re.S)
 STAMP_RE = re.compile(r"as of (\d{4}-\d{2}-\d{2})\b")
 HEADER = ("| Date       | Mission     | Target                        | Ran as       | Binds? | Outcome |\n"
           "|------------|-------------|-------------------------------|--------------|--------|---------|")
+
+
+def html_link(text):
+    """The first HTML tag in Markdown `text` that carries an href or src attribute, or None:
+    outside a code span and a backslash escape. An identical copy of scripts/changelog.py's
+    html_link (this script is loaded alone; tests/test_changelog.py holds the two equal)."""
+    i = 0
+    while i < len(text):
+        if text[i] == "\\":
+            i += 2
+        elif text[i] == "`":
+            run = len(text) - i - len(text[i:].lstrip("`"))
+            close = re.compile(f"(?<!`){'`' * run}(?!`)").search(text, i + run)
+            i = close.end() if close else i + run
+        elif text[i] == "<" and (name := _TAG_NAME_RE.match(text, i)):
+            pos, link = name.end(), False
+            while attr := _TAG_ATTR_RE.match(text, pos):
+                link = link or (attr.group(1).lower() in ("href", "src") and attr.group(2) is not None)
+                pos = attr.end()
+            end = _TAG_END_RE.match(text, pos)
+            if end and link:
+                return text[i:end.end()]
+            i = end.end() if end else i + 1
+        else:
+            i += 1
+    return None
 
 
 def runs_dir(root=ROOT):
@@ -102,7 +132,7 @@ def row_errors(name, data, root=ROOT):
             errors.append(f"{where}: {cell} holds a '|' or a newline, which breaks the table")
     for cell in CELLS + ("summary",):  # the README is not re-rendered until the cut (PR #670)
         value = data.get(cell)
-        if isinstance(value, str) and _HTML_LINK_RE.search(value):
+        if isinstance(value, str) and html_link(value):
             errors.append(f"{where}: {cell} holds an HTML link; write it as a Markdown link "
                           "[text](path), which this check resolves")
         for href in _LINK_RE.findall(value) if isinstance(value, str) else ():

@@ -35,7 +35,7 @@ def blind_to_system_binaries(read):
 # A runner started as its own process (for the signals a test process cannot take in-process) gets
 # the same Python-level injection: this boot loads the entry script as a module, puts a proven host
 # probe where `inject` says, and calls its main(). A test of the live machinery lifts the live
-# tier's refusal (PR #668: disabled until the container harness lands) the same way, with `lifted`
+# tier's refusal (PR #668: disabled outside the container harness) the same way, with `lifted`
 # where `inject` says, in that process alone. No environment variable or flag is involved.
 BOOT = """
 import importlib.util, sys

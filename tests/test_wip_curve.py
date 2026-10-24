@@ -68,18 +68,24 @@ _tables_spec = importlib.util.spec_from_file_location("fixture_containment_table
 TABLES = importlib.util.module_from_spec(_tables_spec)  # a process table blind to system binaries (PR #668)
 _tables_spec.loader.exec_module(TABLES)
 
-# The live tier's refusal (PR #668: disabled until the container-based live harness lands). These
+# The live tier's refusal (PR #668: disabled outside the container-based live harness). These
 # tests drive the live machinery, so setUpModule lifts it in this process, the Python-level seam the
 # host probe uses; TestTheLiveTierIsDisabled puts the real one back, and runs the CLI as its own
 # process too.
 REAL_LIVE_GATE = wip.contain.live_disabled
-DISABLED = "live runs are disabled until the container-based live harness lands"
+DISABLED = "live runs are disabled outside the container-based live harness"
 SEAMS: dict = {}
 
 
 def setUpModule():
     SEAMS["live"] = mock.patch.object(wip.contain, "live_disabled", lambda: None)
     SEAMS["live"].start()
+    # A report's re-run keeps its marker journal under KEPT_ROOT (the host's temp directory), which
+    # every run check reads: this module's runs and reports get a root of their own, so another
+    # process's journals never reach them, nor theirs another's (Codex P1 (c) at 9db89fbe3c).
+    SEAMS["kept_root"] = tempfile.mkdtemp(prefix="wip-curve-kept-")
+    SEAMS["kept"] = mock.patch.object(wip, "KEPT_ROOT", SEAMS["kept_root"], create=True)
+    SEAMS["kept"].start()
 
 
 def tripwired_env(tmp: Path) -> tuple[dict, Path]:
@@ -666,9 +672,9 @@ class TestDecisionRule(unittest.TestCase):
 # ---------------------------------------------------------------------------- refusals + gate
 
 class TestTheLiveTierIsDisabled(Tmp):
-    """PR #668, the owner's decision: `wip_curve.py run --worker live` is refused on every host, exit
-    2, before the pre-registration is read or anything reserved, until the container-based live
-    harness lands. The owner's authorised cap and reservation change nothing."""
+    """PR #668, the owner's decision: `wip_curve.py run --worker live` is refused on every host but
+    the live harness's container (scripts/live_container.py), exit 2, before the pre-registration is
+    read or anything reserved. The owner's authorised cap and reservation change nothing."""
 
     def argv(self):
         return ["run", "--results", str(self.tmp / "results"), "--workdir", str(self.tmp / "wd"),
@@ -894,6 +900,8 @@ B1_OVERSPEND = ("wip1-b1r1-rep1", ("--cost-cap-usd", "0.50", "--inert-cost-usd",
 
 def tearDownModule():
     SEAMS["live"].stop()
+    SEAMS["kept"].stop()
+    shutil.rmtree(SEAMS["kept_root"], ignore_errors=True)
     for tmp, *_rest in _DRY_RUNS.values():
         tmp.cleanup()
     if "tmp" in _DOCUMENTED:
@@ -2906,6 +2914,222 @@ class TestRelativePaths(unittest.TestCase):
                    "--report-md", "results/report.md", env=self.env, cwd=self.root)
         self.assertEqual(v.returncode, 0, v.stderr)
         self.assertFalse(self.trip_log.exists())
+
+
+# ---------------------------------------------------------------------------- the container harness's entry criteria
+# The Codex review of PR #668 at 9db89fbe3c named three P1s the live tier must not come back with
+# (docs/runtime-scripts.md, "The container harness's entry criteria"). Each test below fails on
+# 54fe725bee.
+
+class TestAnUncontainedGateStopsTheDrain(Tmp):
+    """(a) A merge gate whose oracle could not be contained writes UNCONTAINED to its journal and
+    fails. The runner read that only after the drain loop, so the entry was bounced and the queue
+    drained again: another unit's gate oracle started while the first one's child survived.
+    Containment is checked right after every drain, and nothing is bounced or retried after it."""
+
+    def merge(self, gate_lines, halt=None):
+        run = bare_run(self.tmp)
+        run.halt = halt
+        run.sb = argparse.Namespace(dir=self.tmp / "sb", target=self.tmp / "target", env={})
+        run.sb.dir.mkdir()
+        run.integration, run.taskset_path, run.merges, run.commands = "wip-integration", TASKSET, [], []
+        run.units = {t: {"store_task": f"task_{t}", "attempts": []} for t in ("T1", "T2")}
+        attempts = {t: {"branch": f"wip/{t}", "head": h * 40, "tree": "e" * 40} for t, h in (("T1", "a"), ("T2", "b"))}
+        calls = []
+
+        def mq(*args, check=True, bounded=False):
+            calls.append(args[0])
+            if args[0] == "acquire":
+                return 0, {"token": "tok"}
+            if args[0] == "drain" and calls.count("drain") == 1:  # T1's gate fails; its journal says why
+                (run.sb.dir / "gate-tags.txt").write_text("".join(line + "\n" for line in gate_lines), encoding="utf-8")
+                return 1, {"code": "queue_frozen", "data": {"entry": "e1", "unit": "task_T1", "reason": "gate_failed",
+                                                            "drain": {"steps": []}}}
+            if args[0] == "status":
+                return 0, {"all": [{"unit": "task_T1", "run_id": run.rid, "reviewed_sha": "a" * 40, "state": "failed",
+                                    "reason": "gate_failed"},
+                                   {"unit": "task_T2", "run_id": run.rid, "reviewed_sha": "b" * 40, "state": "queued",
+                                    "reason": None}]}
+            return 0, {"steps": []}
+        run.mq = mq
+        run.integration_head = lambda: "c" * 40
+        with mock.patch.object(wip, "git", return_value=subprocess.CompletedProcess([], 0, b"", b"")):
+            run.merge(["T1", "T2"], attempts)
+        return run, calls, attempts
+
+    def test_no_bounce_and_no_second_drain_after_an_uncontained_gate(self):
+        run, calls, attempts = self.merge(["d" * 32, f"UNCONTAINED {self.tmp / 'kept'}"])
+        self.assertEqual(calls.count("drain"), 1, f"the queue drained again after an uncontained gate: {calls}")
+        self.assertNotIn("resolve", calls, f"the entry was bounced after an uncontained gate: {calls}")
+        self.assertEqual(run.halt, "orphan-alive")
+        self.assertEqual({t: a["outcome"] for t, a in attempts.items()},
+                         {"T1": "stopped-orphan-alive", "T2": "stopped-orphan-alive"})
+
+    def test_an_ordinary_failed_gate_is_still_bounced_and_retried(self):
+        run, calls, attempts = self.merge(["d" * 32])
+        self.assertEqual(calls.count("drain"), 2, calls)
+        self.assertIn("resolve", calls)
+        self.assertIsNone(run.halt)
+        self.assertEqual(attempts["T1"]["outcome"], "gate-failed")
+
+    def test_a_run_already_halted_orphan_alive_starts_no_gate(self):
+        _run, calls, attempts = self.merge([], halt="orphan-alive")
+        self.assertEqual(calls, [], "a gate could start after a failed containment")
+
+
+class TestNoOracleStartsAfterAnUncontainedOne(Tmp):
+    """(a), the same class one step earlier: when one unit's oracle could not be contained, the next
+    unit's oracle still started, and its passing units went on to the merge gate."""
+
+    def test_a_second_units_oracle_never_starts(self):
+        env, trip_log = tripwired_env(self.tmp)
+        real, checkouts = wip.contain.contained_run, []
+
+        def contained_run(argv, **kw):  # every one of the run's own verifications (under ck/) survives
+            if "/ck/" not in str(kw.get("cwd")):
+                return real(argv, **kw)
+            checkouts.append(Path(kw["cwd"]).name)
+            Path(kw["stdout_path"]).write_text("", encoding="utf-8")
+            return 0, False, False
+        with mock.patch.object(wip.contain, "contained_run", contained_run):
+            p = runner("run", "--results", str(self.tmp / "results"), "--workdir", str(self.tmp / "wd"), "--runs",
+                       "wip1-b3r1-rep1", "--cost-cap-usd", "0", env=env)
+        record = json.loads((self.tmp / "results" / "runs" / "wip1-b3r1-rep1" / "run.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(checkouts), 1, f"an oracle started after an uncontained one: {checkouts}")
+        self.assertEqual((record["status"], record["stop_reason"]), ("stopped", "orphan-alive"), p.stdout + p.stderr)
+        self.assertEqual(record["merges"], [], "a merge gate ran after an uncontained oracle")
+        self.assertFalse(trip_log.exists())
+
+
+class TestRecoveryReadsTheGateJournal(Tmp):
+    """(b) Recovery and the check before a run read only the markers in the spend ledger. A runner
+    that died after an uncontained gate, before gate_tags() copied the gate's markers into the
+    ledger, left gate-tags.txt unread, and the next run started beside the surviving child. The
+    gate journal is synced before each step starts and read on its own, whatever the ledger holds."""
+
+    def test_a_gate_marker_the_ledger_never_got_is_swept_before_the_next_run(self):
+        env, _trip = tripwired_env(self.tmp)
+        results, sandbox, tag = self.tmp / "results", self.tmp / "sandbox", os.urandom(16).hex()
+        (results / "runs" / "wip1-b1r1-rep1").mkdir(parents=True)  # lost: no run.json
+        sandbox.mkdir()
+        wip.Budget(results).start_run("wip1-b1r1-rep1", sandbox, "inert", "c" * 32)
+        (sandbox / "gate-tags.txt").write_text(f"{tag}\nUNCONTAINED {sandbox / 'kept'}\n", encoding="utf-8")
+        child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"],
+                                 env={**os.environ, wip.contain.CALL_MARKER: tag}, start_new_session=True,
+                                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.addCleanup(lambda: child.poll() is None and (child.kill(), child.wait()))
+        deadline = time.monotonic() + 3
+        while child.pid not in wip.contain.call_processes(wip.contain.process_table(), tag=tag) \
+                and time.monotonic() < deadline:
+            time.sleep(0.02)
+        p = runner("run", "--results", str(results), "--workdir", str(self.tmp / "wd"), "--runs",
+                   "wip1-b1r1-rep1-a3", "--cost-cap-usd", "0", env=env)
+        self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+        self.assertIn("one re-run", p.stderr)  # refused after the check, for its own reason
+        self.assertIsNotNone(child.wait(timeout=10), "the gate's surviving child outlived the check")
+
+    def test_a_marker_the_check_cannot_vouch_for_refuses_the_run(self):
+        env, _trip = tripwired_env(self.tmp)
+        results, sandbox, tag = self.tmp / "results", self.tmp / "sandbox", os.urandom(16).hex()
+        sandbox.mkdir()
+        wip.Budget(results).start_run("wip1-b1r1-rep1", sandbox, "inert", "c" * 32)
+        (sandbox / "gate-tags.txt").write_text(f"{tag}\n", encoding="utf-8")
+        real = wip.contain.sweep
+
+        def sweep(*a, **kw):
+            return False if kw.get("tag") == tag else real(*a, **kw)
+        with mock.patch.object(wip.contain, "sweep", sweep):
+            p = runner("run", "--results", str(results), "--workdir", str(self.tmp / "wd"), "--next", "1",
+                       "--cost-cap-usd", "0", env=env)
+        self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+        self.assertIn("ORPHAN_ALIVE", p.stderr)
+        self.assertFalse((self.tmp / "wd").exists(), "a run started beside a gate marker nothing vouched for")
+
+    def test_each_gate_marker_is_synced_before_its_step_starts(self):
+        tags_file, landing = self.tmp / "gate-tags.txt", self.tmp / "landing.json"
+        landing.write_text("{}", encoding="utf-8")
+        (self.tmp / "checkout").mkdir()
+        synced, on_disk = [], []
+        real_fsync = os.fsync
+
+        def fsync(fd):
+            synced.append(fd)
+            return real_fsync(fd)
+
+        def contained_run(argv, **kw):
+            on_disk.append((kw["tag"], len(synced), tags_file.read_text(encoding="utf-8")))
+            Path(kw["stdout_path"]).write_text("", encoding="utf-8")
+            return 0, False, True
+        cwd = os.getcwd()
+        try:
+            os.chdir(self.tmp / "checkout")
+            with mock.patch.object(wip.contain, "contained_run", contained_run), \
+                    mock.patch.object(wip.os, "fsync", fsync), contextlib.redirect_stdout(io.StringIO()):
+                wip.cmd_gate(argparse.Namespace(taskset=str(TASKSET), landing=str(landing), tags_file=str(tags_file)))
+        finally:
+            os.chdir(cwd)
+        self.assertTrue(on_disk)
+        for tag, syncs, text in on_disk:
+            self.assertIn(tag, text.splitlines())
+            self.assertGreaterEqual(syncs, 1, "a gate marker was not synced before its step started")
+
+
+class TestABindingRerunKeepsItsMarkersAndItsFiles(DryRun):
+    """(c) The report's binding re-run of an oracle ran worker-written code with no marker recorder,
+    and under a TemporaryDirectory: failed containment raised without a final sweep or a durable
+    record, the directory the error named was deleted on the way out, and no later run check could
+    see what survived. Each step's marker is now journaled (and synced) before it starts, in a
+    directory of the re-run's own under KEPT_ROOT; a failure sweeps every marker once more and keeps
+    the directory; and every run check sweeps a journal no sweep ever vouched for."""
+
+    RUN, ARGS = B1_BOUNDARY
+
+    def uncontained_report(self, vouch):
+        results, real, real_sweep = self.copy(), wip.contain.contained_run, wip.contain.sweep
+        tags, swept, journaled = [], [], []
+
+        def contained_run(argv, **kw):  # the binding re-run of the closed head's oracle cannot be contained
+            if "rerun-" not in str(kw.get("cwd")):
+                return real(argv, **kw)
+            tags.append(kw["tag"])
+            journaled.append(any(kw["tag"] in j.read_text(encoding="utf-8").splitlines()
+                                 for j in Path(wip.KEPT_ROOT).glob("*/*") if j.is_file()))
+            Path(kw["stdout_path"]).write_text("", encoding="utf-8")
+            return 0, False, False
+
+        def sweep(*a, **kw):
+            swept.append(kw.get("tag"))
+            return vouch if kw.get("tag") in tags else real_sweep(*a, **kw)
+        with mock.patch.object(wip.contain, "contained_run", contained_run), \
+                mock.patch.object(wip.contain, "sweep", sweep), \
+                self.assertRaisesRegex(wip.SourceError, "could not be contained") as raised:
+            wip.build_report(results, basis="all")
+        kept = Path(re.search(r"kept at (\S+?):", str(raised.exception)).group(1))
+        return kept, tags, swept, journaled, sweep
+
+    def test_its_markers_are_journaled_swept_and_its_files_kept(self):
+        kept, tags, swept, journaled, _sweep = self.uncontained_report(vouch=True)
+        self.assertTrue(tags)
+        self.assertEqual(journaled, [True] * len(tags), "a re-run step started before its marker was on disk")
+        for tag in tags:
+            self.assertIn(tag, swept, "no sweep followed the re-run's failed containment")
+        self.assertTrue(kept.is_dir(), f"the directory the error names is gone: {kept}")
+        self.assertTrue(any(p.name.startswith("oracle-") for p in kept.iterdir()), list(kept.iterdir()))
+
+    def test_a_marker_no_sweep_vouched_for_blocks_every_later_run(self):
+        kept, tags, _swept, _journaled, sweep = self.uncontained_report(vouch=False)
+        work = Path(tempfile.mkdtemp(prefix="wip-curve-after-rerun-"))
+        self.addCleanup(shutil.rmtree, work, True)
+        with mock.patch.object(wip.contain, "sweep", sweep):
+            p = runner("run", "--results", str(work / "results"), "--workdir", str(work / "wd"), "--runs",
+                       "wip1-b1r1-rep1-a3", "--cost-cap-usd", "0", env=self.env)
+        self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+        self.assertIn("ORPHAN_ALIVE", p.stderr)
+        self.assertIn(str(kept), p.stderr)
+        # once a sweep vouches (the survivor is gone), the check lets the next run through
+        p = runner("run", "--results", str(work / "results"), "--workdir", str(work / "wd"), "--runs",
+                   "wip1-b1r1-rep1-a3", "--cost-cap-usd", "0", env=self.env)
+        self.assertIn("one re-run", p.stderr)
 
 
 if __name__ == "__main__":

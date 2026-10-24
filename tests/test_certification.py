@@ -62,12 +62,12 @@ def _load(name: str, path: Path):
 certification = _load("certification_under_test", SCRIPTS / "certification.py")
 first_run = _load("first_run_under_test", SCRIPTS / "first_run.py")
 TABLES = _load("fixture_containment_tables", ROOT / "tests" / "fixtures" / "containment_tables.py")  # PR #668
-# The live tier's refusal (PR #668: disabled until the container-based live harness lands). The live
+# The live tier's refusal (PR #668: disabled outside the container-based live harness). The live
 # first-run tests drive the live machinery, so setUpModule lifts it in this process, the Python-level
 # seam the host probe uses; TestTheLiveTierIsDisabled puts the real one back, and runs the CLI as its
 # own process too.
 REAL_LIVE_GATE = first_run.containment.live_disabled
-DISABLED = "live runs are disabled until the container-based live harness lands"
+DISABLED = "live runs are disabled outside the container-based live harness"
 SEAMS: dict = {}
 
 
@@ -758,9 +758,9 @@ class TestALiveFirstRunNeedsProvenContainment(Tripwired):
 
 
 class TestTheLiveTierIsDisabled(Tripwired):
-    """PR #668, the owner's decision: `first_run.py --worker live` is refused on every host, exit 2,
-    before anything is read, created or launched, until the container-based live harness lands.
-    The inert worker, which spends nothing, is untouched."""
+    """PR #668, the owner's decision: `first_run.py --worker live` is refused on every host but the
+    live harness's container (scripts/live_container.py), exit 2, before anything is read, created
+    or launched. The inert worker, which spends nothing, is untouched."""
 
     def test_a_live_first_run_is_refused_before_anything_is_created(self):
         err, wd = io.StringIO(), self.tmp / "fr"

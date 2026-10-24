@@ -51,11 +51,11 @@ SAFETY = {}
 # The host probe, as the replay's spend guard has it. setUpModule injects a proven host in its place
 # (Python-level, never an environment variable or flag); the refusal tests put the real one back.
 REAL_PROBE, REAL_TABLE = replay_mod.spend.containment_problem, replay_mod.spend.process_table
-# The live tier's refusal (PR #668: disabled until the container-based live harness lands). These
+# The live tier's refusal (PR #668: disabled outside the container-based live harness). These
 # tests drive the live machinery, so setUpModule lifts it in this process the same Python-level
 # way; TheLiveTierIsDisabled puts the real one back, and runs the CLI as its own process too.
 REAL_LIVE_GATE = replay_mod.spend.live_disabled
-DISABLED = "live runs are disabled until the container-based live harness lands"
+DISABLED = "live runs are disabled outside the container-based live harness"
 
 def _fixture(name):
     spec = importlib.util.spec_from_file_location(f"fixture_{name}", ROOT / "tests" / "fixtures" / f"{name}.py")
@@ -298,9 +298,9 @@ class ALiveRunNeedsAnExplicitCapAndPerCallLimit(StandInRun):
 
 
 class TheLiveTierIsDisabled(StandInRun):
-    """PR #668, the owner's decision: `hint_replay.py --live --tier live` is refused on every host,
-    exit 2, before the corpus is read or anything reserved, until the container-based live harness
-    lands. The stub tier, which spends nothing, is untouched."""
+    """PR #668, the owner's decision: `hint_replay.py --live --tier live` is refused on every host
+    but the live harness's container (scripts/live_container.py), exit 2, before the corpus is read
+    or anything reserved. The stub tier, which spends nothing, is untouched."""
 
     def test_a_live_run_is_refused_before_the_corpus_is_read(self):
         argv = self.live() + ["--corpus", str(self.tmp / "no-such-corpus.json")]

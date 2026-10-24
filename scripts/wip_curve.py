@@ -31,9 +31,9 @@ Two kinds of worker, ONE code path (first_run.py's pattern, #596):
       PATH, behind tripwires for every other harness name, with a private HOME. It applies each
       task's reference edit (or a scripted miss) and answers reviews; it calls no model and spends
       nothing. Its runs are labelled fixture-tested and are never protocol-compliant.
-  --worker live    DISABLED (PR #668): refused, before anything is read or reserved, until the
-      container-based live harness lands (runtime/scripts/containment.py). The machinery stays:
-      the operator's real harness, refused without an explicit --cost-cap-usd above zero and a
+  --worker live    only inside the container-based live harness (PR #668; scripts/live_container.py):
+      anywhere else refused, before anything is read or reserved (runtime/scripts/containment.py).
+      The operator's real harness, refused without an explicit --cost-cap-usd above zero and a
       --model pin, its runs labelled live-unreviewed until a maintainer binds them.
 
 Exit: 0 ok · 1 incomplete, mismatch or refused check · 2 usage or refused start · 3 fail-closed (a
@@ -759,6 +759,74 @@ def run_oracle(checkout: Path, tasks: list[dict], taskset: dict, workdir: Path, 
         shutil.rmtree(oracle_dir, ignore_errors=True)  # an uncontained one is kept, to investigate
     return {"exit": exit_code, "steps": steps, "tail": tail, "tasks": [t["id"] for t in tasks], "contained": vouched,
             "call_tags": tags, "kept": None if vouched else str(oracle_dir)}
+
+
+# A report's binding re-run of an oracle runs worker-written code on the reader's host. It writes
+# nothing into --results (a read never does), so its markers are journaled in a directory of its
+# own under KEPT_ROOT (None: the host's temp directory), which every run check reads (Codex P1 (c)
+# at 9db89fbe3c). Temporary storage is durable enough: it lasts as long as a process it names can.
+KEPT_ROOT = None
+RERUN_PREFIX = "wip-curve-rerun-"
+RERUN_JOURNAL = "markers.txt"
+SWEPT = "SWEPT "  # the journal's last word once a sweep vouched for every marker in it
+
+
+def rerun_oracle(repo: Path, head: str, task: dict, taskset: dict, what: str) -> dict:
+    """The report's binding re-run of one task's oracle at `head`, from the retained bundle `repo`.
+
+    Each step's marker is appended to the journal and synced before the step starts, under an
+    exclusive lock held for the whole re-run (a run check leaves a re-run in progress to its own
+    sweeps). Contained: the directory is removed. Not contained: every marker is swept once more,
+    `SWEPT` is journaled only if that vouched, the directory is KEPT with the checkout and the
+    oracle's files, and SourceError names it. A journal no sweep vouched for blocks every run."""
+    keep = Path(tempfile.mkdtemp(prefix=RERUN_PREFIX, dir=KEPT_ROOT))
+    fd = os.open(keep / RERUN_JOURNAL, os.O_RDWR | os.O_CREAT | os.O_APPEND | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, "a", encoding="utf-8") as journal:
+        fcntl.flock(journal.fileno(), fcntl.LOCK_EX)
+
+        def record(line):
+            journal.write(line + "\n")
+            journal.flush()
+            os.fsync(journal.fileno())
+        work = keep / f"rerun-{task['id']}-{head[:8]}"
+        extract_tree(repo, head, work)
+        result = run_oracle(work, [task], taskset, keep, on_tag=record)
+        if result["contained"]:
+            shutil.rmtree(keep, ignore_errors=True)
+            return result
+        vouched = sweep_tags(result["call_tags"])
+        if vouched:
+            record(SWEPT + now())
+    raise SourceError(f"{what}: the oracle's re-run at that head could not be contained; its files and its "
+                      f"marker journal are kept at {keep}: inspect them before reading this run"
+                      + ("" if vouched else f"; no sweep vouched for its {contain.CALL_MARKER} markers since, so "
+                         "no run starts until one does"))
+
+
+def unswept_reruns() -> list[tuple[Path, list[str]]]:
+    """[(directory, markers)] of every report re-run under KEPT_ROOT, this user's own, whose journal
+    no sweep vouched for: what a run check must sweep before anything starts. A re-run in progress
+    (its journal locked) is its own process's to sweep and is left alone."""
+    found = []
+    for d in sorted(Path(KEPT_ROOT or tempfile.gettempdir()).glob(RERUN_PREFIX + "*")):
+        try:
+            if d.is_symlink() or not d.is_dir() or d.lstat().st_uid != os.getuid():
+                continue  # a link, a file, or another user's: never this user's re-run
+            fd = os.open(d / RERUN_JOURNAL, os.O_RDONLY | os.O_NOFOLLOW)
+        except FileNotFoundError:
+            continue  # gone, or a re-run that never journaled a step
+        except OSError as err:
+            raise Refused(f"ORPHAN_ALIVE: a report re-run's journal in {d} cannot be read ({err}): nothing "
+                          "starts until it is inspected") from err
+        with os.fdopen(fd, encoding="utf-8") as journal:
+            try:
+                fcntl.flock(journal.fileno(), fcntl.LOCK_SH | fcntl.LOCK_NB)
+            except BlockingIOError:
+                continue  # a report is re-running it now
+            lines = journal.read().splitlines()
+        if lines and not lines[-1].startswith(SWEPT):
+            found.append((d, [ln for ln in lines if ln and not ln.startswith(SWEPT)]))
+    return found
 
 
 def extract_tree(git_dir: Path, rev: str, dest: Path, env: dict | None = None) -> None:
@@ -1514,8 +1582,10 @@ class Run:
         self.remaining()  # a wave cut short by the deadline halts the run
         # Done units board the merge queue in worker_done order.
         done.sort(key=lambda tid: (attempts[tid]["done_at"] or "", tid))
+        # Once a process of the run could not be contained, no further oracle starts (Codex P1 (a)
+        # at 9db89fbe3c: the next unit's oracle ran beside the first one's survivor).
         passed = [tid for tid in done if attempts[tid]["outcome"] is None and self.remaining() > 0
-                  and self.oracle(tid, attempts[tid])]
+                  and self.halt != "orphan-alive" and self.oracle(tid, attempts[tid])]
         if self.remaining() > 0:
             self.merge(passed, attempts)
         for tid in planned:  # a halt leaves what it interrupted parked with its reason, never pending
@@ -1596,12 +1666,13 @@ class Run:
     def gate_tags(self):
         """The merge gate's oracle markers: the gate runs in the merge queue's process and appends
         each before its call starts."""
-        path = self.sb.dir / "gate-tags.txt"
-        lines = path.read_text(encoding="utf-8").splitlines() if path.is_file() else []
-        tags = [ln for ln in lines if ln and not ln.startswith("UNCONTAINED")]
+        try:
+            tags, uncontained = gate_journal(self.sb.dir)
+        except Refused:  # unreadable: nothing it names is vouched for
+            tags, uncontained = [], ["UNCONTAINED (the gate journal cannot be read)"]
         if tags:
             self.budget.note(f"{self.rid}/run", gate_tags=tags)
-        if any(ln.startswith("UNCONTAINED") for ln in lines):  # a gate's oracle could not be contained
+        if uncontained:  # a gate's oracle could not be contained
             self.halt = self.halt or "orphan-alive"
         return tags
 
@@ -1779,8 +1850,11 @@ class Run:
 
     def merge(self, passed, attempts):
         """Board each verified, approved unit on the merge queue (git lane) and drain it behind the
-        gate. A conflict or a failed gate is resolved `bounce`: the unit goes back to a builder."""
-        if not passed:
+        gate. A conflict or a failed gate is resolved `bounce`: the unit goes back to a builder.
+        A gate whose oracle could not be contained is no ordinary failure: the gate journal is read
+        right after every drain, and the run stops there, before any bounce or retry could start
+        another oracle beside the survivor (Codex P1 (a) at 9db89fbe3c)."""
+        if not passed or self.halt == "orphan-alive":  # after failed containment no gate starts
             return
         landing = {}
         for t, unit in self.units.items():
@@ -1820,6 +1894,13 @@ class Run:
                 if "ack" in step and step["ack"].get("landed"):
                     entry = step["ack"]["entry"]
                     self.merges.append({"entry": entry, "result": "landed", "merge_sha": step["ack"]["mergeSha"]})
+            self.gate_tags()  # right after the drain: an uncontained gate oracle halts the run here
+            if self.halt == "orphan-alive":
+                if rc != 0 and out.get("code") == "queue_frozen":
+                    tid = by_unit.get((out.get("data") or {}).get("unit"))
+                    self.merges.append({"entry": out["data"].get("entry"), "result": "gate-uncontained", "task": tid,
+                                        "head": attempts[tid]["head"] if tid else None})
+                break  # no bounce, no retry: nothing more starts beside what survived
             if rc == 0:
                 break
             if out.get("code") != "queue_frozen":
@@ -1849,7 +1930,7 @@ class Run:
         else:
             raise RunFailed("the merge queue did not drain")
         _, status = self.mq("status", "--base", self.integration)
-        self.gate_tags()  # an uncontained gate oracle halts the run now, not at teardown (C-d)
+        self.gate_tags()  # a drain the deadline cut short is read too (C-d)
         landed_head = self.integration_head()
         for entry in status.get("all", []):
             tid = by_unit.get(entry.get("unit"))
@@ -1866,6 +1947,8 @@ class Run:
                 self.emit("unit.closed", source_ref=f"merge-queue:{entry['entry_id']}",
                           task=self.units[tid]["store_task"],
                           data={"head_sha": a["head"], "head_wtree": a["tree"]})
+            elif self.halt == "orphan-alive" and entry["state"] != "bounced":  # a bounce was an ordinary failure
+                a["outcome"] = "stopped-orphan-alive"  # its gate, or one before it, could not be contained
             elif not entry.get("reason") and self.remaining() <= 0:
                 a["outcome"] = "stopped-time-limit"  # never drained: the deadline came first, not a failure
             else:
@@ -2143,6 +2226,33 @@ def run_tags(start: dict) -> list[str]:
     return [t for t in [start.get("call_tag"), *(start.get("oracle_tags") or []), *(start.get("gate_tags") or [])] if t]
 
 
+def gate_journal(sandbox: Path):
+    """(markers, UNCONTAINED lines) of the merge gate's journal in a run's sandbox, gate-tags.txt:
+    the gate appends and syncs each oracle marker before its step starts. ([], []) when there is
+    none; Refused when it cannot be read, since then nothing it names can be vouched for."""
+    path = Path(sandbox) / "gate-tags.txt"
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return [], []
+    except (OSError, UnicodeDecodeError) as err:
+        raise Refused(f"ORPHAN_ALIVE: the merge gate's journal {path} cannot be read ({err}): what its "
+                      "oracles left cannot be vouched for, so nothing starts until it is inspected") from err
+    return ([ln for ln in lines if ln and not ln.startswith("UNCONTAINED")],
+            [ln for ln in lines if ln.startswith("UNCONTAINED")])
+
+
+def journal_tags(start: dict) -> list[str]:
+    """run_tags(start) and every marker in its sandbox's gate journal, read on its own: a runner
+    killed between a gate and gate_tags() never copied the gate's markers into the ledger (Codex
+    P1 (b) at 9db89fbe3c), so recovery and the check before a run must not rely on the ledger."""
+    tags = run_tags(start)
+    sandbox = start.get("sandbox")
+    if sandbox and Path(sandbox).is_dir():  # a sandbox removed after a verified teardown has none
+        tags += [t for t in gate_journal(Path(sandbox))[0] if t not in tags]
+    return tags
+
+
 def sweep_tags(tags) -> bool:
     """Sweep every marker (each one, even after one fails): True only when every sweep vouched."""
     return all([contain.sweep(tag=t) for t in tags])
@@ -2166,7 +2276,7 @@ def recover(results: Path, registered=()) -> list[str]:
             continue
         sandbox = sandboxes.get(run)
         db = sandbox / "state" / "runtime.db" if sandbox else None
-        tags = run_tags(calls.get(f"{run}/run") or {})
+        tags = journal_tags(calls.get(f"{run}/run") or {})
         if sandbox and (sandbox / "target").is_dir():  # its own store and scrubbed env, setsid, SHELL=/bin/sh
             if sandbox.is_symlink():  # the runner never made one; Sandbox() would create through it
                 raise Refused(f"the ledger names {sandbox} as lost run {run}'s sandbox, and it is a symbolic "
@@ -2370,13 +2480,8 @@ def bind_outcomes(bound: Bound, derived: dict, raw_events: list, prereg: dict, t
                         problems.append(f"{what}: {rel} does not record a pass of {tid} at that head")
                 if not passing:
                     problems.append(f"{what}: no passing oracle verdict at that head")
-                if tid in tasks:
-                    work = Path(tmp) / f"rerun-{tid}-{head[:8]}"
-                    extract_tree(repo, head, work)
-                    rerun = run_oracle(work, [tasks[tid]], taskset, Path(tmp))
-                    if not rerun["contained"]:  # worker code a reader re-ran: no result is accepted from it
-                        raise SourceError(f"{what}: the oracle's re-run at that head could not be contained; its "
-                                          f"files are kept at {rerun['kept']}: inspect them before reading this run")
+                if tid in tasks:  # worker code a reader re-runs: an uncontained re-run raises, never a result
+                    rerun = rerun_oracle(repo, head, tasks[tid], taskset, what)
                     if rerun["exit"] != 0:
                         problems.append(f"{what}: the oracle does not pass again at that head")
         for e in raw_events:
@@ -3119,9 +3224,14 @@ def _run_locked(args, prereg, taskset, path, prereg_sha, taskset_path, results, 
     # swept again first (Codex review of PR #668, B1; #606's ORPHAN_ALIVE).
     for start in sorted((v for v in Budget(results).calls().values()
                          if v.get("state") == "run" and v.get("call_tag")), key=lambda v: v["run"]):
-        if not sweep_tags(run_tags(start)):
+        if not sweep_tags(journal_tags(start)):
             raise Refused(f"ORPHAN_ALIVE: a process of {start['run']} survives, or the process table cannot be "
                           "read: nothing starts until it is gone (inspect its sandbox and the ledger)")
+    for kept, tags in unswept_reruns():  # a report's re-run of worker code no sweep vouched for (c)
+        if not sweep_tags(tags):
+            raise Refused(f"ORPHAN_ALIVE: a report's re-run of worker code at {kept} could not be contained, and "
+                          f"a process carrying one of the markers in its {RERUN_JOURNAL} survives, or the process "
+                          "table cannot be read: nothing starts until it is gone (inspect that directory)")
     if args.workdir:
         check_writable(args.workdir, "--workdir", registered)
     sched = {e["run_id"]: e for e in schedule(prereg, taskset)}
@@ -3323,10 +3433,12 @@ def cmd_gate(args) -> int:
     cwd = Path.cwd()
     included = [tasks[t] for t, heads in sorted(landing.items()) if t in tasks and any(
         git(cwd, "merge-base", "--is-ancestor", h, "HEAD", check=False).returncode == 0 for h in heads)]
-    def record(tag):  # appended and flushed before the step starts: the runner sweeps it (C-d)
-        if args.tags_file:
+    def record(tag):  # appended and synced before the step starts: the runner sweeps it (C-d), and
+        if args.tags_file:  # so does every later run check, read from here (Codex P1 (b) at 9db89fbe3c)
             with open(args.tags_file, "a", encoding="utf-8") as fh:
                 fh.write(tag + "\n")
+                fh.flush()
+                os.fsync(fh.fileno())
     tmp = Path(tempfile.mkdtemp(prefix="wip-curve-gate-"))
     result = run_oracle(cwd, included, taskset, tmp, on_tag=record)
     if result["contained"]:
@@ -3353,7 +3465,7 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--cost-cap-usd", default=None, dest="cost_cap_usd",
                    help="REQUIRED: the spend cap the owner authorised, across every run in --results")
     r.add_argument("--worker", choices=("inert", "live"), default="inert",
-                   help="live is disabled until the container-based live harness lands (PR #668)")
+                   help="live runs only inside the container-based live harness (PR #668)")
     r.add_argument("--agent", default="claude")
     r.add_argument("--model", default=None, help="the model pin (required for --worker live)")
     pick = r.add_mutually_exclusive_group()

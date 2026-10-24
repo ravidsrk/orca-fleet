@@ -23,8 +23,8 @@ Tiers, and what each may run
             lines. No model is called. A result here proves the pipeline, never the catalog.
     stub    the operator's own deterministic command (`--harness-cmd`), still behind the
             tripwires, graded by the inert stand-in. Never a model, by declaration.
-    live    DISABLED (PR #668): refused, before the registration is read, until the
-            container-based live harness lands (containment.py). The machinery stays: the
+    live    only inside the container-based live harness (PR #668; live_container.py):
+            anywhere else refused, before the registration is read (containment.py). The
             operator's real harness and grader, refused unless the registration records an
             AUTHORISED cap, `--cost-cap-usd` is explicit and within it, the registered payloads
             are current, nothing is filtered, and every variant passed the obligation check.
@@ -457,8 +457,8 @@ def containment_problem(system_binary=True):
 
 
 def live_disabled():
-    """containment.live_disabled: the paid live tier is disabled until the container-based live
-    harness lands (PR #668). Every live entry point that loads this module (ablation.py run, the
+    """containment.live_disabled: the paid live tier runs only inside the container-based live
+    harness (PR #668). Every live entry point that loads this module (ablation.py run, the
     WIP-curve runner, hint replay, the trajectory live arm) asks here first, before anything is read
     or reserved; a test of the live machinery replaces it in its own process, as it does the probe."""
     return containment.live_disabled()
